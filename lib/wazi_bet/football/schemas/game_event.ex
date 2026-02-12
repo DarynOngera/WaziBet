@@ -1,4 +1,4 @@
-defmodule   WaziBet.Football.GameEvent do
+defmodule WaziBet.Football.GameEvent do
   use Ecto.Schema
   import Ecto.Changeset
 

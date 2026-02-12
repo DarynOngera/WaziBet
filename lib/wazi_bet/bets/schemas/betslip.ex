@@ -1,9 +1,9 @@
-defmodule WaziBet.Bets.Betslip do 
-  use Ecto.Schema 
+defmodule WaziBet.Bets.Betslip do
+  use Ecto.Schema
   import Ecto.Changeset
 
-  alias WaziBet.Accounts.User 
-  alias WaziBet.Bets.BetslipSelection 
+  alias WaziBet.Accounts.User
+  alias WaziBet.Bets.BetslipSelection
 
   @status [:pending, :won, :lost, :void, :cashed_out]
 
@@ -11,9 +11,9 @@ defmodule WaziBet.Bets.Betslip do
     field :stake, :decimal
     field :total_odds, :decimal
     field :potential_payout, :decimal
-    field :status, Ecto.Enum, values: @status, default: :pending 
+    field :status, Ecto.Enum, values: @status, default: :pending
 
-    belongs_to :user, User 
+    belongs_to :user, User
     has_many :selections, BetslipSelection
 
     timestamps()
@@ -49,5 +49,5 @@ defmodule WaziBet.Bets.Betslip do
     changeset
     |> validate_number(:potential_payout, greater_than: 0)
     |> check_constraint(:potential_payout, name: :potential_payout_positive)
-  end 
+  end
 end

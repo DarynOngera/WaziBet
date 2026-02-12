@@ -28,7 +28,8 @@ defmodule WaziBet.Bets.BetslipSelection do
     |> foreign_key_constraint(:game_id)
     |> unique_constraint([:betslip_id, :outcome_id],
       name: :betslip_selections_betslip_id_outcome_id_index,
-      message: "already exists in this betslip")
+      message: "already exists in this betslip"
+    )
   end
 
   def status_changeset(selection, status) when status in @status do

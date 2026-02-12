@@ -27,7 +27,8 @@ defmodule WaziBet.Bets.Market do
     |> foreign_key_constraint(:game_id)
     |> unique_constraint([:game_id, :type],
       name: :markets_game_id_type_index,
-      message: "already exists for this game")
+      message: "already exists for this game"
+    )
   end
 
   def status_changeset(market, status) when status in @status do

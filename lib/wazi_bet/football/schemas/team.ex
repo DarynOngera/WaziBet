@@ -25,17 +25,19 @@ defmodule WaziBet.Football.Team do
     |> validate_rating(:attack_rating)
     |> validate_rating(:defense_rating)
     |> foreign_key_constraint(:league_id)
-    |> unique_constraint([:league_id, :name], 
+    |> unique_constraint([:league_id, :name],
       name: :teams_league_id_name_index,
-      message: "already exists in this league")
+      message: "already exists in this league"
+    )
     |> check_constraint(:attack_rating, name: :attack_rating_range)
     |> check_constraint(:defense_rating, name: :defense_rating_range)
   end
 
   defp validate_rating(changeset, field) do
     changeset
-    |> validate_number(field, 
-      greater_than_or_equal_to: 0, 
-      less_than_or_equal_to: 100)
+    |> validate_number(field,
+      greater_than_or_equal_to: 0,
+      less_than_or_equal_to: 100
+    )
   end
 end
