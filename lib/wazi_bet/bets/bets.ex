@@ -1,7 +1,4 @@
 defmodule WaziBet.Bets do
-  @moduledoc """
-  Betting markets, outcomes, betslips.
-  """
 
   import Ecto.Query
 
