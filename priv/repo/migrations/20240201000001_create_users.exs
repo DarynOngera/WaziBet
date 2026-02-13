@@ -6,6 +6,7 @@ defmodule WaziBet.Repo.Migrations.CreateUsers do
       add :email, :string, null: false
       add :balance, :decimal, precision: 20, scale: 2, default: 0
       add :role, :string, null: false, default: "player"
+      add :hashed_password, :string, null: false
 
       timestamps()
     end

@@ -10,6 +10,7 @@ defmodule WaziBet.Accounts.User do
     field :email, :string
     field :balance, :decimal, default: Decimal.new("0.00")
     field :role, Ecto.Enum, values: @roles, default: :player
+    field :hashed_password, :string
 
     has_many :betslips, Betslip
 
@@ -18,7 +19,7 @@ defmodule WaziBet.Accounts.User do
 
   def registration_changeset(user, attrs) do
     user
-    |> cast(attrs, [:email, :balance, :role])
+    |> cast(attrs, [:email, :balance, :role, :hashed_password])
     |> validate_required([:email])
     |> validate_email()
     |> validate_balance()
