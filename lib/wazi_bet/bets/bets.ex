@@ -1,9 +1,12 @@
 defmodule WaziBet.Bets do
+  @moduledoc """
+  Betting markets, outcomes, betslips.
+  """
 
   import Ecto.Query
 
   alias WaziBet.Accounts.User
-  alias WaziBet.Bets.{Market, Outcome, Betslip, BetslipSelection}
+  alias WaziBet.Bets.{Market, Outcome, Betslip, BetslipSelection, OddsCalculator}
   alias WaziBet.Repo
   alias Ecto.Multi
 
@@ -60,7 +63,7 @@ defmodule WaziBet.Bets do
 
     Enum.zip(labels, probabilities)
     |> Enum.map(fn {label, probability} ->
-      odds = Decimal.from_float(1.0 / probability)
+      odds = OddsCalculator.probability_to_odds(probability)
 
       %Outcome{}
       |> Outcome.changeset(%{
@@ -187,12 +190,10 @@ defmodule WaziBet.Bets do
   # Utilities
 
   def calculate_accumulator_odds(selections) do
-    Enum.reduce(selections, Decimal.new(1), fn sel, acc ->
-      Decimal.mult(acc, sel.odds)
-    end)
+    OddsCalculator.accumulator_odds(selections)
   end
 
   def calculate_potential_payout(stake, total_odds) do
-    Decimal.mult(stake, total_odds)
+    OddsCalculator.payout(stake, total_odds)
   end
 end
