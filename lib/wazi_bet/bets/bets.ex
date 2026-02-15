@@ -26,6 +26,14 @@ defmodule WaziBet.Bets do
     Repo.get_by(Market, game_id: game_id, type: type)
   end
 
+  def get_market_with_outcomes!(game_id) do
+    Repo.one(
+      from m in Market,
+        where: m.game_id == ^game_id,
+        preload: :outcomes
+    )
+  end
+
   def close_market(market) do
     market
     |> Market.status_changeset(:closed)
