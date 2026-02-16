@@ -15,11 +15,9 @@ defmodule WaziBet.Simulation.GameSupervisor do
   Starts a new GameServer for the given game.
   """
   def start_game(game) do
-    # Check if game already exists in Registry and terminate it
     case Registry.lookup(WaziBet.GameRegistry, game.id) do
       [{pid, _}] ->
         DynamicSupervisor.terminate_child(__MODULE__, pid)
-        # Brief wait for cleanup
         :timer.sleep(100)
 
       [] ->
@@ -35,16 +33,10 @@ defmodule WaziBet.Simulation.GameSupervisor do
     DynamicSupervisor.start_child(__MODULE__, spec)
   end
 
-  @doc """
-  Stops a GameServer process.
-  """
   def stop_game(game_pid) when is_pid(game_pid) do
     DynamicSupervisor.terminate_child(__MODULE__, game_pid)
   end
 
-  @doc """
-  Lists all running GameServer processes.
-  """
   def running_games do
     DynamicSupervisor.which_children(__MODULE__)
     |> Enum.map(fn {_, pid, _, _} -> pid end)
