@@ -12,9 +12,10 @@ defmodule WaziBet.Application do
       WaziBet.Repo,
       {DNSCluster, query: Application.get_env(:wazi_bet, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: WaziBet.PubSub},
-      # Start a worker by calling: WaziBet.Worker.start_link(arg)
-      # {WaziBet.Worker, arg},
-      # Start to serve requests, typically the last entry
+      {Registry, keys: :unique, name: WaziBet.GameRegistry},
+      WaziBet.Simulation.GameSupervisor,
+      {Oban, Application.fetch_env!(:wazi_bet, Oban)},
+      WaziBet.SettlementSubscriber,
       WaziBetWeb.Endpoint
     ]
 
