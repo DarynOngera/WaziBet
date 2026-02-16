@@ -12,12 +12,23 @@ defmodule WaziBet.Simulation.GameSupervisor do
   end
 
   @doc """
-  Starts a new GameServer for the given game_id.
+  Starts a new GameServer for the given game.
   """
-  def start_game(game_id) do
+  def start_game(game) do
+    # Check if game already exists in Registry and terminate it
+    case Registry.lookup(WaziBet.GameRegistry, game.id) do
+      [{pid, _}] ->
+        DynamicSupervisor.terminate_child(__MODULE__, pid)
+        # Brief wait for cleanup
+        :timer.sleep(100)
+
+      [] ->
+        :ok
+    end
+
     spec = %{
       id: WaziBet.Simulation.GameServer,
-      start: {WaziBet.Simulation.GameServer, :start_link, [game_id]},
+      start: {WaziBet.Simulation.GameServer, :start_link, [game]},
       restart: :transient
     }
 
