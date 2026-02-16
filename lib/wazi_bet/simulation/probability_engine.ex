@@ -5,17 +5,18 @@ defmodule WaziBet.Simulation.ProbabilityEngine do
 
   alias WaziBet.Bets.OddsCalculator
 
-  @goal_probability_multiplier 0.04
+  @multiplier 0.15
 
   def determine_event(fair_odds) do
-    home_prob = OddsCalculator.odds_to_probability(fair_odds.home)
+    home_prob = OddsCalculator.odds_to_probability(fair_odds.home) 
+    # away_prob =  OddsCalculator.odds_to_probability(fair_odds.away)
     draw_prob = OddsCalculator.odds_to_probability(fair_odds.draw)
 
     rand = :rand.uniform()
 
     cond do
-      rand < home_prob * @goal_probability_multiplier -> :home_score
-      rand < (home_prob + draw_prob) * @goal_probability_multiplier -> :away_score
+      rand < home_prob * @multiplier -> :home_score
+      rand < (home_prob + draw_prob) * @multiplier -> :away_score
       true -> :none
     end
   end
