@@ -37,8 +37,11 @@ defmodule WaziBet.Simulation.GameServer do
         {:noreply, %{data | state: new_state}}
 
       {:finished, new_state} ->
-        broadcast(data.game_id, :finished)
-        {:noreply, %{data | state: new_state}}
+        broadcast(
+          data.game_id,
+          {:finished, %{home_score: new_state.home_score, away_score: new_state.away_score}}
+        )
+        {:stop, :normal, %{data | state: new_state}}
     end
   end
 
