@@ -14,6 +14,8 @@ defmodule WaziBet.Application do
       {Phoenix.PubSub, name: WaziBet.PubSub},
       {Registry, keys: :unique, name: WaziBet.GameRegistry},
       WaziBet.Simulation.GameSupervisor,
+      {Oban, Application.fetch_env!(:wazi_bet, Oban)},
+      WaziBet.SettlementSubscriber,
       WaziBetWeb.Endpoint
     ]
 
