@@ -3,7 +3,7 @@ defmodule WaziBet.Sport.Game do
   import Ecto.Changeset
 
   alias WaziBet.Sport.{SportsCategory, Team, GameEvent}
-  alias WaziBet.Bets.Market
+  alias WaziBet.Bets.Outcome
 
   @status [:scheduled, :live, :finished]
 
@@ -19,7 +19,7 @@ defmodule WaziBet.Sport.Game do
     belongs_to :away_team, Team
 
     has_many :events, GameEvent
-    has_many :markets, Market
+    has_many :outcomes, Outcome
 
     timestamps()
   end
