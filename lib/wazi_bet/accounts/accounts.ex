@@ -6,6 +6,8 @@ defmodule WaziBet.Accounts do
   import Ecto.Query
 
   alias WaziBet.Accounts.User
+  alias WaziBet.Accounts.Role
+  alias WaziBet.Accounts.Permission
   alias WaziBet.Repo
 
   def create_user(attrs) do
@@ -47,4 +49,54 @@ defmodule WaziBet.Accounts do
     from(u in User, where: u.id == ^user_id, lock: "FOR UPDATE")
     |> Repo.one()
   end
+
+  def get_role!(id), do: Repo.get!(Role, id)
+
+def create_role(attrs \\ %{}) do
+  %Role{}
+  |> Role.changeset(attrs)
+  |> Repo.insert()
+end
+
+def update_role(%Role{} = role, attrs) do
+  role
+  |> Role.changeset(attrs)
+  |> Repo.update()
+end
+
+def list_permissions do
+  Repo.all(Permission)
+end
+
+def get_permission!(id), do: Repo.get!(Permission, id)
+
+def create_permission(attrs \\ %{}) do
+  %Permission{}
+  |> Permission.changeset(attrs)
+  |> Repo.insert()
+end
+
+def update_permission(%Permission{} = permission, attrs) do
+  permission
+  |> Permission.changeset(attrs)
+  |> Repo.update()
+end
+
+
+def add_role_to_user(user, role) do
+  user
+  |> Repo.preload(:roles)
+  |> Ecto.Changeset.change()
+  |> Ecto.Changeset.put_assoc(:roles, [role | user.roles])
+  |> Repo.update()
+end
+
+def add_permission_to_role(role, permission) do
+  role
+  |> Repo.preload(:permissions)
+  |> Ecto.Changeset.change()
+  |> Ecto.Changeset.put_assoc(:permissions, [permission | role.permissions])
+  |> Repo.update()
+end
+
 end
