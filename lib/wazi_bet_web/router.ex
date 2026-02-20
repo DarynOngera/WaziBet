@@ -51,7 +51,7 @@ defmodule WaziBetWeb.Router do
   # Routes accessible only to guests (not logged in)
   scope "/", WaziBetWeb do
     pipe_through [:browser, :redirect_if_user_is_authenticated]
-  
+
     live_session :redirect_if_user_is_authenticated,
       on_mount: [
         {WaziBetWeb.UserAuth, :redirect_if_user_is_authenticated},
@@ -259,6 +259,8 @@ defmodule WaziBetWeb.Router do
         {WaziBetWeb.UserAuth, :require_authenticated},
         {WaziBetWeb.UserAuth, {:require_permission, "configure-games"}}
       ] do
+      live "/categories", CategoryLive.Index, :index
+      live "/teams", TeamLive.Index, :index
       live "/games", GameLive.Index, :index
       live "/games/new", GameLive.New, :new
       live "/games/:id", GameLive.Show, :show

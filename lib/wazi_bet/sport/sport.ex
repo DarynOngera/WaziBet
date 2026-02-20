@@ -2,6 +2,7 @@ defmodule WaziBet.Sport do
   import Ecto.Query
 
   alias WaziBet.Sport.{SportsCategory, Team, Game, GameEvent}
+  alias WaziBet.Bets.{Outcome, OddsCalculator}
   alias WaziBet.Repo
 
   # Categories
@@ -20,7 +21,15 @@ defmodule WaziBet.Sport do
     Repo.get!(SportsCategory, id)
   end
 
+  def delete_category(category) do
+    Repo.delete(category)
+  end
+
   # Teams
+
+  def list_teams do
+    Repo.all(Team) |> Repo.preload(:category)
+  end
 
   def list_teams(category_id) do
     Repo.all(from t in Team, where: t.category_id == ^category_id)
@@ -34,6 +43,10 @@ defmodule WaziBet.Sport do
 
   def get_team!(id) do
     Repo.get!(Team, id)
+  end
+
+  def delete_team(team) do
+    Repo.delete(team)
   end
 
   # Games
@@ -73,6 +86,52 @@ defmodule WaziBet.Sport do
     game
     |> Game.status_changeset(new_status)
     |> Repo.update()
+  end
+
+  def create_game_with_calculated_odds(attrs) do
+    # Get teams to calculate odds from ratings
+    home_team = get_team!(attrs.home_team_id)
+    away_team = get_team!(attrs.away_team_id)
+
+    # Calculate fair odds from team ratings
+    fair_odds =
+      OddsCalculator.calculate_fair_odds(
+        home_team.attack_rating,
+        home_team.defense_rating,
+        away_team.attack_rating,
+        away_team.defense_rating
+      )
+
+    # Apply bookmaker margin (e.g., 5%)
+    adjusted_odds = OddsCalculator.apply_margin(fair_odds, 0.05)
+
+    # Create the game
+    case create_game(attrs) do
+      {:ok, game} ->
+        # Create outcomes with calculated odds
+        labels = [:home, :draw, :away]
+
+        Enum.each(labels, fn label ->
+          odds = Map.get(adjusted_odds, label)
+          # Calculate probability from odds for storage
+          probability = OddsCalculator.odds_to_probability(odds)
+
+          %Outcome{}
+          |> Outcome.changeset(%{
+            game_id: game.id,
+            label: label,
+            odds: odds,
+            probability: probability,
+            status: :open
+          })
+          |> Repo.insert()
+        end)
+
+        {:ok, game}
+
+      {:error, changeset} ->
+        {:error, changeset}
+    end
   end
 
   # Events
