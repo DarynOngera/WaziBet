@@ -3,7 +3,7 @@ defmodule WaziBet.Bets.BetslipSelection do
   import Ecto.Changeset
 
   alias WaziBet.Bets.{Betslip, Outcome}
-  alias WaziBet.Football.Game
+  alias WaziBet.Sport.Game
 
   @status [:pending, :won, :lost, :void]
 

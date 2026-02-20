@@ -12,6 +12,7 @@ defmodule WaziBet.Bets.Betslip do
     field :total_odds, :decimal
     field :potential_payout, :decimal
     field :status, Ecto.Enum, values: @status, default: :pending
+    field :cancelled_at, :utc_datetime
 
     belongs_to :user, User
     has_many :selections, BetslipSelection

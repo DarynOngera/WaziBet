@@ -6,7 +6,7 @@ defmodule WaziBet.Simulation.TickEngine do
   alias WaziBet.Simulation.GameState
   alias WaziBet.Simulation.ProbabilityEngine
 
-  @tick_interval_ms 1000 
+  @tick_interval_ms 1000
   @game_duration 45
 
   def tick(%GameState{status: :live} = state) do

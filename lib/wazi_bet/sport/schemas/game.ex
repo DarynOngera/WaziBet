@@ -1,9 +1,9 @@
-defmodule WaziBet.Football.Game do
+defmodule WaziBet.Sport.Game do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias WaziBet.Football.{League, Team, GameEvent}
-  alias WaziBet.Bets.Market
+  alias WaziBet.Sport.{SportsCategory, Team, GameEvent}
+  alias WaziBet.Bets.Outcome
 
   @status [:scheduled, :live, :finished]
 
@@ -14,24 +14,24 @@ defmodule WaziBet.Football.Game do
     field :away_score, :integer, default: 0
     field :starts_at, :utc_datetime
 
-    belongs_to :league, League
+    belongs_to :category, SportsCategory
     belongs_to :home_team, Team
     belongs_to :away_team, Team
 
     has_many :events, GameEvent
-    has_many :markets, Market
+    has_many :outcomes, Outcome
 
     timestamps()
   end
 
   def create_changeset(game, attrs) do
     game
-    |> cast(attrs, [:starts_at, :league_id, :home_team_id, :away_team_id])
-    |> validate_required([:starts_at, :league_id, :home_team_id, :away_team_id])
+    |> cast(attrs, [:starts_at, :category_id, :home_team_id, :away_team_id])
+    |> validate_required([:starts_at, :category_id, :home_team_id, :away_team_id])
     |> validate_teams_differ()
     |> foreign_key_constraint(:home_team_id)
     |> foreign_key_constraint(:away_team_id)
-    |> foreign_key_constraint(:league_id)
+    |> foreign_key_constraint(:category_id)
     |> check_constraint(:home_team_id, name: :teams_must_differ)
   end
 

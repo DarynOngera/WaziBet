@@ -1,8 +1,8 @@
-defmodule WaziBet.Football.GameEvent do
+defmodule WaziBet.Sport.GameEvent do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias WaziBet.Football.Game
+  alias WaziBet.Sport.Game
 
   @results [:home_score, :away_score, :none]
 

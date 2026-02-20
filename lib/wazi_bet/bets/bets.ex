@@ -1,54 +1,71 @@
 defmodule WaziBet.Bets do
   @moduledoc """
-  Betting markets, outcomes, betslips.
+  Betting outcomes and betslips.
   """
 
   import Ecto.Query
 
   alias WaziBet.Accounts.User
-  alias WaziBet.Bets.{Market, Outcome, Betslip, BetslipSelection, OddsCalculator}
+  alias WaziBet.Bets.{Outcome, Betslip, BetslipSelection, OddsCalculator}
   alias WaziBet.Repo
   alias Ecto.Multi
 
-  # Markets
+  # Outcomes
 
-  def create_market(game_id, type \\ :match_result) do
-    %Market{}
-    |> Market.changeset(%{game_id: game_id, type: type})
-    |> Repo.insert()
+  def create_outcomes_for_game(game_id, probabilities) do
+    labels = [:home, :draw, :away]
+
+    Enum.zip(labels, probabilities)
+    |> Enum.map(fn {label, probability} ->
+      odds = OddsCalculator.probability_to_odds(probability)
+
+      %Outcome{}
+      |> Outcome.changeset(%{
+        game_id: game_id,
+        label: label,
+        odds: odds,
+        probability: probability,
+        status: :open
+      })
+      |> Repo.insert()
+    end)
   end
 
-  def get_market!(id) do
-    Repo.get!(Market, id)
+  def get_outcome!(id) do
+    Repo.get!(Outcome, id)
   end
 
-  def get_market_by_game_and_type(game_id, type) do
-    Repo.get_by(Market, game_id: game_id, type: type)
-  end
-
-  def get_market_with_outcomes!(game_id) do
-    Repo.one(
-      from m in Market,
-        where: m.game_id == ^game_id,
-        preload: :outcomes
+  def get_outcomes_for_game(game_id) do
+    Repo.all(
+      from o in Outcome,
+        where: o.game_id == ^game_id,
+        order_by: [asc: o.label]
     )
   end
 
-  def close_market(market) do
-    market
-    |> Market.status_changeset(:closed)
+  def update_odds(outcome_id, new_odds, new_probability) do
+    outcome = Repo.get!(Outcome, outcome_id)
+
+    outcome
+    |> Outcome.odds_changeset(%{odds: new_odds, probability: new_probability})
     |> Repo.update()
   end
 
-  def settle_market(market, winning_outcome_label) do
+  def close_outcomes_for_game(game_id) do
+    Repo.update_all(
+      from(o in Outcome, where: o.game_id == ^game_id),
+      set: [status: :closed]
+    )
+  end
+
+  def settle_outcomes_for_game(game_id, winning_label) do
     Multi.new()
-    |> Multi.update(:market, Market.status_changeset(market, :settled))
-    |> Multi.run(:settle_outcomes, fn repo, _ ->
-      outcomes = repo.all(from o in Outcome, where: o.market_id == ^market.id)
+    |> Multi.run(:outcomes, fn repo, _ ->
+      outcomes = repo.all(from o in Outcome, where: o.game_id == ^game_id)
 
       Enum.each(outcomes, fn outcome ->
         result =
-          if outcome.label == winning_outcome_label do
+          if outcome.label == winning_label do
             :won
           else
             :lost
@@ -62,38 +79,6 @@ defmodule WaziBet.Bets do
       {:ok, outcomes}
     end)
     |> Repo.transaction()
-  end
-
-  # Outcomes
-
-  def create_outcomes_for_market(market_id, probabilities) do
-    labels = [:home, :draw, :away]
-
-    Enum.zip(labels, probabilities)
-    |> Enum.map(fn {label, probability} ->
-      odds = OddsCalculator.probability_to_odds(probability)
-
-      %Outcome{}
-      |> Outcome.changeset(%{
-        market_id: market_id,
-        label: label,
-        odds: odds,
-        probability: probability
-      })
-      |> Repo.insert()
-    end)
-  end
-
-  def update_odds(outcome_id, new_odds, new_probability) do
-    outcome = Repo.get!(Outcome, outcome_id)
-
-    outcome
-    |> Outcome.odds_changeset(%{odds: new_odds, probability: new_probability})
-    |> Repo.update()
-  end
-
-  def get_outcome!(id) do
-    Repo.get!(Outcome, id)
   end
 
   # Betslips

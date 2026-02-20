@@ -1,30 +1,29 @@
-defmodule WaziBet.Football do
-
+defmodule WaziBet.Sport do
   import Ecto.Query
 
-  alias WaziBet.Football.{League, Team, Game, GameEvent}
+  alias WaziBet.Sport.{SportsCategory, Team, Game, GameEvent}
   alias WaziBet.Repo
 
-  # Leagues
+  # Categories
 
-  def list_leagues do
-    Repo.all(League)
+  def list_categories do
+    Repo.all(SportsCategory)
   end
 
-  def create_league(attrs) do
-    %League{}
-    |> League.changeset(attrs)
+  def create_category(attrs) do
+    %SportsCategory{}
+    |> SportsCategory.changeset(attrs)
     |> Repo.insert()
   end
 
-  def get_league!(id) do
-    Repo.get!(League, id)
+  def get_category!(id) do
+    Repo.get!(SportsCategory, id)
   end
 
   # Teams
 
-  def list_teams(league_id) do
-    Repo.all(from t in Team, where: t.league_id == ^league_id)
+  def list_teams(category_id) do
+    Repo.all(from t in Team, where: t.category_id == ^category_id)
   end
 
   def create_team(attrs) do
@@ -61,7 +60,7 @@ defmodule WaziBet.Football do
 
   def get_game_with_teams!(id) do
     Repo.get!(Game, id)
-    |> Repo.preload([:home_team, :away_team, :league])
+    |> Repo.preload([:home_team, :away_team, :category])
   end
 
   def update_game_state(game, attrs) do
@@ -114,9 +113,9 @@ defmodule WaziBet.Football do
     |> filter_games(rest)
   end
 
-  defp filter_games(query, [{:league_id, league_id} | rest]) do
+  defp filter_games(query, [{:category_id, category_id} | rest]) do
     query
-    |> where([g], g.league_id == ^league_id)
+    |> where([g], g.category_id == ^category_id)
     |> filter_games(rest)
   end
 

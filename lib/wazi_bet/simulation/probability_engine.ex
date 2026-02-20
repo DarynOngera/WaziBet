@@ -8,7 +8,7 @@ defmodule WaziBet.Simulation.ProbabilityEngine do
   @multiplier 0.15
 
   def determine_event(fair_odds) do
-    home_prob = OddsCalculator.odds_to_probability(fair_odds.home) 
+    home_prob = OddsCalculator.odds_to_probability(fair_odds.home)
     # away_prob =  OddsCalculator.odds_to_probability(fair_odds.away)
     draw_prob = OddsCalculator.odds_to_probability(fair_odds.draw)
 

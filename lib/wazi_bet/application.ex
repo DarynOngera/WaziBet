@@ -1,3 +1,6 @@
+require Protocol
+Protocol.derive(Jason.Encoder, Decimal, only: [:coef, :exp, :sign])
+
 defmodule WaziBet.Application do
   # See https://hexdocs.pm/elixir/Application.html
   # for more information on OTP Applications

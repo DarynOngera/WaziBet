@@ -41,6 +41,7 @@ defmodule WaziBet.Simulation.GameServer do
           data.game_id,
           {:finished, %{home_score: new_state.home_score, away_score: new_state.away_score}}
         )
+
         {:stop, :normal, %{data | state: new_state}}
     end
   end

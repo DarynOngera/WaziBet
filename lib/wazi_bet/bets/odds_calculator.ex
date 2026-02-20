@@ -32,9 +32,10 @@ defmodule WaziBet.Bets.OddsCalculator do
   end
 
   def calculate_fair_odds(home_attack, home_defense, away_attack, away_defense)
-      when is_integer(home_attack) and is_integer(home_defense) and is_integer(away_attack) and is_integer(away_defense) do
-    home_performance = home_attack / away_defense 
-    away_performance = away_attack / home_defense 
+      when is_integer(home_attack) and is_integer(home_defense) and is_integer(away_attack) and
+             is_integer(away_defense) do
+    home_performance = home_attack / away_defense
+    away_performance = away_attack / home_defense
 
     # Base probabilities
     home_prob = home_performance / (home_performance + away_performance)
