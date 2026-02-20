@@ -8,14 +8,14 @@ defmodule WaziBet.Repo.Migrations.CreateGames do
       add :home_score, :integer, default: 0
       add :away_score, :integer, default: 0
       add :starts_at, :utc_datetime, null: false
-      add :league_id, references(:leagues, on_delete: :restrict), null: false
+      add :category_id, references(:sports_categories, on_delete: :restrict), null: false
       add :home_team_id, references(:teams, on_delete: :restrict), null: false
       add :away_team_id, references(:teams, on_delete: :restrict), null: false
 
       timestamps()
     end
 
-    create index(:games, [:league_id])
+    create index(:games, [:category_id])
     create index(:games, [:home_team_id])
     create index(:games, [:away_team_id])
     create index(:games, [:status])
