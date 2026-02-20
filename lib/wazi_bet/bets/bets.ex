@@ -189,4 +189,73 @@ defmodule WaziBet.Bets do
   def calculate_potential_payout(stake, total_odds) do
     OddsCalculator.payout(stake, total_odds)
   end
+
+  def get_user_winnings_summary(user_id) do
+    betslips = list_user_betslips(user_id)
+
+    %{
+      total_wagered: calculate_total_wagered(betslips),
+      total_won: calculate_total_won(betslips),
+      total_lost: calculate_total_lost(betslips),
+      bets_won: count_bets_by_status(betslips, :won),
+      bets_lost: count_bets_by_status(betslips, :lost),
+      bets_pending: count_bets_by_status(betslips, :pending),
+      total_bets: length(betslips)
+    }
+  end
+
+  def calculate_profits_from_losses do
+    from(b in Betslip,
+      where: b.status == :lost,
+      select: sum(b.stake)
+    )
+    |> Repo.one() || Decimal.new(0)
+  end
+
+  def calculate_total_payouts do
+    from(b in Betslip,
+      where: b.status == :won,
+      select: sum(b.potential_payout)
+    )
+    |> Repo.one() || Decimal.new(0)
+  end
+
+  def get_profit_stats do
+    total_stakes_lost = calculate_profits_from_losses()
+    total_payouts = calculate_total_payouts()
+
+    %{
+      total_stakes_lost: total_stakes_lost,
+      total_payouts: total_payouts,
+      net_profit: Decimal.sub(total_stakes_lost, total_payouts),
+      total_bets_lost: count_all_by_status(:lost),
+      total_bets_won: count_all_by_status(:won)
+    }
+  end
+
+  defp calculate_total_wagered(betslips) do
+    betslips
+    |> Enum.reduce(Decimal.new(0), fn b, acc -> Decimal.add(acc, b.stake) end)
+  end
+
+  defp calculate_total_won(betslips) do
+    betslips
+    |> Enum.filter(fn b -> b.status == :won end)
+    |> Enum.reduce(Decimal.new(0), fn b, acc -> Decimal.add(acc, b.potential_payout) end)
+  end
+
+  defp calculate_total_lost(betslips) do
+    betslips
+    |> Enum.filter(fn b -> b.status == :lost end)
+    |> Enum.reduce(Decimal.new(0), fn b, acc -> Decimal.add(acc, b.stake) end)
+  end
+
+  defp count_bets_by_status(betslips, status) do
+    Enum.count(betslips, fn b -> b.status == status end)
+  end
+
+  defp count_all_by_status(status) do
+    from(b in Betslip, where: b.status == ^status, select: count(b.id))
+    |> Repo.one()
+  end
 end
