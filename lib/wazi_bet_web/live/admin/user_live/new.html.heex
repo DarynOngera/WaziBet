@@ -1,0 +1,96 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <div class="container mx-auto px-4 py-8">
+    <div class="mb-6">
+      <.link navigate={~p"/admin/users"} class="btn btn-ghost btn-sm">
+        <.icon name="hero-arrow-left" class="w-4 h-4 mr-2" /> Back to Users
+      </.link>
+    </div>
+
+    <div class="max-w-2xl mx-auto">
+      <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+        <div class="card-body">
+          <h1 class="text-2xl font-bold mb-6 flex items-center gap-2">
+            <.icon name="hero-user-plus" class="w-6 h-6 text-primary" /> Create New User
+          </h1>
+
+          <% form = to_form(@changeset, as: :user) %>
+          <.form
+            for={form}
+            phx-change="validate"
+            phx-submit="save"
+            id="new-user-form"
+          >
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text font-medium">First Name</span>
+                </label>
+                <.input field={form[:first_name]} type="text" placeholder="John" />
+              </div>
+
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text font-medium">Last Name</span>
+                </label>
+                <.input field={form[:last_name]} type="text" placeholder="Doe" />
+              </div>
+            </div>
+
+            <div class="form-control mt-4">
+              <label class="label">
+                <span class="label-text font-medium">Email</span>
+              </label>
+              <.input field={form[:email]} type="email" placeholder="john@example.com" />
+            </div>
+
+            <div class="form-control mt-4">
+              <label class="label">
+                <span class="label-text font-medium">Phone Number</span>
+              </label>
+              <.input field={form[:msisdn]} type="text" placeholder="+1234567890" />
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text font-medium">Password</span>
+                </label>
+                <.input field={form[:password]} type="password" placeholder="Min 12 characters" />
+              </div>
+
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text font-medium">Confirm Password</span>
+                </label>
+                <.input
+                  field={form[:password_confirmation]}
+                  type="password"
+                  placeholder="Confirm password"
+                />
+              </div>
+            </div>
+
+            <div class="form-control mt-4">
+              <label class="label">
+                <span class="label-text font-medium">Initial Balance</span>
+              </label>
+              <.input field={form[:balance]} type="number" step="0.01" min="0" value="1000" />
+              <label class="label">
+                <span class="label-text-alt text-base-content/60">Default: $1000.00</span>
+              </label>
+            </div>
+
+            <div class="flex gap-3 mt-6">
+              <.link navigate={~p"/admin/users"} class="btn btn-outline flex-1 border-2">
+                Cancel
+              </.link>
+              <button type="submit" class="btn btn-primary flex-1 border-2">
+                <.icon name="hero-user-plus" class="w-5 h-5 mr-2" /> Create User
+              </button>
+            </div>
+          </.form>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layouts.app>

@@ -1,0 +1,184 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <div class="container mx-auto px-4 py-8">
+    <div class="mb-8">
+      <h1 class="text-3xl lg:text-4xl font-bold text-base-content flex items-center gap-3">
+        <.icon name="hero-currency-dollar" class="w-8 h-8 text-primary" /> Place Bet
+      </h1>
+      <p class="text-base-content/60 mt-2">Select outcomes and enter your stake</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <%!-- Left: Game Selection --%>
+      <div class="lg:col-span-2">
+        <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+          <div class="card-body">
+            <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+              <.icon name="hero-trophy" class="w-5 h-5 text-secondary" /> Available Games
+            </h2>
+
+            <div class="space-y-4">
+              <%= for game <- @games do %>
+                <div class="collapse collapse-arrow bg-base-200 border border-base-300">
+                  <input type="radio" name="game-accordion" />
+                  <div class="collapse-title font-medium">
+                    <div class="flex justify-between items-center">
+                      <span>
+                        {game.home_team.name}
+                        <span class="text-base-content/50">vs</span> {game.away_team.name}
+                      </span>
+                      <span class="badge badge-outline badge-sm border-2">
+                        {game.category.name}
+                      </span>
+                    </div>
+                  </div>
+                  <div class="collapse-content">
+                    <div class="grid grid-cols-3 gap-2 pt-2">
+                      <%= for outcome <- game.outcomes do %>
+                        <%!-- Check if this outcome is already selected --%>
+                        <% selected =
+                          Enum.any?(@selections, fn s -> s.outcome_id == outcome.id end) %>
+                        <%!-- Check if any outcome from this game is selected --%>
+                        <% game_selected =
+                          Enum.any?(@selections, fn s -> s.game_id == game.id end) %>
+
+                        <button
+                          phx-click="add_selection"
+                          phx-value-game_id={game.id}
+                          phx-value-outcome_id={outcome.id}
+                          class={[
+                            "btn btn-sm h-auto py-3 border-2 transition-all duration-200",
+                            if(selected,
+                              do: "btn-primary ring-2 ring-offset-2 ring-primary",
+                              else:
+                                if(game_selected,
+                                  do:
+                                    "btn-outline opacity-60 hover:opacity-100 hover:ring-1 hover:ring-primary/50",
+                                  else: "btn-outline btn-primary hover:scale-[1.02]"
+                                )
+                            )
+                          ]}
+                        >
+                          <div class="flex flex-col items-center gap-1">
+                            <span class="text-xs font-medium">
+                              {String.capitalize(to_string(outcome.label))}
+                            </span>
+                            <span class="font-bold font-mono">{outcome.odds}</span>
+                          </div>
+                        </button>
+                      <% end %>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+
+              <%= if Enum.empty?(@games) do %>
+                <div class="text-center py-12 text-base-content/50">
+                  <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-base-200 flex items-center justify-center">
+                    <.icon name="hero-inbox" class="w-8 h-8" />
+                  </div>
+                  <p class="font-medium">No scheduled games available for betting</p>
+                  <.link navigate={~p"/"} class="link link-primary mt-2 inline-block">
+                    View all games
+                  </.link>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <%!-- Right: Betslip Summary --%>
+      <div class="lg:col-span-1">
+        <div class="card bg-base-100 shadow-xl sticky top-4 border-2 border-base-300">
+          <div class="card-body">
+            <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+              <.icon name="hero-ticket" class="w-5 h-5 text-primary" /> Your Selections
+            </h2>
+
+            <%= if Enum.empty?(@selections) do %>
+              <div class="text-center py-12 text-base-content/50">
+                <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-base-200 flex items-center justify-center">
+                  <.icon name="hero-ticket" class="w-8 h-8" />
+                </div>
+                <p class="font-medium">No selections yet</p>
+                <p class="text-sm mt-1">Click odds to add selections</p>
+              </div>
+            <% else %>
+              <div class="space-y-3 mb-6">
+                <%= for {selection, index} <- Enum.with_index(@selections) do %>
+                  <div class="flex justify-between items-start p-3 bg-base-200 rounded-lg border border-base-300">
+                    <div class="flex-1 min-w-0">
+                      <p class="font-medium text-sm truncate">{selection.game_name}</p>
+                      <p class="text-xs text-base-content/60 mt-1 font-mono">
+                        {String.capitalize(to_string(selection.label))} @ {selection.odds}
+                      </p>
+                    </div>
+                    <button
+                      phx-click="remove_selection"
+                      phx-value-index={index}
+                      class="btn btn-ghost btn-xs btn-circle ml-2 text-error hover:bg-error/10"
+                    >
+                      <.icon name="hero-x-mark" class="w-4 h-4" />
+                    </button>
+                  </div>
+                <% end %>
+              </div>
+
+              <div class="form-control mb-4">
+                <label class="label">
+                  <span class="label-text font-medium">Stake Amount</span>
+                  <span class="label-text-alt font-mono">
+                    Balance: ${Decimal.round(@user.balance, 2)}
+                  </span>
+                </label>
+                <div class="join w-full">
+                  <span class="btn btn-square join-item btn-outline no-animation border-2">
+                    $
+                  </span>
+                  <input
+                    type="number"
+                    name="stake"
+                    value={@stake}
+                    min="10"
+                    step="10"
+                    class="input input-bordered join-item w-full border-2"
+                    phx-change="update_stake"
+                  />
+                </div>
+              </div>
+
+              <div class="space-y-2 py-4 border-t-2 border-base-200">
+                <div class="flex justify-between">
+                  <span class="text-base-content/60">Total Odds</span>
+                  <span class="font-bold font-mono text-primary">
+                    {Decimal.round(calculate_total_odds(@selections), 2)}
+                  </span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-base-content/60">Potential Win</span>
+                  <span class="font-bold text-success text-lg font-mono">
+                    ${Decimal.round(calculate_potential_payout(@selections, @stake), 2)}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                phx-click="place_bet"
+                class="btn btn-primary btn-lg w-full border-2"
+                disabled={Decimal.compare(Decimal.new(@stake), @user.balance) == :gt}
+              >
+                <.icon name="hero-check" class="w-5 h-5 mr-2" /> Place Bet
+              </button>
+
+              <%= if Decimal.compare(Decimal.new(@stake), @user.balance) == :gt do %>
+                <p class="text-error text-sm text-center mt-2 flex items-center justify-center gap-1">
+                  <.icon name="hero-exclamation-circle" class="w-4 h-4" /> Insufficient balance
+                </p>
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layouts.app>

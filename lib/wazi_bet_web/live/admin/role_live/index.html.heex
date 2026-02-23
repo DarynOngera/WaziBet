@@ -1,0 +1,94 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-8">
+      <div>
+        <h1 class="text-3xl lg:text-4xl font-bold text-base-content flex items-center gap-3">
+          <.icon name="hero-key" class="w-8 h-8 text-primary" /> Roles
+        </h1>
+        <p class="text-base-content/60 mt-2">Manage roles and permissions</p>
+      </div>
+
+      <.link navigate={~p"/admin/roles/assign"} class="btn btn-primary border-2">
+        <.icon name="hero-user-plus" class="w-5 h-5 mr-2" /> Assign Roles
+      </.link>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <%= for role <- @roles do %>
+        <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+          <div class="card-body">
+            <div class="flex items-center gap-3 mb-4">
+              <div class={[
+                "w-12 h-12 rounded-full flex items-center justify-center",
+                if(role.slug == "admin", do: "bg-error/10", else: "bg-primary/10")
+              ]}>
+                <.icon
+                  name={if role.slug == "admin", do: "hero-shield-check", else: "hero-user"}
+                  class={
+                    if role.slug == "admin",
+                      do: "w-6 h-6 text-error",
+                      else: "w-6 h-6 text-primary"
+                  }
+                />
+              </div>
+              <div>
+                <h2 class="text-xl font-bold">{String.capitalize(role.role)}</h2>
+                <span class="text-sm text-base-content/60 font-mono">/{role.slug}</span>
+              </div>
+            </div>
+
+            <div class="divider my-2"></div>
+
+            <h3 class="text-sm font-medium text-base-content/60 mb-3">Permissions</h3>
+            <div class="flex flex-wrap gap-2">
+              <%= for permission <- role.permissions do %>
+                <span class={["badge badge-sm", permission_badge_color(permission.slug)]}>
+                  {String.replace(permission.permission, "_", " ") |> String.capitalize()}
+                </span>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="mt-8 card bg-base-200 border-2 border-base-300">
+      <div class="card-body">
+        <h2 class="text-lg font-bold flex items-center gap-2">
+          <.icon name="hero-information-circle" class="w-5 h-5 text-info" />
+          Role Permissions Guide
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div>
+            <h3 class="font-medium mb-2">User Permissions</h3>
+            <ul class="space-y-1 text-base-content/60">
+              <li><span class="badge badge-success badge-xs mr-2"></span> Place bets on games</li>
+              <li><span class="badge badge-warning badge-xs mr-2"></span> Cancel pending bets</li>
+              <li><span class="badge badge-info badge-xs mr-2"></span> View betting history</li>
+              <li><span class="badge badge-info badge-xs mr-2"></span> View winnings & losses</li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="font-medium mb-2">Admin Permissions</h3>
+            <ul class="space-y-1 text-base-content/60">
+              <li>
+                <span class="badge badge-error badge-xs mr-2"></span> Create and manage users
+              </li>
+              <li><span class="badge badge-error badge-xs mr-2"></span> Assign roles to users</li>
+              <li>
+                <span class="badge badge-error badge-xs mr-2"></span> Grant/revoke admin access
+              </li>
+              <li>
+                <span class="badge badge-error badge-xs mr-2"></span> View user details & bets
+              </li>
+              <li><span class="badge badge-error badge-xs mr-2"></span> Soft delete users</li>
+              <li>
+                <span class="badge badge-error badge-xs mr-2"></span> View profits dashboard
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layouts.app>

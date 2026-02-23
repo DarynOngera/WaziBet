@@ -5,6 +5,8 @@ defmodule WaziBetWeb.Layouts do
   """
   use WaziBetWeb, :html
 
+  import WaziBetWeb.CoreComponents, only: [icon: 1, flash: 1, show: 1, hide: 1]
+
   # Embed all files in layouts/* within this module.
   # The default root.html.heex file contains the HTML
   # skeleton of your application, namely HTML headers
@@ -33,37 +35,86 @@ defmodule WaziBetWeb.Layouts do
 
   slot :inner_block, required: true
 
+  attr :categories, :list, default: []
+
   def app(assigns) do
     ~H"""
-    <header class="navbar px-4 sm:px-6 lg:px-8">
-      <div class="flex-1">
-        <a href="/" class="flex-1 flex w-fit items-center gap-2">
-          <img src={~p"/images/logo.svg"} width="36" />
-          <span class="text-sm font-semibold">v{Application.spec(:phoenix, :vsn)}</span>
-        </a>
+    <header class="navbar bg-base-200 border-b border-base-300 sticky top-0 z-50">
+      <div class="navbar-start gap-2">
+        <.link href={~p"/"} class="btn btn-ghost text-xl font-bold tracking-wider">
+          <span class="text-primary">WAZI</span><span class="text-secondary">BET</span>
+        </.link>
+        <%!-- Category Icons --%>
+        <%= if length(@categories) > 0 do %>
+          <div class="hidden md:flex items-center gap-1 border-l-2 border-base-300 pl-3">
+            <%= for category <- @categories do %>
+              <.link
+                href={~p"/?category=#{category.id}"}
+                class="btn btn-ghost btn-sm tooltip"
+                data-tip={category.name}
+              >
+                <.icon name={category.icon} class="w-5 h-5" />
+              </.link>
+            <% end %>
+          </div>
+        <% end %>
       </div>
-      <div class="flex-none">
-        <ul class="flex flex-column px-1 space-x-4 items-center">
-          <li>
-            <a href="https://phoenixframework.org/" class="btn btn-ghost">Website</a>
-          </li>
-          <li>
-            <a href="https://github.com/phoenixframework/phoenix" class="btn btn-ghost">GitHub</a>
-          </li>
+      <div class="navbar-end">
+        <ul class="menu menu-horizontal items-center gap-2">
+          <%= if @current_scope do %>
+            <%!-- Balance Display --%>
+            <li>
+              <.link href={~p"/account"} class="btn btn-sm btn-ghost">
+                <.icon name="hero-currency-dollar" class="w-4 h-4 text-success" />
+                <span class="font-mono text-sm">
+                  ${Decimal.round(@current_scope.user.balance, 2)}
+                </span>
+              </.link>
+            </li>
+            <li class="hidden md:block">
+              <span class="text-base-content/50">|</span>
+            </li>
+            <li class="hidden sm:block">
+              <span class="text-base-content/70 font-mono text-sm">{@current_scope.user.email}</span>
+            </li>
+            <li>
+              <.link href={~p"/account"} class="btn btn-sm btn-ghost" title="My Account">
+                <.icon name="hero-user-circle" class="w-4 h-4" />
+              </.link>
+            </li>
+            <li>
+              <.link href={~p"/betslip"} class="btn btn-sm btn-primary">
+                <.icon name="hero-ticket" class="w-4 h-4" />
+                <span class="hidden sm:inline">My Bets</span>
+              </.link>
+            </li>
+            <li>
+              <.link href={~p"/users/settings"} class="btn btn-sm btn-ghost">
+                <.icon name="hero-cog-6-tooth" class="w-4 h-4" />
+              </.link>
+            </li>
+            <li>
+              <.link href={~p"/users/log-out"} method="delete" class="btn btn-sm btn-ghost text-error">
+                <.icon name="hero-arrow-right-on-rectangle" class="w-4 h-4" />
+              </.link>
+            </li>
+          <% else %>
+            <li>
+              <.link href={~p"/users/log-in"} class="btn btn-sm btn-primary">Log in</.link>
+            </li>
+            <li>
+              <.link href={~p"/users/register"} class="btn btn-sm btn-secondary">Register</.link>
+            </li>
+          <% end %>
           <li>
             <.theme_toggle />
-          </li>
-          <li>
-            <a href="https://hexdocs.pm/phoenix/overview.html" class="btn btn-primary">
-              Get Started <span aria-hidden="true">&rarr;</span>
-            </a>
           </li>
         </ul>
       </div>
     </header>
 
-    <main class="px-4 py-20 sm:px-6 lg:px-8">
-      <div class="mx-auto max-w-2xl space-y-4">
+    <main class="px-4 py-8 sm:px-6 lg:px-8 min-h-[calc(100vh-4rem)]">
+      <div class="mx-auto max-w-6xl">
         {render_slot(@inner_block)}
       </div>
     </main>
