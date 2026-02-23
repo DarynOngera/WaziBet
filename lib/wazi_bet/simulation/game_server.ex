@@ -36,7 +36,7 @@ defmodule WaziBet.Simulation.GameServer do
         # Persist state to database on each tick
         persist_game_state(data.game_id, new_state)
 
-        # Broadcast full state to avoid DB queries in UI
+        # Broadcast full state
         broadcast_data = %{
           minute: length(new_state.events),
           result: event.result,

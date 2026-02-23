@@ -19,6 +19,7 @@ defmodule WaziBet.Application do
       WaziBet.Simulation.GameSupervisor,
       {Oban, Application.fetch_env!(:wazi_bet, Oban)},
       WaziBet.SettlementSubscriber,
+      WaziBetWeb.Presence,
       WaziBetWeb.Endpoint
     ]
 

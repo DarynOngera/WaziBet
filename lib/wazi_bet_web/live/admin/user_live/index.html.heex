@@ -1,0 +1,118 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <div class="container mx-auto px-4 py-8">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+      <div>
+        <h1 class="text-3xl lg:text-4xl font-bold text-base-content flex items-center gap-3">
+          <.icon name="hero-users" class="w-8 h-8 text-primary" /> Users
+        </h1>
+        <p class="text-base-content/60 mt-2">Manage system users</p>
+      </div>
+
+      <.link navigate={~p"/admin/users/new"} class="btn btn-primary border-2">
+        <.icon name="hero-plus" class="w-5 h-5 mr-2" /> New User
+      </.link>
+    </div>
+
+    <div class="card bg-base-100 shadow-xl border-2 border-base-300 mb-6">
+      <div class="card-body p-4">
+        <form phx-change="search" class="flex gap-2">
+          <div class="join flex-1">
+            <input
+              type="text"
+              name="query"
+              placeholder="Search by email, name..."
+              class="input input-bordered join-item flex-1 border-2"
+            />
+            <button type="submit" class="btn btn-primary join-item border-2">
+              <.icon name="hero-magnifying-glass" class="w-5 h-5" />
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <%= if Enum.empty?(@users) do %>
+      <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+        <div class="card-body text-center py-16">
+          <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-base-200 flex items-center justify-center">
+            <.icon name="hero-users" class="w-10 h-10 text-base-content/30" />
+          </div>
+          <h2 class="text-xl font-semibold mb-2">No users found</h2>
+          <p class="text-base-content/60">No users match your search criteria</p>
+        </div>
+      </div>
+    <% else %>
+      <div class="card bg-base-100 shadow-xl border-2 border-base-300 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="table table-zebra">
+            <thead>
+              <tr class="bg-base-200">
+                <th>User</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Balance</th>
+                <th>Roles</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <%= for user <- @users do %>
+                <tr class="hover">
+                  <td>
+                    <div class="flex items-center gap-3">
+                      <div class="avatar placeholder">
+                        <div class="bg-primary text-primary-content rounded-full w-10">
+                          <span class="text-sm">
+                            {String.first(user.first_name || "U")}{String.first(
+                              user.last_name || ""
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                      <div>
+                        <div class="font-medium">
+                          {user.first_name} {user.last_name}
+                        </div>
+                        <div class="text-xs text-base-content/60">
+                          ID: {user.id}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="font-mono text-sm">{user.email}</td>
+                  <td class="font-mono text-sm">{user.msisdn || "-"}</td>
+                  <td class="font-mono font-bold">${Decimal.round(user.balance, 2)}</td>
+                  <td>
+                    <div class="flex gap-1 flex-wrap">
+                      <%= for role_slug <- user_roles(user) do %>
+                        <span class={["badge badge-sm", role_badge_color(role_slug)]}>
+                          {String.capitalize(role_slug)}
+                        </span>
+                      <% end %>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="flex gap-2">
+                      <.link
+                        navigate={~p"/admin/users/#{user.id}"}
+                        class="btn btn-ghost btn-xs"
+                      >
+                        <.icon name="hero-eye" class="w-4 h-4" />
+                      </.link>
+                      <.link
+                        navigate={~p"/admin/users/#{user.id}/delete"}
+                        class="btn btn-ghost btn-xs text-error"
+                      >
+                        <.icon name="hero-trash" class="w-4 h-4" />
+                      </.link>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</Layouts.app>
