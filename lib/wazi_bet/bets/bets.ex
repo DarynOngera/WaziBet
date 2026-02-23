@@ -7,6 +7,7 @@ defmodule WaziBet.Bets do
 
   alias WaziBet.Accounts.User
   alias WaziBet.Bets.{Outcome, Betslip, BetslipSelection, OddsCalculator}
+  alias WaziBet.Sport
   alias WaziBet.Repo
   alias Ecto.Multi
 
@@ -58,6 +59,31 @@ defmodule WaziBet.Bets do
     )
   end
 
+  @doc """
+  Check if betting is allowed on a game.
+  Returns :ok if betting is allowed, or {:error, reason} if not.
+  Betting closes 5 minutes before game starts.
+  """
+  def can_bet_on_game?(game) do
+    cond do
+      game.status != :scheduled ->
+        {:error, :game_not_scheduled}
+
+      DateTime.compare(game.starts_at, DateTime.utc_now()) == :lt ->
+        {:error, :game_already_started}
+
+      # Betting closes 5 minutes before start
+      DateTime.compare(
+        DateTime.add(game.starts_at, -5, :minute),
+        DateTime.utc_now()
+      ) == :lt ->
+        {:error, :betting_closed}
+
+      true ->
+        :ok
+    end
+  end
+
   def settle_outcomes_for_game(game_id, winning_label) do
     Multi.new()
     |> Multi.run(:outcomes, fn repo, _ ->
@@ -84,6 +110,33 @@ defmodule WaziBet.Bets do
   # Betslips
 
   def place_betslip(user, selections, stake) do
+    # Validate all games before placing bet
+    with {:ok, _} <- validate_selections(selections) do
+      do_place_betslip(user, selections, stake)
+    end
+  end
+
+  defp validate_selections(selections) do
+    # Get unique game IDs from selections
+    game_ids = selections |> Enum.map(& &1.game_id) |> Enum.uniq()
+
+    # Check each game
+    Enum.each(game_ids, fn game_id ->
+      game = Sport.get_game!(game_id)
+
+      case can_bet_on_game?(game) do
+        :ok ->
+          :ok
+
+        {:error, reason} ->
+          {:error, reason}
+      end
+    end)
+
+    {:ok, :validated}
+  end
+
+  defp do_place_betslip(user, selections, stake) do
     total_odds = calculate_accumulator_odds(selections)
     potential_payout = calculate_potential_payout(stake, total_odds)
 
