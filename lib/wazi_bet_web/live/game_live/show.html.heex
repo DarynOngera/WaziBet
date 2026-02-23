@@ -1,0 +1,250 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <div class="container mx-auto px-4 py-8">
+    <%!-- Back link and admin link --%>
+    <div class="flex items-center justify-between mb-6">
+      <.link navigate={~p"/"} class="btn btn-ghost btn-sm group">
+        <.icon
+          name="hero-arrow-left"
+          class="h-4 w-4 mr-2 transition-transform group-hover:-translate-x-1"
+        /> Back to Games
+      </.link>
+
+      <%= if @is_admin do %>
+        <.link navigate={~p"/admin/games/#{@game.id}"} class="btn btn-outline btn-sm">
+          <.icon name="hero-cog-6-tooth" class="w-4 h-4 mr-2" /> Admin View
+        </.link>
+      <% end %>
+    </div>
+
+    <%!-- Game Header --%>
+    <div class="text-center mb-8">
+      <div class="flex justify-center items-center gap-3 mb-4">
+        <span class="badge badge-lg badge-outline border-2">{@game.category.name}</span>
+        <%= case @game.status do %>
+          <% :live -> %>
+            <span class="badge badge-lg badge-success gap-2 border-2 animate-pulse">
+              <span class="w-2 h-2 bg-white rounded-full"></span> LIVE {@game.minute}'
+            </span>
+          <% :scheduled -> %>
+            <span class="badge badge-lg badge-info border-2">Scheduled</span>
+          <% :finished -> %>
+            <span class="badge badge-lg badge-ghost border-2">Finished</span>
+        <% end %>
+        <span class="badge badge-ghost badge-sm gap-1">
+          <.icon name="hero-eye" class="w-3 h-3" />
+          {@viewer_count} watching
+        </span>
+      </div>
+
+      <%= if @game.status == :scheduled do %>
+        <p class="text-base-content/60 font-mono">
+          {WaziBetWeb.Timezone.to_local(@game.starts_at)
+          |> Calendar.strftime("%A, %d %B %Y at %H:%M")}
+        </p>
+      <% end %>
+    </div>
+
+    <%!-- Scoreboard --%>
+    <div class="card bg-base-100 shadow-xl mb-8 border-2 border-base-300">
+      <div class="card-body p-8">
+        <div class="flex items-center justify-between gap-4">
+          <%!-- Home Team --%>
+          <div class="flex-1 text-center">
+            <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+              <.icon name="hero-home" class="w-10 h-10 text-primary" />
+            </div>
+            <h2 class="text-xl lg:text-2xl font-bold mb-2">{@game.home_team.name}</h2>
+            <div class="flex justify-center gap-4 text-sm text-base-content/60">
+              <span class="flex items-center gap-1">
+                <.icon name="hero-bolt" class="w-4 h-4 text-warning" />
+                {@game.home_team.attack_rating}
+              </span>
+              <span class="flex items-center gap-1">
+                <.icon name="hero-shield" class="w-4 h-4 text-info" />
+                {@game.home_team.defense_rating}
+              </span>
+            </div>
+          </div>
+
+          <%!-- Score --%>
+          <div class="px-4 lg:px-8">
+            <div class="text-4xl lg:text-6xl font-bold tabular-nums font-mono bg-base-200 px-6 py-3 rounded-xl">
+              {@game.home_score} - {@game.away_score}
+            </div>
+            <%= if @game.status == :scheduled do %>
+              <div class="text-center text-base-content/60 mt-2 text-sm">vs</div>
+            <% end %>
+          </div>
+
+          <%!-- Away Team --%>
+          <div class="flex-1 text-center">
+            <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-secondary/10 flex items-center justify-center">
+              <.icon name="hero-paper-airplane" class="w-10 h-10 text-secondary" />
+            </div>
+            <h2 class="text-xl lg:text-2xl font-bold mb-2">{@game.away_team.name}</h2>
+            <div class="flex justify-center gap-4 text-sm text-base-content/60">
+              <span class="flex items-center gap-1">
+                <.icon name="hero-bolt" class="w-4 h-4 text-warning" />
+                {@game.away_team.attack_rating}
+              </span>
+              <span class="flex items-center gap-1">
+                <.icon name="hero-shield" class="w-4 h-4 text-info" />
+                {@game.away_team.defense_rating}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <%!-- Game Events Feed --%>
+    <%= if @game.status == :live and @events != [] do %>
+      <div class="card bg-base-100 shadow-xl mb-8 border-2 border-base-300">
+        <div class="card-body">
+          <h3 class="text-xl font-bold flex items-center gap-2">
+            <.icon name="hero-sparkles" class="w-5 h-5 text-warning" /> Match Events
+          </h3>
+          <div class="space-y-2 mt-4">
+            <%= for event <- Enum.reverse(@events) do %>
+              <div class="flex items-center gap-3 p-3 bg-warning/10 rounded-lg border border-warning/30 animate-pulse">
+                <div class="w-8 h-8 rounded-full bg-warning/20 flex items-center justify-center">
+                  <.icon name="hero-star" class="w-4 h-4 text-warning" />
+                </div>
+                <div class="flex-1">
+                  <span class="font-bold text-warning">GOAL!</span>
+                  <span class="text-base-content">{event.team} scores!</span>
+                </div>
+                <span class="badge badge-warning badge-lg font-mono">{event.minute}'</span>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <%!-- Betting Section --%>
+    <div class="card bg-base-100 shadow-xl mb-8 border-2 border-base-300">
+      <div class="card-body">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-2xl font-bold flex items-center gap-2">
+            <.icon name="hero-currency-dollar" class="w-6 h-6 text-accent" /> Match Odds
+          </h3>
+          <button
+            phx-click="toggle_sidebar"
+            class="btn btn-primary relative lg:hidden"
+          >
+            <.icon name="hero-ticket" class="w-5 h-5 mr-2" /> Betslip
+            <%= if length(@betslip) > 0 do %>
+              <span class="badge badge-sm badge-secondary absolute -top-2 -right-2">
+                {length(@betslip)}
+              </span>
+            <% end %>
+          </button>
+        </div>
+
+        <%= if @game.status == :scheduled do %>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <%= for outcome <- @game.outcomes do %>
+              <button
+                phx-click="add_to_betslip"
+                phx-value-outcome_id={outcome.id}
+                class={[
+                  "btn btn-lg h-auto py-6 border-2 transition-all duration-200",
+                  if(Components.is_selected?(@betslip, outcome.id),
+                    do: "btn-primary ring-2 ring-offset-2 ring-primary",
+                    else: "btn-outline btn-primary hover:scale-[1.02]"
+                  )
+                ]}
+              >
+                <div class="flex flex-col items-center gap-2">
+                  <span class="text-lg font-medium">
+                    <%= case outcome.label do %>
+                      <% :home -> %>
+                        Home Win
+                      <% :draw -> %>
+                        Draw
+                      <% :away -> %>
+                        Away Win
+                    <% end %>
+                  </span>
+                  <span class="text-2xl font-bold font-mono">{outcome.odds}</span>
+                  <span class="text-xs opacity-70 font-mono">
+                    {Decimal.round(Decimal.from_float(outcome.probability * 100), 1)}% probability
+                  </span>
+                </div>
+              </button>
+            <% end %>
+          </div>
+
+          <div class="mt-6 flex flex-col sm:flex-row gap-4 justify-center">
+            <%= if @current_scope && @current_scope.user do %>
+              <.link
+                navigate={~p"/betslip/new?game_id=#{@game.id}"}
+                class="btn btn-primary btn-lg"
+              >
+                <.icon name="hero-currency-dollar" class="h-6 w-6 mr-2" /> Place Bet on This Game
+              </.link>
+            <% else %>
+              <.link
+                navigate={"/users/log-in?return_to=" <> URI.encode_www_form("/betslip/new?game_id=#{@game.id}")}
+                class="btn btn-primary btn-lg"
+              >
+                <.icon name="hero-arrow-right-on-rectangle" class="h-6 w-6 mr-2" /> Login to Bet
+              </.link>
+              <p class="text-center text-base-content/60 text-sm">
+                Create an account to start betting on this match
+              </p>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="alert alert-info border-2 border-info">
+            <.icon name="hero-information-circle" class="h-6 w-6 shrink-0" />
+            <span>
+              Betting is closed for this {if @game.status == :live, do: "live", else: "finished"} match.
+            </span>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <%!-- Game Statistics --%>
+    <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+      <div class="card-body">
+        <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+          <.icon name="hero-chart-bar" class="w-5 h-5 text-info" /> Match Information
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div class="flex justify-between py-3 border-b border-base-200">
+            <span class="text-base-content/60">Sport</span>
+            <span class="font-medium">{@game.category.name}</span>
+          </div>
+          <div class="flex justify-between py-3 border-b border-base-200">
+            <span class="text-base-content/60">Status</span>
+            <span class="font-medium capitalize">{@game.status}</span>
+          </div>
+          <%= if @game.status == :scheduled do %>
+            <div class="flex justify-between py-3 border-b border-base-200">
+              <span class="text-base-content/60">Kick-off</span>
+              <span class="font-medium font-mono">
+                {Calendar.strftime(@game.starts_at, "%d %b %Y %H:%M")}
+              </span>
+            </div>
+          <% end %>
+          <%= if @game.status in [:live, :finished] do %>
+            <div class="flex justify-between py-3 border-b border-base-200">
+              <span class="text-base-content/60">Current Score</span>
+              <span class="font-medium font-mono">{@game.home_score} - {@game.away_score}</span>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <%!-- Sidebar Betslip --%>
+  <Components.sidebar_betslip
+    betslip={@betslip}
+    open={@sidebar_open}
+    current_scope={@current_scope}
+  />
+</Layouts.app>
