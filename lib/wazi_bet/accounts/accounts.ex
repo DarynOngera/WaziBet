@@ -10,11 +10,6 @@ defmodule WaziBet.Accounts do
   alias WaziBet.Accounts.Permission
   alias WaziBet.Repo
 
-  def create_user(attrs) do
-    %User{}
-    |> User.registration_changeset(attrs)
-    |> Repo.insert()
-  end
 
   def get_user!(id) do
     Repo.get!(User, id)
@@ -22,6 +17,16 @@ defmodule WaziBet.Accounts do
 
   def get_user_by_email(email) do
     Repo.get_by(User, email: email)
+  end
+
+  def get_user_by_email_and_password(email, password) do
+    user = Repo.get_by(User, email: email)
+
+    if user && User.valid_password?(user, password) do
+      user
+    else
+      nil
+    end
   end
 
   def update_balance(user, amount) do
@@ -98,5 +103,67 @@ def add_permission_to_role(role, permission) do
   |> Ecto.Changeset.put_assoc(:permissions, [permission | role.permissions])
   |> Repo.update()
 end
+
+def change_user_registration(%User{} = user, attrs \\ %{}) do
+  User.registration_changeset(user, attrs)
+end
+
+def register_user(attrs) do
+  %User{}
+  |> User.registration_changeset(attrs)
+  |> Repo.insert()
+end
+
+#session management
+
+def login_user_by_magic_link(token) do
+  case Repo.get_by(User, magic_link_token: token) do
+    nil -> {:error, :invalid_token}
+    user -> {:ok, {user, []}}
+  end
+end
+
+def generate_user_session_token(user) do
+    {token, user_token} = UserToken.build_session_token(user)
+    Repo.insert!(user_token)
+    token
+  end
+
+  def get_user_by_session_token(token) do
+    {:ok, query} = UserToken.verify_session_token_query(token)
+    Repo.one(query)
+  end
+
+  def get_user_by_magic_link_token(token) do
+    with {:ok, query} <- UserToken.verify_magic_link_token_query(token),
+         {user, token} <- Repo.one(query) do
+      user
+    else
+       -> nil
+    end
+  end
+
+  def login_user_by_magic_link(token) do
+    {:ok, query} = UserToken.verify_magic_link_token_query(token)
+
+    case Repo.one(query) do
+      {%User{confirmed_at: nil, hashed_password: hash}, _token} when not is_nil(hash) ->
+        raise """
+        magic link log in is not allowed for unconfirmed users with a password set!
+        """
+
+      {%User{confirmed_at: nil} = user, _token} ->
+        user
+        |> User.confirm_changeset()
+        |> update_user_and_delete_all_tokens()
+
+      {user, token} ->
+        Repo.delete!(token)
+        {:ok, {user, []}}
+
+      nil ->
+        {:error, :not_found}
+    end
+  end
 
 end
