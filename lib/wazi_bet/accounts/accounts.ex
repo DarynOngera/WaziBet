@@ -1,129 +1,82 @@
 defmodule WaziBet.Accounts do
   @moduledoc """
-  User management and balance operations.
+  The Accounts context.
+
+  This module handles:
+  - User management (registration, authentication, settings)
+  - Balance operations
+  - Role and permission management
   """
 
-  import Ecto.Query
-
-  alias WaziBet.Accounts.User
-  alias WaziBet.Accounts.Role
-  alias WaziBet.Accounts.Permission
+  import Ecto.Query, warn: false
   alias WaziBet.Repo
+  alias WaziBet.Accounts.{User, UserToken, UserNotifier, Role, Permission}
 
+  ## Database getters
 
-  def get_user!(id) do
-    Repo.get!(User, id)
-  end
-
-  def get_user_by_email(email) do
+  def get_user_by_email(email) when is_binary(email) do
     Repo.get_by(User, email: email)
   end
 
-  def get_user_by_email_and_password(email, password) do
+  def get_user_by_email_and_password(email, password)
+      when is_binary(email) and is_binary(password) do
     user = Repo.get_by(User, email: email)
-
-    if user && User.valid_password?(user, password) do
-      user
-    else
-      nil
-    end
+    if User.valid_password?(user, password), do: user
   end
 
-  def update_balance(user, amount) do
+  def get_user!(id), do: Repo.get!(User, id)
+
+  def get_user_with_roles!(id) do
+    User
+    |> Repo.get!(id)
+    |> Repo.preload(roles: [:permissions])
+  end
+
+  ## User registration
+
+  def register_user(attrs) do
+    %User{}
+    |> User.registration_changeset(attrs)
+    |> Repo.insert()
+  end
+
+  def create_user(attrs) do
+    register_user(attrs)
+  end
+
+  def change_user_email(user, attrs \\ %{}, opts \\ []) do
+    User.email_changeset(user, attrs, opts)
+  end
+
+  def update_user_email(user, token) do
+    context = "change:#{user.email}"
+
+    Repo.transact(fn ->
+      with {:ok, query} <- UserToken.verify_change_email_token_query(token, context),
+           %UserToken{sent_to: email} <- Repo.one(query),
+           {:ok, user} <- Repo.update(User.email_changeset(user, %{email: email})),
+           {_count, _result} <-
+             Repo.delete_all(from(UserToken, where: [user_id: ^user.id, context: ^context])) do
+        {:ok, user}
+      else
+        _ -> {:error, :transaction_aborted}
+      end
+    end)
+  end
+
+  def change_user_password(user, attrs \\ %{}, opts \\ []) do
+    User.password_changeset(user, attrs, opts)
+  end
+
+  def update_user_password(user, attrs) do
     user
-    |> User.balance_changeset(%{balance: amount})
-    |> Repo.update()
+    |> User.password_changeset(attrs)
+    |> update_user_and_delete_all_tokens()
   end
 
-  def deduct_balance(user, amount) do
-    new_balance = Decimal.sub(user.balance, amount)
+  ## Session
 
-    if Decimal.compare(new_balance, Decimal.new(0)) == :lt do
-      {:error, :insufficient_balance}
-    else
-      update_balance(user, new_balance)
-    end
-  end
-
-  def credit_balance(user, amount) do
-    new_balance = Decimal.add(user.balance, amount)
-    update_balance(user, new_balance)
-  end
-
-  def lock_user_for_update(user_id) do
-    from(u in User, where: u.id == ^user_id, lock: "FOR UPDATE")
-    |> Repo.one()
-  end
-
-  def get_role!(id), do: Repo.get!(Role, id)
-
-def create_role(attrs \\ %{}) do
-  %Role{}
-  |> Role.changeset(attrs)
-  |> Repo.insert()
-end
-
-def update_role(%Role{} = role, attrs) do
-  role
-  |> Role.changeset(attrs)
-  |> Repo.update()
-end
-
-def list_permissions do
-  Repo.all(Permission)
-end
-
-def get_permission!(id), do: Repo.get!(Permission, id)
-
-def create_permission(attrs \\ %{}) do
-  %Permission{}
-  |> Permission.changeset(attrs)
-  |> Repo.insert()
-end
-
-def update_permission(%Permission{} = permission, attrs) do
-  permission
-  |> Permission.changeset(attrs)
-  |> Repo.update()
-end
-
-
-def add_role_to_user(user, role) do
-  user
-  |> Repo.preload(:roles)
-  |> Ecto.Changeset.change()
-  |> Ecto.Changeset.put_assoc(:roles, [role | user.roles])
-  |> Repo.update()
-end
-
-def add_permission_to_role(role, permission) do
-  role
-  |> Repo.preload(:permissions)
-  |> Ecto.Changeset.change()
-  |> Ecto.Changeset.put_assoc(:permissions, [permission | role.permissions])
-  |> Repo.update()
-end
-
-def change_user_registration(%User{} = user, attrs \\ %{}) do
-  User.registration_changeset(user, attrs)
-end
-
-def register_user(attrs) do
-  %User{}
-  |> User.registration_changeset(attrs)
-  |> Repo.insert()
-end
-
-#session management
-
-def login_user_by_magic_link(token) do
-  case Repo.get_by(User, magic_link_token: token) do
-    nil -> {:error, :invalid_token}
-    user -> {:ok, {user, []}}
-  end
-end
-
-def generate_user_session_token(user) do
+  def generate_user_session_token(user) do
     {token, user_token} = UserToken.build_session_token(user)
     Repo.insert!(user_token)
     token
@@ -136,10 +89,10 @@ def generate_user_session_token(user) do
 
   def get_user_by_magic_link_token(token) do
     with {:ok, query} <- UserToken.verify_magic_link_token_query(token),
-         {user, token} <- Repo.one(query) do
+         {user, _token} <- Repo.one(query) do
       user
     else
-       -> nil
+      _ -> nil
     end
   end
 
@@ -166,4 +119,168 @@ def generate_user_session_token(user) do
     end
   end
 
+  def deliver_user_update_email_instructions(%User{} = user, current_email, update_email_url_fun)
+      when is_function(update_email_url_fun, 1) do
+    {encoded_token, user_token} = UserToken.build_email_token(user, "change:#{current_email}")
+
+    Repo.insert!(user_token)
+    UserNotifier.deliver_update_email_instructions(user, update_email_url_fun.(encoded_token))
+  end
+
+  def deliver_login_instructions(%User{} = user, magic_link_url_fun)
+      when is_function(magic_link_url_fun, 1) do
+    {encoded_token, user_token} = UserToken.build_email_token(user, "login")
+    Repo.insert!(user_token)
+    UserNotifier.deliver_login_instructions(user, magic_link_url_fun.(encoded_token))
+  end
+
+  def delete_user_session_token(token) do
+    Repo.delete_all(from(UserToken, where: [token: ^token, context: "session"]))
+    :ok
+  end
+
+  ## Balance Operations
+
+  def update_balance(user, amount) do
+    user
+    |> User.balance_changeset(%{balance: amount})
+    |> Repo.update()
+  end
+
+  def deduct_balance(user, amount) do
+    new_balance = Decimal.sub(user.balance, amount)
+
+    if Decimal.compare(new_balance, Decimal.new(0)) == :lt do
+      {:error, :insufficient_balance}
+    else
+      update_balance(user, new_balance)
+    end
+  end
+
+  def credit_balance(user, amount) do
+    new_balance = Decimal.add(user.balance, amount)
+    update_balance(user, new_balance)
+  end
+
+  def update_user_balance(user, new_balance) do
+    update_balance(user, new_balance)
+  end
+
+  def lock_user_for_update(user_id) do
+    from(u in User, where: u.id == ^user_id, lock: "FOR UPDATE")
+    |> Repo.one()
+  end
+
+  ## Permission Checking
+
+  def user_has_permission?(user_id, permission_slug) when is_binary(permission_slug) do
+    permission_slug in get_user_permission_slugs(user_id)
+  end
+
+  def get_user_permission_slugs(user_id) do
+    Repo.all(
+      from p in Permission,
+        join: rp in "role_permissions",
+        on: rp.permission_id == p.id,
+        join: r in Role,
+        on: r.id == rp.role_id,
+        join: ur in "user_roles",
+        on: ur.role_id == r.id,
+        where: ur.user_id == ^user_id,
+        select: p.slug,
+        distinct: true
+    )
+  end
+
+  def get_user_with_permissions(user_id) do
+    User
+    |> Repo.get(user_id)
+    |> Repo.preload(roles: [:permissions])
+  end
+
+  def assign_role_to_user(user_id, role_id) do
+    Repo.insert_all("user_roles", [
+      %{
+        user_id: user_id,
+        role_id: role_id,
+        inserted_at: NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second),
+        updated_at: NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
+      }
+    ])
+  end
+
+  def remove_role_from_user(user_id, role_id) do
+    from(ur in "user_roles",
+      where: ur.user_id == ^user_id and ur.role_id == ^role_id
+    )
+    |> Repo.delete_all()
+  end
+
+  def list_roles_with_permissions do
+    Role
+    |> Repo.all()
+    |> Repo.preload(:permissions)
+  end
+
+  def list_users do
+    User
+    |> where([u], is_nil(u.deleted_at))
+    |> Repo.all()
+    |> Repo.preload(:roles)
+  end
+
+  def get_user_with_betslips!(id) do
+    User
+    |> Repo.get!(id)
+    |> Repo.preload(betslips: [:selections])
+  end
+
+  def soft_delete_user(user) do
+    user
+    |> User.soft_delete_changeset()
+    |> Repo.update()
+  end
+
+  def list_roles do
+    Repo.all(Role)
+  end
+
+  def get_role!(id), do: Repo.get!(Role, id)
+
+  def user_has_role?(user_id, role_slug) do
+    from(r in Role,
+      join: ur in "user_roles",
+      on: ur.role_id == r.id,
+      where: ur.user_id == ^user_id and r.slug == ^role_slug,
+      select: count(r.id)
+    )
+    |> Repo.one() > 0
+  end
+
+  ## Token helper
+
+  defp update_user_and_delete_all_tokens(changeset) do
+    Repo.transact(fn ->
+      with {:ok, user} <- Repo.update(changeset) do
+        tokens_to_expire = Repo.all(from(t in UserToken, where: t.user_id == ^user.id))
+
+        Repo.delete_all(from(t in UserToken, where: t.id in ^Enum.map(tokens_to_expire, & &1.id)))
+
+        {:ok, {user, tokens_to_expire}}
+      end
+    end)
+  end
+
+  ## Settings
+
+  @doc """
+  Checks whether the user is in sudo mode.
+  """
+  def sudo_mode?(user, minutes \\ -20)
+
+  def sudo_mode?(%User{authenticated_at: ts}, minutes) when is_struct(ts, DateTime) do
+    DateTime.after?(ts, DateTime.utc_now() |> DateTime.add(minutes, :minute))
+  end
+
+  def sudo_mode?(_user, _minutes), do: false
 end
