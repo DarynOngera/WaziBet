@@ -29,35 +29,25 @@ defmodule WaziBet.Accounts.User do
     timestamps()
   end
 
- def registration_changeset(user, attrs, opts \\ []) do
-  user
-  |> cast(attrs, [
-    :email,
-    :password,
-    :password_confirmation,
-    :balance,
-    :first_name,
-    :last_name,
-    :msisdn
-  ])
-  |> validate_required([
-    :email,
-    :password,
-    :password_confirmation,
-    :first_name,
-    :last_name,
-    :msisdn
-  ])
-  |> validate_email(opts)
-  |> validate_password(opts)
-  |> validate_confirmation(:password, message: "does not match password")
-  |> validate_balance()
-  |> validate_length(:first_name, max: 100)
-  |> validate_length(:last_name, max: 100)
-  |> validate_format(:msisdn, ~r/^\+?[0-9]+$/, message: "must be a valid phone number")
-  |> unique_constraint(:email)
-
-end
+  def registration_changeset(user, attrs, opts \\ []) do
+    user
+    |> cast(attrs, [
+      :email,
+      :password,
+      :password_confirmation,
+      :balance,
+      :first_name,
+      :last_name,
+      :msisdn
+    ])
+    |> validate_email(opts)
+    |> validate_password(opts)
+    |> validate_confirmation(:password, message: "does not match password")
+    |> validate_balance()
+    |> validate_length(:first_name, max: 100)
+    |> validate_length(:last_name, max: 100)
+    |> validate_format(:msisdn, ~r/^\+?[0-9]+$/, message: "must be a valid phone number")
+  end
 
   defp validate_email(changeset, opts) do
     changeset
@@ -148,6 +138,10 @@ end
     |> cast(attrs, [:balance])
     |> validate_required([:balance])
     |> validate_balance()
+  end
+
+  def soft_delete_changeset(user) do
+    change(user, deleted_at: DateTime.utc_now() |> DateTime.truncate(:second))
   end
 
   defp validate_balance(changeset) do
