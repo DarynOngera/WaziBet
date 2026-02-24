@@ -311,4 +311,55 @@ defmodule WaziBet.Bets do
     from(b in Betslip, where: b.status == ^status, select: count(b.id))
     |> Repo.one()
   end
+
+  # Pending Betslip Functions
+
+  alias WaziBet.Bets.PendingBetslip
+
+  @doc """
+  Gets or creates a pending betslip for a user.
+  """
+  def get_or_create_pending_betslip(user_id) do
+    case Repo.get_by(PendingBetslip, user_id: user_id) do
+      nil ->
+        %PendingBetslip{user_id: user_id, selections: [], stake: Decimal.new(0)}
+        |> Repo.insert!()
+
+      pending ->
+        pending
+    end
+  end
+
+  @doc """
+  Updates the selections for a pending betslip.
+  """
+  def update_pending_selections(user_id, selections) do
+    pending = get_or_create_pending_betslip(user_id)
+
+    pending
+    |> PendingBetslip.changeset(%{selections: selections})
+    |> Repo.update()
+  end
+
+  @doc """
+  Updates the stake for a pending betslip.
+  """
+  def update_pending_stake(user_id, stake) do
+    pending = get_or_create_pending_betslip(user_id)
+
+    pending
+    |> PendingBetslip.changeset(%{stake: stake})
+    |> Repo.update()
+  end
+
+  @doc """
+  Clears all selections from a pending betslip.
+  """
+  def clear_pending_selections(user_id) do
+    pending = get_or_create_pending_betslip(user_id)
+
+    pending
+    |> PendingBetslip.changeset(%{selections: [], stake: Decimal.new(0)})
+    |> Repo.update()
+  end
 end

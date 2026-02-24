@@ -61,7 +61,8 @@ defmodule WaziBetWeb.GameLive.Show do
         end
       end)
 
-    betslip = []
+    # Load betslip from DB for authenticated users
+    betslip = get_betslip_from_socket(socket)
 
     {:ok,
      socket
@@ -124,11 +125,28 @@ defmodule WaziBetWeb.GameLive.Show do
         |> Enum.reject(fn s -> s.game_id == game.id end)
         |> Kernel.++([selection])
 
+      # Persist to DB for authenticated users
+      persist_betslip(socket, new_betslip)
+
       {:noreply,
        socket
        |> assign(:betslip, new_betslip)
        |> push_event("betslip_updated", %{betslip: new_betslip})}
     end
+  end
+
+  @impl true
+  def handle_event("remove_from_betslip", %{"game_id" => game_id}, socket) do
+    new_betslip =
+      Enum.reject(socket.assigns.betslip, fn s -> s.game_id == String.to_integer(game_id) end)
+
+    # Persist to DB for authenticated users
+    persist_betslip(socket, new_betslip)
+
+    {:noreply,
+     socket
+     |> assign(:betslip, new_betslip)
+     |> push_event("betslip_updated", %{betslip: new_betslip})}
   end
 
   @impl true
@@ -304,4 +322,22 @@ defmodule WaziBetWeb.GameLive.Show do
 
   # Alias for getting events from presence
   defp get_game_events_from_presence(game_id), do: get_game_events(game_id)
+
+  # Load betslip from DB for authenticated users
+  defp get_betslip_from_socket(socket) do
+    if socket.assigns[:current_scope] && socket.assigns.current_scope.user do
+      user_id = socket.assigns.current_scope.user.id
+      pending = Bets.get_or_create_pending_betslip(user_id)
+      pending.selections || []
+    else
+      []
+    end
+  end
+
+  defp persist_betslip(socket, selections) do
+    if socket.assigns[:current_scope] && socket.assigns.current_scope.user do
+      user_id = socket.assigns.current_scope.user.id
+      {:ok, _} = Bets.update_pending_selections(user_id, selections)
+    end
+  end
 end
