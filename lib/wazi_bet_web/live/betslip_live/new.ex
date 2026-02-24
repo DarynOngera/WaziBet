@@ -14,17 +14,32 @@ defmodule WaziBetWeb.BetslipLive.New do
   def mount(params, _session, socket) do
     user = socket.assigns.current_scope.user
 
-    # selections = []
-    games = load_available_games()
+    # Load selections from pending betslip in DB
+    pending = Bets.get_or_create_pending_betslip(user.id)
+    selections = pending.selections || []
 
-    selections = []
+    # Filter out any selections from games that are no longer available
+    selections =
+      Enum.filter(selections, fn s ->
+        case Sport.get_game(s.game_id) do
+          nil -> false
+          game -> game.status == :scheduled
+        end
+      end)
+
+    # If we filtered some, persist the cleaned list
+    if length(selections) != length(pending.selections || []) do
+      Bets.update_pending_selections(user.id, selections)
+    end
+
+    games = load_available_games()
 
     {:ok,
      socket
      |> assign(:user, user)
      |> assign(:selections, selections)
      |> assign(:games, games)
-     |> assign(:stake, "100")
+     |> assign(:stake, Decimal.to_string(pending.stake))
      |> assign(:page_title, "Place Bet")
      |> assign(:changeset, Betslip.changeset(%Betslip{}, %{}))}
   end
@@ -55,6 +70,10 @@ defmodule WaziBetWeb.BetslipLive.New do
         |> Enum.reject(fn s -> s.game_id == game_id end)
         |> Kernel.++([selection])
 
+      # Persist to DB
+      user = socket.assigns.user
+      Bets.update_pending_selections(user.id, new_selections)
+
       {:noreply,
        socket
        |> assign(:selections, new_selections)
@@ -66,6 +85,10 @@ defmodule WaziBetWeb.BetslipLive.New do
   def handle_event("remove_selection", %{"index" => index}, socket) do
     {_, new_selections} = List.pop_at(socket.assigns.selections, String.to_integer(index))
 
+    # Persist to DB
+    user = socket.assigns.user
+    Bets.update_pending_selections(user.id, new_selections)
+
     {:noreply,
      socket
      |> assign(:selections, new_selections)
@@ -74,6 +97,11 @@ defmodule WaziBetWeb.BetslipLive.New do
 
   @impl true
   def handle_event("update_stake", %{"stake" => stake}, socket) do
+    # Persist stake to DB
+    user = socket.assigns.user
+    stake_decimal = Decimal.new(stake)
+    Bets.update_pending_stake(user.id, stake_decimal)
+
     {:noreply, assign(socket, :stake, stake)}
   end
 
@@ -91,6 +119,9 @@ defmodule WaziBetWeb.BetslipLive.New do
     else
       case Bets.place_betslip(user, selections, stake) do
         {:ok, _result} ->
+          # Clear pending betslip after successful placement
+          Bets.clear_pending_selections(user.id)
+
           {:noreply,
            socket
            |> put_flash(:info, "Bet placed successfully!")

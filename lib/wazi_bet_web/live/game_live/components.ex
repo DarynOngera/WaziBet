@@ -53,20 +53,22 @@ defmodule WaziBetWeb.GameLive.Components do
             <div class="space-y-3">
               <%= for {selection, index} <- Enum.with_index(@betslip) do %>
                 <div class="card bg-base-200 border border-base-300">
-                  <div class="card-body p-3">
+                  <div class="card-body p-4">
                     <div class="flex justify-between items-start">
                       <div class="flex-1 min-w-0">
-                        <p class="font-medium text-sm truncate">{selection.game_name}</p>
-                        <p class="text-xs text-base-content/60 mt-1 font-mono">
-                          {String.capitalize(to_string(selection.label))} @ {selection.odds}
+                        <p class="font-medium truncate">{get_field(selection, :game_name)}</p>
+                        <p class="text-sm text-base-content/60 mt-1 font-mono">
+                          {String.capitalize(to_string(get_field(selection, :label)))} @ {format_odds(
+                            get_field(selection, :odds)
+                          )}
                         </p>
                       </div>
                       <button
                         phx-click="remove_from_betslip"
                         phx-value-index={index}
-                        class="btn btn-ghost btn-xs btn-circle ml-2 text-error hover:bg-error/10"
+                        class="btn btn-ghost btn-sm btn-circle ml-3 text-error hover:bg-error/10"
                       >
-                        <.icon name="hero-x-mark" class="w-4 h-4" />
+                        <.icon name="hero-x-mark" class="w-5 h-5" />
                       </button>
                     </div>
                   </div>
@@ -175,9 +177,11 @@ defmodule WaziBetWeb.GameLive.Components do
                   <div class="card-body p-4">
                     <div class="flex justify-between items-start">
                       <div class="flex-1 min-w-0">
-                        <p class="font-medium truncate">{selection.game_name}</p>
+                        <p class="font-medium truncate">{get_field(selection, :game_name)}</p>
                         <p class="text-sm text-base-content/60 mt-1 font-mono">
-                          {String.capitalize(to_string(selection.label))} @ {selection.odds}
+                          {String.capitalize(to_string(get_field(selection, :label)))} @ {format_odds(
+                            get_field(selection, :odds)
+                          )}
                         </p>
                       </div>
                       <button
@@ -257,15 +261,69 @@ defmodule WaziBetWeb.GameLive.Components do
 
   def is_selected?(betslip, outcome_id) do
     Enum.any?(betslip, fn selection ->
-      selection.outcome_id == outcome_id
+      (Map.get(selection, "outcome_id") || Map.get(selection, :outcome_id)) == outcome_id
     end)
+  end
+
+  defp get_field(map, key, default \\ nil) do
+    Map.get(map, key) || Map.get(map, to_string(key)) || default
+  end
+
+  defp format_odds(odds) do
+    case odds do
+      %{"coef" => coef, "exp" => exp, "sign" => sign} ->
+        result = coef * :math.pow(10, exp) * sign
+        format_decimal(result)
+
+      %Decimal{} = d ->
+        Decimal.to_string(d, :normal)
+
+      odds when is_binary(odds) ->
+        odds
+
+      odds when is_number(odds) ->
+        format_decimal(odds)
+
+      _ ->
+        "N/A"
+    end
+  end
+
+  defp format_decimal(num) when is_float(num) do
+    :erlang.float_to_binary(num, [{:decimals, 2}, :compact])
+  end
+
+  defp format_decimal(num) when is_integer(num) do
+    Integer.to_string(num)
   end
 
   defp calculate_total_odds([]), do: Decimal.new(1)
 
   defp calculate_total_odds(betslip) do
     betslip
-    |> Enum.map(& &1.odds)
+    |> Enum.map(fn selection ->
+      case Map.get(selection, "odds") || Map.get(selection, :odds) do
+        nil ->
+          Decimal.new(1)
+
+        odds when is_map(odds) ->
+          if Map.has_key?(odds, "coef") do
+            coef = Map.get(odds, "coef", 0)
+            exp = Map.get(odds, "exp", 0)
+            sign = Map.get(odds, "sign", 1)
+            result = coef * :math.pow(10, exp) * sign
+            Decimal.new(Float.to_string(result))
+          else
+            Decimal.cast(odds)
+          end
+
+        odds when is_binary(odds) ->
+          Decimal.new(odds)
+
+        odds ->
+          Decimal.cast(odds)
+      end
+    end)
     |> Enum.reduce(Decimal.new(1), &Decimal.mult/2)
     |> Decimal.round(2)
   end

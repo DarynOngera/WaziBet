@@ -23,6 +23,12 @@ defmodule WaziBetWeb.GameLive.Index do
 
       # Subscribe to presence updates
       Phoenix.PubSub.subscribe(WaziBet.PubSub, "presence:games:index")
+
+      # Subscribe to pending betslip updates if authenticated
+      if socket.assigns[:current_scope] && socket.assigns.current_scope.user do
+        user_id = socket.assigns.current_scope.user.id
+        Phoenix.PubSub.subscribe(WaziBet.PubSub, "user:#{user_id}:pending_betslip")
+      end
     end
 
     categories = Sport.list_categories()
@@ -34,6 +40,7 @@ defmodule WaziBetWeb.GameLive.Index do
     # Get viewer counts for live games
     viewer_counts = get_live_game_viewer_counts(games)
 
+    # Load betslip from storage (DB for authenticated users)
     betslip = get_betslip_from_storage(socket)
 
     {:ok,
@@ -74,7 +81,12 @@ defmodule WaziBetWeb.GameLive.Index do
     outcome = Bets.get_outcome!(outcome_id)
     game = Sport.get_game_with_teams!(outcome.game_id)
 
-    if Enum.any?(socket.assigns.betslip, fn s -> s.outcome_id == outcome.id end) do
+    betslip_contains_outcome? =
+      Enum.any?(socket.assigns.betslip, fn s ->
+        (Map.get(s, "outcome_id") || Map.get(s, :outcome_id)) == outcome.id
+      end)
+
+    if betslip_contains_outcome? do
       {:noreply, socket}
     else
       selection = %{
@@ -88,8 +100,13 @@ defmodule WaziBetWeb.GameLive.Index do
 
       new_betslip =
         socket.assigns.betslip
-        |> Enum.reject(fn s -> s.game_id == game.id end)
+        |> Enum.reject(fn s ->
+          (Map.get(s, "game_id") || Map.get(s, :game_id)) == game.id
+        end)
         |> Kernel.++([selection])
+
+      # Persist to DB for authenticated users
+      persist_betslip(socket, new_betslip)
 
       {:noreply,
        socket
@@ -102,6 +119,9 @@ defmodule WaziBetWeb.GameLive.Index do
   def handle_event("remove_from_betslip", %{"index" => index}, socket) do
     {_, new_betslip} = List.pop_at(socket.assigns.betslip, String.to_integer(index))
 
+    # Persist to DB for authenticated users
+    persist_betslip(socket, new_betslip)
+
     {:noreply,
      socket
      |> assign(:betslip, new_betslip)
@@ -110,6 +130,9 @@ defmodule WaziBetWeb.GameLive.Index do
 
   @impl true
   def handle_event("clear_betslip", _params, socket) do
+    # Clear from DB for authenticated users
+    clear_betslip_from_db(socket)
+
     {:noreply,
      socket
      |> assign(:betslip, [])
@@ -234,10 +257,28 @@ defmodule WaziBetWeb.GameLive.Index do
   end
 
   defp get_betslip_from_storage(socket) do
-    if connected?(socket) do
-      []
+    # For authenticated users, load from DB
+    if socket.assigns[:current_scope] && socket.assigns.current_scope.user do
+      user_id = socket.assigns.current_scope.user.id
+      pending = Bets.get_or_create_pending_betslip(user_id)
+      pending.selections || []
     else
+      # For guests, use empty list
       []
+    end
+  end
+
+  defp persist_betslip(socket, selections) do
+    if socket.assigns[:current_scope] && socket.assigns.current_scope.user do
+      user_id = socket.assigns.current_scope.user.id
+      {:ok, _} = Bets.update_pending_selections(user_id, selections)
+    end
+  end
+
+  defp clear_betslip_from_db(socket) do
+    if socket.assigns[:current_scope] && socket.assigns.current_scope.user do
+      user_id = socket.assigns.current_scope.user.id
+      {:ok, _} = Bets.clear_pending_selections(user_id)
     end
   end
 
