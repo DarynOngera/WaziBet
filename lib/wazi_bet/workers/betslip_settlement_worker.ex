@@ -43,7 +43,7 @@ defmodule WaziBet.Workers.BetslipSettlementWorker do
           # Reload the game to get its current status and score
           game = Sport.get_game!(selection.game_id)
 
-          # Determine winning label from actual game scores
+          # Determine winning label from game scores
           winning_label =
             cond do
               game.home_score > game.away_score -> :home
