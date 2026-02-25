@@ -1,165 +1,165 @@
-<Layouts.app flash={@flash} current_scope={@current_scope}>
-  <div class="container mx-auto px-4 py-8">
-    <div class="mb-6">
-      <.link navigate={~p"/admin/roles"} class="btn btn-ghost btn-sm">
-        <.icon name="hero-arrow-left" class="w-4 h-4 mr-2" /> Back to Roles
-      </.link>
-    </div>
+<Layouts.admin
+  flash={@flash}
+  current_scope={@current_scope}
+  user_permissions={@user_permissions}
+  is_superuser={@is_superuser}
+  current_path={@current_path}
+>
+  <div class="mb-6">
+    <.link navigate={~p"/admin/roles"} class="btn btn-ghost btn-sm">
+      <.icon name="hero-arrow-left" class="w-4 h-4 mr-2" /> Back to Roles
+    </.link>
+  </div>
 
-    <div class="mb-8">
-      <h1 class="text-3xl lg:text-4xl font-bold text-base-content flex items-center gap-3">
-        <.icon name="hero-key" class="w-8 h-8 text-primary" /> Assign Roles
-      </h1>
-      <p class="text-base-content/60 mt-2">Manage user role assignments</p>
-    </div>
+  <div class="mb-8">
+    <h1 class="text-3xl lg:text-4xl font-bold text-base-content flex items-center gap-3">
+      <.icon name="hero-key" class="w-8 h-8 text-primary" /> Assign Roles
+    </h1>
+    <p class="text-base-content/60 mt-2">Manage user role assignments</p>
+  </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <%!-- User Selection --%>
-      <div class="lg:col-span-1">
-        <div class="card bg-base-100 shadow-xl border-2 border-base-300 sticky top-4">
-          <div class="card-body">
-            <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
-              <.icon name="hero-users" class="w-5 h-5 text-primary" /> Select User
-            </h2>
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <%!-- User Selection --%>
+    <div class="lg:col-span-1">
+      <div class="card bg-base-100 shadow-xl border-2 border-base-300 sticky top-4">
+        <div class="card-body">
+          <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+            <.icon name="hero-users" class="w-5 h-5 text-primary" /> Select User
+          </h2>
 
-            <div class="space-y-2 max-h-96 overflow-y-auto">
-              <%= for user <- @users do %>
-                <button
-                  phx-click="select_user"
-                  phx-value-user_id={user.id}
-                  class={[
-                    "w-full p-3 text-left rounded-lg border-2 transition-all",
-                    if(@selected_user && @selected_user.id == user.id,
-                      do: "bg-primary/10 border-primary",
-                      else: "border-base-300 hover:border-primary/50"
-                    )
-                  ]}
-                >
-                  <div class="flex items-center gap-3">
-                    <div class="avatar placeholder">
-                      <div class="bg-primary text-primary-content rounded-full w-10">
-                        <span class="text-sm">
-                          {String.first(user.first_name || "U")}{String.first(
-                            user.last_name || ""
-                          )}
-                        </span>
-                      </div>
-                    </div>
-                    <div class="min-w-0">
-                      <div class="font-medium truncate">
-                        {user.first_name} {user.last_name}
-                      </div>
-                      <div class="text-xs text-base-content/60 font-mono truncate">
-                        {user.email}
-                      </div>
-                    </div>
-                  </div>
-                </button>
-              <% end %>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <%!-- Role Assignment --%>
-      <div class="lg:col-span-2">
-        <%= if @selected_user do %>
-          <div class="card bg-base-100 shadow-xl border-2 border-base-300">
-            <div class="card-body">
-              <div class="flex items-center justify-between mb-6">
-                <div class="flex items-center gap-4">
+          <div class="space-y-2 max-h-96 overflow-y-auto">
+            <%= for user <- @users do %>
+              <button
+                phx-click="select_user"
+                phx-value-user_id={user.id}
+                class={[
+                  "w-full p-3 text-left rounded-lg border-2 transition-all",
+                  @selected_user && @selected_user.id == user.id && "bg-primary/10 border-primary",
+                  !(@selected_user && @selected_user.id == user.id) &&
+                    "border-base-300 hover:border-primary/50"
+                ]}
+              >
+                <div class="flex items-center gap-3">
                   <div class="avatar placeholder">
-                    <div class="bg-primary text-primary-content rounded-full w-16">
-                      <span class="text-xl">
-                        {String.first(@selected_user.first_name || "U")}{String.first(
-                          @selected_user.last_name || ""
-                        )}
+                    <div class="bg-primary text-primary-content rounded-full w-10">
+                      <span class="text-sm">
+                        {String.first(user.first_name || "U")}{String.first(user.last_name || "")}
                       </span>
                     </div>
                   </div>
-                  <div>
-                    <h2 class="text-xl font-bold">
-                      {@selected_user.first_name} {@selected_user.last_name}
-                    </h2>
-                    <p class="text-base-content/60 font-mono">{@selected_user.email}</p>
+                  <div class="min-w-0">
+                    <div class="font-medium truncate">
+                      {user.first_name} {user.last_name}
+                    </div>
+                    <div class="text-xs text-base-content/60 font-mono truncate">
+                      {user.email}
+                    </div>
                   </div>
                 </div>
-              </div>
+              </button>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
 
-              <div class="divider"></div>
-
-              <h3 class="text-lg font-bold mb-4">Assign Roles</h3>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <%= for role <- @roles do %>
-                  <% is_admin_role = role.slug == "admin" %>
-                  <% has_role = role.id in @user_roles %>
-                  <% can_toggle = not is_admin_role or @can_manage_admin %>
-
-                  <button
-                    phx-click={if can_toggle, do: "toggle_role"}
-                    phx-value-role_id={role.id}
-                    disabled={not can_toggle}
-                    class={[
-                      "p-4 rounded-lg border-2 text-left transition-all",
-                      if(has_role,
-                        do: "bg-success/10 border-success",
-                        else: "border-base-300 hover:border-primary/50"
-                      ),
-                      if(not can_toggle, do: "opacity-50 cursor-not-allowed", else: "")
-                    ]}
-                  >
-                    <div class="flex items-start justify-between">
-                      <div>
-                        <h4 class="font-bold">{String.capitalize(role.role)}</h4>
-                        <p class="text-sm text-base-content/60">/{role.slug}</p>
-                      </div>
-                      <div class={[
-                        "w-6 h-6 rounded-full border-2 flex items-center justify-center",
-                        if(has_role, do: "bg-success border-success", else: "border-base-300")
-                      ]}>
-                        <%= if has_role do %>
-                          <.icon name="hero-check" class="w-4 h-4 text-success-content" />
-                        <% end %>
-                      </div>
-                    </div>
-
-                    <%= if is_admin_role and not @can_manage_admin do %>
-                      <p class="text-xs text-error mt-2">
-                        Requires 'grant_revoke_admin_access' permission
-                      </p>
-                    <% end %>
-                  </button>
-                <% end %>
-              </div>
-
-              <div class="mt-6 p-4 bg-base-200 rounded-lg">
-                <h4 class="font-medium mb-2">Current Role Summary</h4>
-                <div class="flex flex-wrap gap-2">
-                  <%= for role_id <- @user_roles do %>
-                    <% role = Enum.find(@roles, fn r -> r.id == role_id end) %>
-                    <span class="badge badge-success">
-                      {String.capitalize(role.role)}
+    <%!-- Role Assignment --%>
+    <div class="lg:col-span-2">
+      <%= if @selected_user do %>
+        <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+          <div class="card-body">
+            <div class="flex items-center justify-between mb-6">
+              <div class="flex items-center gap-4">
+                <div class="avatar placeholder">
+                  <div class="bg-primary text-primary-content rounded-full w-16">
+                    <span class="text-xl">
+                      {String.first(@selected_user.first_name || "U")}{String.first(
+                        @selected_user.last_name || ""
+                      )}
                     </span>
-                  <% end %>
+                  </div>
+                </div>
+                <div>
+                  <h2 class="text-xl font-bold">
+                    {@selected_user.first_name} {@selected_user.last_name}
+                  </h2>
+                  <p class="text-base-content/60 font-mono">{@selected_user.email}</p>
                 </div>
               </div>
             </div>
-          </div>
-        <% else %>
-          <div class="card bg-base-100 shadow-xl border-2 border-base-300">
-            <div class="card-body text-center py-16">
-              <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-base-200 flex items-center justify-center">
-                <.icon name="hero-users" class="w-10 h-10 text-base-content/30" />
+
+            <div class="divider"></div>
+
+            <h3 class="text-lg font-bold mb-4">Assign Roles</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <%= for role <- @roles do %>
+                <% is_admin_role = role.slug == "admin" %>
+                <% has_role = role.id in @user_roles %>
+                <% can_toggle = not is_admin_role or @can_manage_admin %>
+
+                <button
+                  phx-click={if can_toggle, do: "toggle_role"}
+                  phx-value-role_id={role.id}
+                  disabled={not can_toggle}
+                  class={[
+                    "p-4 rounded-lg border-2 text-left transition-all",
+                    (has_role && "bg-success/10 border-success") ||
+                      (!has_role && "border-base-300 hover:border-primary/50"),
+                    !can_toggle && "opacity-50 cursor-not-allowed"
+                  ]}
+                >
+                  <div class="flex items-start justify-between">
+                    <div>
+                      <h4 class="font-bold">{String.capitalize(role.role)}</h4>
+                      <p class="text-sm text-base-content/60">/{role.slug}</p>
+                    </div>
+                    <div class={[
+                      "w-6 h-6 rounded-full border-2 flex items-center justify-center",
+                      has_role && "bg-success border-success",
+                      !has_role && "border-base-300"
+                    ]}>
+                      <%= if has_role do %>
+                        <.icon name="hero-check" class="w-4 h-4 text-success-content" />
+                      <% end %>
+                    </div>
+                  </div>
+
+                  <%= if is_admin_role and not @can_manage_admin do %>
+                    <p class="text-xs text-error mt-2">
+                      Requires 'grant_revoke_admin_access' permission
+                    </p>
+                  <% end %>
+                </button>
+              <% end %>
+            </div>
+
+            <div class="mt-6 p-4 bg-base-200 rounded-lg">
+              <h4 class="font-medium mb-2">Current Role Summary</h4>
+              <div class="flex flex-wrap gap-2">
+                <%= for role_id <- @user_roles do %>
+                  <% role = Enum.find(@roles, fn r -> r.id == role_id end) %>
+                  <span class="badge badge-success">
+                    {String.capitalize(role.role)}
+                  </span>
+                <% end %>
               </div>
-              <h2 class="text-xl font-semibold mb-2">Select a User</h2>
-              <p class="text-base-content/60">
-                Choose a user from the list to manage their roles
-              </p>
             </div>
           </div>
-        <% end %>
-      </div>
+        </div>
+      <% else %>
+        <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+          <div class="card-body text-center py-16">
+            <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-base-200 flex items-center justify-center">
+              <.icon name="hero-users" class="w-10 h-10 text-base-content/30" />
+            </div>
+            <h2 class="text-xl font-semibold mb-2">Select a User</h2>
+            <p class="text-base-content/60">
+              Choose a user from the list to manage their roles
+            </p>
+          </div>
+        </div>
+      <% end %>
     </div>
   </div>
-</Layouts.app>
+</Layouts.admin>

@@ -10,10 +10,19 @@ defmodule WaziBetWeb.Admin.UserLive.New do
 
   @impl true
   def mount(_params, _session, socket) do
+    user = socket.assigns.current_scope.user
+    current_path = "/admin/users/new"
+
+    user_permissions = Accounts.get_user_permission_slugs(user.id)
+    is_superuser = Accounts.user_has_permission?(user.id, "grant-revoke-admin-access")
+
     changeset = Accounts.User.registration_changeset(%Accounts.User{}, %{}, validate_email: false)
 
     {:ok,
      socket
+     |> assign(:user_permissions, user_permissions)
+     |> assign(:is_superuser, is_superuser)
+     |> assign(:current_path, current_path)
      |> assign(:changeset, changeset)
      |> assign(:page_title, "New User")}
   end
@@ -41,4 +50,6 @@ defmodule WaziBetWeb.Admin.UserLive.New do
         {:noreply, assign(socket, :changeset, changeset)}
     end
   end
+
+  def has_permission?(permissions, slug), do: slug in permissions
 end

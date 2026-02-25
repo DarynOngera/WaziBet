@@ -6,15 +6,23 @@ defmodule WaziBetWeb.Admin.AdminLive.Profits do
 
   use WaziBetWeb, :live_view
 
-  alias WaziBet.Bets
+  alias WaziBet.{Accounts, Bets}
 
   @impl true
   def mount(_params, _session, socket) do
+    user = socket.assigns.current_scope.user
+    current_path = "/admin/profits"
+
     stats = Bets.get_profit_stats()
+    user_permissions = Accounts.get_user_permission_slugs(user.id)
+    is_superuser = Accounts.user_has_permission?(user.id, "grant-revoke-admin-access")
 
     {:ok,
      socket
      |> assign(:stats, stats)
+     |> assign(:user_permissions, user_permissions)
+     |> assign(:is_superuser, is_superuser)
+     |> assign(:current_path, current_path)
      |> assign(:page_title, "Profits Dashboard")}
   end
 
@@ -33,4 +41,6 @@ defmodule WaziBetWeb.Admin.AdminLive.Profits do
       true -> "bg-base-200"
     end
   end
+
+  def has_permission?(permissions, slug), do: slug in permissions
 end

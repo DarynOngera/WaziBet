@@ -10,6 +10,12 @@ defmodule WaziBetWeb.Admin.UserLive.Show do
 
   @impl true
   def mount(%{"id" => id}, _session, socket) do
+    user = socket.assigns.current_scope.user
+    current_path = "/admin/users/#{id}"
+
+    user_permissions = Accounts.get_user_permission_slugs(user.id)
+    is_superuser = Accounts.user_has_permission?(user.id, "grant-revoke-admin-access")
+
     user = Accounts.get_user_with_betslips!(id)
 
     betslips =
@@ -21,6 +27,9 @@ defmodule WaziBetWeb.Admin.UserLive.Show do
 
     {:ok,
      socket
+     |> assign(:user_permissions, user_permissions)
+     |> assign(:is_superuser, is_superuser)
+     |> assign(:current_path, current_path)
      |> assign(:user, user)
      |> assign(:betslips, betslips)
      |> assign(:page_title, "#{user.first_name} #{user.last_name}")}
@@ -35,4 +44,6 @@ defmodule WaziBetWeb.Admin.UserLive.Show do
   def role_badge_color("admin"), do: "badge-error"
   def role_badge_color("user"), do: "badge-info"
   def role_badge_color(_), do: "badge-ghost"
+
+  def has_permission?(permissions, slug), do: slug in permissions
 end

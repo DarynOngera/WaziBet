@@ -6,12 +6,18 @@ defmodule WaziBetWeb.Admin.GameLive.Show do
 
   use WaziBetWeb, :live_view
 
-  alias WaziBet.{Sport, Bets}
+  alias WaziBet.{Sport, Bets, Accounts}
   alias WaziBetWeb.Timezone
   alias WaziBetWeb.Presence
 
   @impl true
   def mount(%{"id" => id}, _session, socket) do
+    user = socket.assigns.current_scope.user
+    current_path = "/admin/games/#{id}"
+
+    user_permissions = Accounts.get_user_permission_slugs(user.id)
+    is_superuser = Accounts.user_has_permission?(user.id, "grant-revoke-admin-access")
+
     game_id = String.to_integer(id)
     game = Sport.get_game_with_teams!(game_id)
     outcomes = Bets.get_outcomes_for_game(game_id)
@@ -49,6 +55,9 @@ defmodule WaziBetWeb.Admin.GameLive.Show do
 
     {:ok,
      socket
+     |> assign(:user_permissions, user_permissions)
+     |> assign(:is_superuser, is_superuser)
+     |> assign(:current_path, current_path)
      |> assign(:game, game)
      |> assign(:viewer_count, viewer_count)
      |> assign(:events, display_events)
@@ -98,4 +107,6 @@ defmodule WaziBetWeb.Admin.GameLive.Show do
   def status_color(:open), do: "badge-success"
   def status_color(:closed), do: "badge-warning"
   def status_color(:settled), do: "badge-ghost"
+
+  def has_permission?(permissions, slug), do: slug in permissions
 end

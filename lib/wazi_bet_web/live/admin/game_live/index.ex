@@ -6,12 +6,18 @@ defmodule WaziBetWeb.Admin.GameLive.Index do
 
   use WaziBetWeb, :live_view
 
-  alias WaziBet.{Sport, Bets}
+  alias WaziBet.{Sport, Bets, Accounts}
   alias WaziBetWeb.Timezone
   alias WaziBetWeb.Presence
 
   @impl true
   def mount(_params, _session, socket) do
+    user = socket.assigns.current_scope.user
+    current_path = "/admin/games"
+
+    user_permissions = Accounts.get_user_permission_slugs(user.id)
+    is_superuser = Accounts.user_has_permission?(user.id, "grant-revoke-admin-access")
+
     if connected?(socket) do
       Phoenix.PubSub.subscribe(WaziBet.PubSub, "games")
 
@@ -30,6 +36,9 @@ defmodule WaziBetWeb.Admin.GameLive.Index do
 
     {:ok,
      socket
+     |> assign(:user_permissions, user_permissions)
+     |> assign(:is_superuser, is_superuser)
+     |> assign(:current_path, current_path)
      |> assign(:games, games)
      |> assign(:categories, categories)
      |> assign(:viewer_counts, viewer_counts)
@@ -84,4 +93,6 @@ defmodule WaziBetWeb.Admin.GameLive.Index do
   def status_color(:scheduled), do: "badge-info"
   def status_color(:live), do: "badge-success"
   def status_color(:finished), do: "badge-ghost"
+
+  def has_permission?(permissions, slug), do: slug in permissions
 end

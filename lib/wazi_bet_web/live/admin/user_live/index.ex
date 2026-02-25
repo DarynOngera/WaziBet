@@ -10,11 +10,19 @@ defmodule WaziBetWeb.Admin.UserLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
+    user = socket.assigns.current_scope.user
+    current_path = "/admin/users"
+
     users = Accounts.list_users()
+    user_permissions = Accounts.get_user_permission_slugs(user.id)
+    is_superuser = Accounts.user_has_permission?(user.id, "grant-revoke-admin-access")
 
     {:ok,
      socket
      |> assign(:users, users)
+     |> assign(:user_permissions, user_permissions)
+     |> assign(:is_superuser, is_superuser)
+     |> assign(:current_path, current_path)
      |> assign(:page_title, "Users")}
   end
 
@@ -48,4 +56,6 @@ defmodule WaziBetWeb.Admin.UserLive.Index do
   def user_roles(user) do
     user.roles |> Enum.map(& &1.slug)
   end
+
+  def has_permission?(permissions, slug), do: slug in permissions
 end

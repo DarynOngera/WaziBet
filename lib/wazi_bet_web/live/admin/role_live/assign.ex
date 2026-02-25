@@ -11,13 +11,21 @@ defmodule WaziBetWeb.Admin.RoleLive.Assign do
 
   @impl true
   def mount(_params, _session, socket) do
+    user = socket.assigns.current_scope.user
+    current_path = "/admin/roles/assign"
+
+    user_permissions = Accounts.get_user_permission_slugs(user.id)
+    is_superuser = Accounts.user_has_permission?(user.id, "grant-revoke-admin-access")
+
     users = Accounts.list_users()
     roles = Accounts.list_roles()
-    current_user = socket.assigns.current_scope.user
-    can_manage_admin = Accounts.user_has_permission?(current_user.id, "grant-revoke-admin-access")
+    can_manage_admin = Accounts.user_has_permission?(user.id, "grant-revoke-admin-access")
 
     {:ok,
      socket
+     |> assign(:user_permissions, user_permissions)
+     |> assign(:is_superuser, is_superuser)
+     |> assign(:current_path, current_path)
      |> assign(:users, users)
      |> assign(:roles, roles)
      |> assign(:can_manage_admin, can_manage_admin)
@@ -29,7 +37,7 @@ defmodule WaziBetWeb.Admin.RoleLive.Assign do
   @impl true
   def handle_event("select_user", %{"user_id" => user_id}, socket) do
     user_id = String.to_integer(user_id)
-    user = Enum.find(socket.assigns.users, fn u -> u.id == user_id end)
+    _user = Enum.find(socket.assigns.users, fn u -> u.id == user_id end)
     user = Accounts.get_user_with_roles!(user_id)
 
     user_role_ids = Enum.map(user.roles, & &1.id)
@@ -68,4 +76,6 @@ defmodule WaziBetWeb.Admin.RoleLive.Assign do
       end
     end
   end
+
+  def has_permission?(permissions, slug), do: slug in permissions
 end
