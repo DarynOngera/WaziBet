@@ -34,12 +34,19 @@ defmodule WaziBetWeb.BetslipLive.New do
 
     games = load_available_games()
 
+    stake_value =
+      if pending.stake && Decimal.compare(pending.stake, Decimal.new(0)) > 0 do
+        Decimal.to_string(pending.stake)
+      else
+        "100"
+      end
+
     {:ok,
      socket
      |> assign(:user, user)
      |> assign(:selections, selections)
      |> assign(:games, games)
-     |> assign(:stake, Decimal.to_string(pending.stake))
+     |> assign(:stake, stake_value)
      |> assign(:page_title, "Place Bet")
      |> assign(:changeset, Betslip.changeset(%Betslip{}, %{}))}
   end
@@ -109,7 +116,10 @@ defmodule WaziBetWeb.BetslipLive.New do
   def handle_event("place_bet", _params, socket) do
     user = socket.assigns.user
     selections = socket.assigns.selections
-    stake = Decimal.new(socket.assigns.stake)
+
+    # Use socket assigns as primary source (most recent user input), fallback to DB
+    stake_from_socket = socket.assigns[:stake] || "100"
+    stake = Decimal.new(stake_from_socket)
 
     if Enum.empty?(selections) do
       {:noreply,

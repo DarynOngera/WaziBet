@@ -13,6 +13,7 @@ defmodule WaziBetWeb.GameLive.Components do
   attr :betslip, :list, required: true
   attr :open, :boolean, default: false
   attr :current_scope, :map, default: nil
+  attr :stake, :string, default: "100"
 
   def sidebar_betslip(assigns) do
     total_odds = calculate_total_odds(assigns.betslip)
@@ -20,7 +21,6 @@ defmodule WaziBetWeb.GameLive.Components do
     assigns =
       assigns
       |> assign(:total_odds, total_odds)
-      |> assign(:stake, "100")
 
     ~H"""
     <%!-- Desktop Sidebar --%>
@@ -84,7 +84,12 @@ defmodule WaziBetWeb.GameLive.Components do
 
         <%!-- Footer with totals and action --%>
         <%= if not Enum.empty?(@betslip) do %>
-          <div class="border-t-2 border-base-200 p-4 space-y-4 bg-base-200">
+          <% stake_value = @stake || "100" %>
+          <form
+            phx-submit="place_bet"
+            phx-change="update_stake"
+            class="border-t-2 border-base-200 p-4 space-y-4 bg-base-200"
+          >
             <div class="flex justify-between items-center text-sm">
               <span class="text-base-content/60">Total Odds:</span>
               <span class="font-bold text-lg font-mono text-primary">{@total_odds}</span>
@@ -100,10 +105,9 @@ defmodule WaziBetWeb.GameLive.Components do
                 <input
                   type="number"
                   name="stake"
-                  value={@stake}
+                  value={stake_value}
                   min="10"
                   class="input input-bordered w-full join-item border-2"
-                  phx-change="update_stake"
                 />
               </div>
             </div>
@@ -111,13 +115,13 @@ defmodule WaziBetWeb.GameLive.Components do
             <div class="flex justify-between items-center text-sm">
               <span class="text-base-content/60">Potential Win:</span>
               <span class="font-bold text-success text-lg font-mono">
-                ${calculate_potential_win(@total_odds, @stake)}
+                ${calculate_potential_win(@total_odds, stake_value)}
               </span>
             </div>
 
             <%= if @current_scope && @current_scope.user do %>
-              <button class="btn btn-primary w-full border-2">
-                <.icon name="hero-check" class="w-5 h-5 mr-2" /> Place Bet
+              <button type="submit" class="btn btn-primary w-full border-2">
+                <.icon name="hero-check" class="w-5 h-5 mr-2" /> Place Bet ({stake_value})
               </button>
             <% else %>
               <div class="space-y-2">
@@ -133,7 +137,7 @@ defmodule WaziBetWeb.GameLive.Components do
                 </.link>
               </div>
             <% end %>
-          </div>
+          </form>
         <% end %>
       </div>
     </div>
@@ -205,7 +209,8 @@ defmodule WaziBetWeb.GameLive.Components do
 
         <%!-- Footer --%>
         <%= if not Enum.empty?(@betslip) do %>
-          <div class="border-t-2 border-base-200 p-4 space-y-4 bg-base-200">
+          <% stake_value = @stake || "100" %>
+          <form phx-submit="place_bet" class="border-t-2 border-base-200 p-4 space-y-4 bg-base-200">
             <div class="flex justify-between items-center">
               <span class="text-base-content/60">Total Odds:</span>
               <span class="font-bold text-xl font-mono text-primary">{@total_odds}</span>
@@ -220,7 +225,7 @@ defmodule WaziBetWeb.GameLive.Components do
                 <input
                   type="number"
                   name="stake"
-                  value={@stake}
+                  value={stake_value}
                   min="10"
                   class="input input-bordered w-full join-item border-2"
                 />
@@ -230,13 +235,13 @@ defmodule WaziBetWeb.GameLive.Components do
             <div class="flex justify-between items-center">
               <span class="text-base-content/60">Potential Win:</span>
               <span class="font-bold text-success text-lg font-mono">
-                ${calculate_potential_win(@total_odds, @stake)}
+                ${calculate_potential_win(@total_odds, stake_value)}
               </span>
             </div>
 
             <%= if @current_scope && @current_scope.user do %>
-              <button class="btn btn-primary btn-lg w-full border-2">
-                <.icon name="hero-check" class="w-5 h-5 mr-2" /> Place Bet
+              <button type="submit" class="btn btn-primary btn-lg w-full border-2">
+                <.icon name="hero-check" class="w-5 h-5 mr-2" /> Place Bet ({stake_value})
               </button>
             <% else %>
               <div class="space-y-3">
@@ -252,7 +257,7 @@ defmodule WaziBetWeb.GameLive.Components do
                 </.link>
               </div>
             <% end %>
-          </div>
+          </form>
         <% end %>
       </div>
     </div>
@@ -314,14 +319,20 @@ defmodule WaziBetWeb.GameLive.Components do
             result = coef * :math.pow(10, exp) * sign
             Decimal.new(Float.to_string(result))
           else
-            Decimal.cast(odds)
+            case Decimal.cast(odds) do
+              {:ok, decimal} -> decimal
+              _ -> Decimal.new(1)
+            end
           end
 
         odds when is_binary(odds) ->
           Decimal.new(odds)
 
         odds ->
-          Decimal.cast(odds)
+          case Decimal.cast(odds) do
+            {:ok, decimal} -> decimal
+            _ -> Decimal.new(1)
+          end
       end
     end)
     |> Enum.reduce(Decimal.new(1), &Decimal.mult/2)
