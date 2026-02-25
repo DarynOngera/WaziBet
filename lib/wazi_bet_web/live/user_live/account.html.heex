@@ -1,0 +1,193 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <div class="container mx-auto px-4 py-8">
+    <div class="mb-8">
+      <h1 class="text-3xl lg:text-4xl font-bold text-base-content flex items-center gap-3">
+        <.icon name="hero-user-circle" class="w-8 h-8 text-primary" /> My Account
+      </h1>
+      <p class="text-base-content/60 mt-2">Manage your account and view your activity</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <%!-- Left Column: Balance & Deposit --%>
+      <div class="lg:col-span-1 space-y-6">
+        <%!-- Current Balance Card --%>
+        <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+          <div class="card-body">
+            <h2 class="text-lg font-medium text-base-content/60">Current Balance</h2>
+            <div class="text-4xl lg:text-5xl font-bold font-mono text-success">
+              ${Decimal.round(@user.balance, 2)}
+            </div>
+          </div>
+        </div>
+       
+        <%!-- Deposit Form --%>
+        <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+          <div class="card-body">
+            <h2 class="text-xl font-bold flex items-center gap-2">
+              <.icon name="hero-plus-circle" class="w-5 h-5 text-success" /> Deposit Funds
+            </h2>
+            <p class="text-sm text-base-content/60 mb-4">Demo: Add funds to your account</p>
+
+            <form phx-submit="deposit">
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text font-medium">Amount ($)</span>
+                </label>
+                <div class="join w-full">
+                  <span class="btn btn-square join-item btn-outline border-2 no-animation">
+                    $
+                  </span>
+                  <input
+                    type="number"
+                    name="amount"
+                    value={@deposit_form[:amount].value}
+                    min="1"
+                    step="1"
+                    placeholder="Enter amount"
+                    class="input input-bordered join-item w-full border-2"
+                    required
+                  />
+                </div>
+              </div>
+              <button type="submit" class="btn btn-success w-full mt-4 border-2">
+                <.icon name="hero-plus" class="w-5 h-5 mr-2" /> Deposit
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <%!-- Quick Links --%>
+        <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+          <div class="card-body">
+            <h2 class="text-xl font-bold mb-4">Quick Links</h2>
+            <div class="space-y-2">
+              <.link navigate={~p"/wallet"} class="btn btn-outline w-full justify-start border-2">
+                <.icon name="hero-wallet" class="w-5 h-5 mr-2" />
+                <span class="flex-1 text-left">Wallet</span>
+                <.icon name="hero-chevron-right" class="w-4 h-4" />
+              </.link>
+              <.link navigate={~p"/history"} class="btn btn-outline w-full justify-start border-2">
+                <.icon name="hero-clock" class="w-5 h-5 mr-2" />
+                <span class="flex-1 text-left">Bet History</span>
+                <.icon name="hero-chevron-right" class="w-4 h-4" />
+              </.link>
+              <.link
+                navigate={~p"/users/settings"}
+                class="btn btn-outline w-full justify-start border-2"
+              >
+                <.icon name="hero-cog-6-tooth" class="w-5 h-5 mr-2" />
+                <span class="flex-1 text-left">Settings</span>
+                <.icon name="hero-chevron-right" class="w-4 h-4" />
+              </.link>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <%!-- Right Column: Stats & Recent Bets --%>
+      <div class="lg:col-span-2 space-y-6">
+        <%!-- Stats Overview --%>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+            <div class="card-body p-4 text-center">
+              <div class="text-2xl font-bold font-mono text-warning">{@summary.bets_pending}</div>
+              <div class="text-xs text-base-content/60">Pending</div>
+            </div>
+          </div>
+          <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+            <div class="card-body p-4 text-center">
+              <div class="text-2xl font-bold font-mono text-success">{@summary.bets_won}</div>
+              <div class="text-xs text-base-content/60">Won</div>
+            </div>
+          </div>
+          <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+            <div class="card-body p-4 text-center">
+              <div class="text-2xl font-bold font-mono text-error">{@summary.bets_lost}</div>
+              <div class="text-xs text-base-content/60">Lost</div>
+            </div>
+          </div>
+          <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+            <div class="card-body p-4 text-center">
+              <div class="text-2xl font-bold font-mono">{@summary.total_bets}</div>
+              <div class="text-xs text-base-content/60">Total</div>
+            </div>
+          </div>
+        </div>
+
+
+        <%!-- Recent Bets --%>
+        <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+          <div class="card-body">
+            <div class="flex justify-between items-center mb-4">
+              <h2 class="text-xl font-bold flex items-center gap-2">
+                <.icon name="hero-ticket" class="w-5 h-5 text-primary" /> Recent Bets
+              </h2>
+              <.link navigate={~p"/history"} class="btn btn-ghost btn-sm">
+                View All
+              </.link>
+            </div>
+
+            <%= if Enum.empty?(@recent_bets) do %>
+              <div class="text-center py-8 text-base-content/60">
+                <.icon name="hero-ticket" class="w-12 h-12 mx-auto mb-2 opacity-30" />
+                <p>No bets placed yet</p>
+                <.link navigate={~p"/betslip/new"} class="btn btn-primary btn-sm mt-4">
+                  Place Your First Bet
+                </.link>
+              </div>
+            <% else %>
+              <div class="overflow-x-auto">
+                <table class="table table-zebra">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Stake</th>
+                      <th>Odds</th>
+                      <th>Potential</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <%= for bet <- @recent_bets do %>
+                      <tr>
+                        <td class="text-sm font-mono">
+                          {Calendar.strftime(bet.inserted_at, "%d %b %H:%M")}
+                        </td>
+                        <td class="font-mono">${Decimal.round(bet.stake, 2)}</td>
+                        <td class="font-mono">{Decimal.round(bet.total_odds, 2)}</td>
+                        <td class="font-mono text-success">
+                          ${Decimal.round(bet.potential_payout, 2)}
+                        </td>
+                        <td>
+                          <span class={["badge badge-sm", status_color(bet.status)]}>
+                            {String.capitalize(to_string(bet.status))}
+                          </span>
+                        </td>
+                      </tr>
+                    <% end %>
+                  </tbody>
+                </table>
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+        <%!-- Bet Now CTA --%>
+        <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+          <div class="card-body flex flex-row items-center justify-between">
+            <div>
+              <h2 class="text-xl font-bold">Are you ready to Bet?</h2>
+              <p class="text-base-content/60">Browse upcoming games and place your bets</p>
+            </div>
+            <.link
+              navigate={~p"/betslip/new"}
+              class="btn btn-primary btn-lg border-2"
+            >
+              <.icon name="hero-ticket" class="w-5 h-5 mr-2" /> Browse Games
+            </.link>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layouts.app>
