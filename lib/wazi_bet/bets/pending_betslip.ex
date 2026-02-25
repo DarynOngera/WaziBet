@@ -15,6 +15,6 @@ defmodule WaziBet.Bets.PendingBetslip do
     pending_betslip
     |> cast(attrs, [:user_id, :stake, :selections])
     |> validate_required([:user_id, :stake, :selections])
-    |> validate_number(:stake, greater_than: 0)
+    |> validate_number(:stake, greater_than_or_equal_to: 0)
   end
 end

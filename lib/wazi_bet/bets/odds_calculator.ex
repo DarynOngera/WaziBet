@@ -68,10 +68,26 @@ defmodule WaziBet.Bets.OddsCalculator do
 
   def accumulator_odds(selections) when is_list(selections) do
     Enum.reduce(selections, Decimal.new(1), fn selection, acc ->
-      odds = Map.get(selection, :odds) || Map.get(selection, :odds_at_placement)
-      Decimal.mult(acc, odds)
+      odds =
+        Map.get(selection, "odds") || Map.get(selection, :odds) ||
+          Map.get(selection, "odds_at_placement") || Map.get(selection, :odds_at_placement)
+
+      decimal_odds = to_decimal(odds)
+      Decimal.mult(acc, decimal_odds)
     end)
   end
+
+  defp to_decimal(nil), do: Decimal.new(1)
+  defp to_decimal(%Decimal{} = d), do: d
+
+  defp to_decimal(%{"coef" => coef, "exp" => exp, "sign" => sign}) do
+    result = coef * :math.pow(10, exp) * sign
+    Decimal.new(Float.to_string(result))
+  end
+
+  defp to_decimal(odds) when is_binary(odds), do: Decimal.new(odds)
+  defp to_decimal(odds) when is_number(odds), do: Decimal.new(odds)
+  defp to_decimal(_), do: Decimal.new(1)
 
   def payout(stake, total_odds) do
     Decimal.mult(stake, total_odds)

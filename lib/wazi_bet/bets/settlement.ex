@@ -19,7 +19,7 @@ defmodule WaziBet.Bets.Settlement do
         join: s in assoc(b, :selections),
         where: s.game_id == ^game_id and b.status == :pending,
         distinct: true,
-        preload: [selections: [:outcome, :game]]
+        preload: [selections: [:outcome, game: [:home_team, :away_team]]]
     )
   end
 
