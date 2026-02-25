@@ -7,6 +7,7 @@ defmodule WaziBet.Bets.Settlement do
 
   alias WaziBet.Accounts.User
   alias WaziBet.Bets.{Betslip, BetslipSelection, OddsCalculator}
+  alias WaziBet.Sport
   alias WaziBet.Repo
   alias Ecto.Multi
 
@@ -27,7 +28,10 @@ defmodule WaziBet.Bets.Settlement do
   Checks if all games in a betslip have finished.
   """
   def all_games_finished?(betslip) do
-    Enum.all?(betslip.selections, fn s -> s.game.status == :finished end)
+    Enum.all?(betslip.selections, fn s ->
+      game = Sport.get_game!(s.game_id)
+      game.status == :finished
+    end)
   end
 
   @doc """
@@ -67,7 +71,10 @@ defmodule WaziBet.Bets.Settlement do
         |> Multi.run(:credit_user, fn repo, _ ->
           user = repo.get!(User, betslip.user_id)
           # Recalculate payout excluding void selections
-          active_selections = Enum.reject(betslip.selections, fn s -> s.status == :void end)
+          active_selections =
+            betslip.selections
+            |> Enum.reject(fn s -> s.status == :void end)
+            |> Enum.map(fn s -> %{"odds" => s.odds_at_placement} end)
 
           payout =
             OddsCalculator.payout(
