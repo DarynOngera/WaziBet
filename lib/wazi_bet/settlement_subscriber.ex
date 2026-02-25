@@ -6,6 +6,7 @@ defmodule WaziBet.SettlementSubscriber do
 
   use GenServer
 
+  alias WaziBet.Bets
   alias WaziBet.Bets.Settlement
   alias WaziBet.Workers.BetslipSettlementWorker
 
@@ -23,17 +24,29 @@ defmodule WaziBet.SettlementSubscriber do
   @impl true
   def handle_info(
         {WaziBet.Simulation.GameServer, game_id,
-         {:finished, %{home_score: home_score, away_score: away_score}}},
+         {:finished, %{home_score: _home_score, away_score: _away_score}}},
         state
       ) do
-    # Find and process betslips
+    IO.puts("DEBUG: SettlementSubscriber received finished event for game #{game_id}")
+
+    # Find and process betslips that have selections on this game
     betslips = Settlement.get_pending_betslips_for_game(game_id)
+    IO.inspect(betslips, label: "DEBUG: betslips for game")
 
     Enum.each(betslips, fn betslip ->
-      if Settlement.all_games_finished?(betslip) do
-        %{betslip_id: betslip.id, home_score: home_score, away_score: away_score}
+      # Reload betslip with all selections and games
+      full_betslip = Bets.get_betslip_with_selections!(betslip.id)
+
+      if Settlement.all_games_finished?(full_betslip) do
+        IO.puts(
+          "DEBUG: All games finished, inserting settlement worker for betslip #{full_betslip.id}"
+        )
+
+        %{betslip_id: full_betslip.id}
         |> BetslipSettlementWorker.new()
         |> Oban.insert()
+      else
+        IO.puts("DEBUG: Not all games finished yet")
       end
     end)
 
