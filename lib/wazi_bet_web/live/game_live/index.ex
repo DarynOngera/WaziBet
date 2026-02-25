@@ -40,8 +40,9 @@ defmodule WaziBetWeb.GameLive.Index do
     # Get viewer counts for live games
     viewer_counts = get_live_game_viewer_counts(games)
 
-    # Load betslip from storage (DB for authenticated users)
+    # Load betslip and stake from storage (DB for authenticated users)
     betslip = get_betslip_from_storage(socket)
+    stake = get_stake_from_storage(socket)
 
     {:ok,
      socket
@@ -50,6 +51,7 @@ defmodule WaziBetWeb.GameLive.Index do
      |> assign(:games_by_category, games_by_category)
      |> assign(:viewer_counts, viewer_counts)
      |> assign(:betslip, betslip)
+     |> assign(:stake, stake)
      |> assign(:sidebar_open, false)
      |> assign(:page_title, "Games")}
   end
@@ -147,6 +149,53 @@ defmodule WaziBetWeb.GameLive.Index do
   @impl true
   def handle_event("close_sidebar", _params, socket) do
     {:noreply, assign(socket, :sidebar_open, false)}
+  end
+
+  @impl true
+  def handle_event("update_stake", %{"stake" => stake}, socket) do
+    persist_stake(socket, stake)
+    {:noreply, assign(socket, :stake, stake)}
+  end
+
+  @impl true
+  def handle_event("place_bet", params, socket) do
+    user = socket.assigns.current_scope.user
+
+    # Get stake from params first (button click), then socket
+    stake_from_params = Map.get(params, "stake")
+    stake_from_socket = socket.assigns[:stake] || "100"
+
+    stake_str = stake_from_params || stake_from_socket
+    stake_decimal = Decimal.new(stake_str)
+
+    if Decimal.compare(stake_decimal, Decimal.new(0)) <= 0 do
+      {:noreply, put_flash(socket, :error, "Stake must be greater than 0")}
+    else
+      selections = socket.assigns.betslip
+
+      case Bets.place_betslip(user, selections, stake_decimal) do
+        {:ok, _betslip} ->
+          clear_betslip_from_db(socket)
+
+          {:noreply,
+           socket
+           |> assign(:betslip, [])
+           |> assign(:stake, "100")
+           |> put_flash(:info, "Bet placed successfully!")}
+
+        {:error, :validate_balance, :insufficient_balance, _} ->
+          {:noreply, put_flash(socket, :error, "Insufficient balance to place this bet")}
+
+        {:error, :invalid_stake, _, _} ->
+          {:noreply, put_flash(socket, :error, "Stake must be greater than 0")}
+
+        {:error, :betslip, changeset, _} ->
+          {:noreply, put_flash(socket, :error, "Failed to place bet: #{inspect(changeset)}")}
+
+        {:error, _, _, _} ->
+          {:noreply, put_flash(socket, :error, "Failed to place bet. Please try again.")}
+      end
+    end
   end
 
   @impl true
@@ -268,12 +317,33 @@ defmodule WaziBetWeb.GameLive.Index do
     end
   end
 
+  defp get_stake_from_storage(socket) do
+    # Always return default - stake should only come from user input in the UI
+    # Don't read from DB as it might have stale/0 values
+    "100"
+  end
+
   defp persist_betslip(socket, selections) do
     if socket.assigns[:current_scope] && socket.assigns.current_scope.user do
       user_id = socket.assigns.current_scope.user.id
       {:ok, _} = Bets.update_pending_selections(user_id, selections)
     end
   end
+
+  defp persist_stake(socket, stake) when is_binary(stake) do
+    with true <- stake != "",
+         {stake_num, _} <- Integer.parse(stake),
+         stake_num > 0 do
+      if socket.assigns[:current_scope] && socket.assigns.current_scope.user do
+        user_id = socket.assigns.current_scope.user.id
+        {:ok, _} = Bets.update_pending_stake(user_id, Decimal.new(stake_num))
+      end
+    else
+      _ -> {:error, :invalid_stake}
+    end
+  end
+
+  defp persist_stake(_socket, _stake), do: {:error, :invalid_stake}
 
   defp clear_betslip_from_db(socket) do
     if socket.assigns[:current_scope] && socket.assigns.current_scope.user do
