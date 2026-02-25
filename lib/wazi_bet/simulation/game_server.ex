@@ -56,6 +56,7 @@ defmodule WaziBet.Simulation.GameServer do
         persist_game_state(data.game_id, new_state)
         # Mark game as finished
         game = Sport.get_game!(data.game_id)
+        IO.inspect(game, label: "DEBUG: Game before transition")
         Sport.transition_game_status(game, :finished)
 
         # Broadcast finished event
