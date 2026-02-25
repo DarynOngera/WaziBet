@@ -61,12 +61,15 @@ defmodule WaziBetWeb.GameLive.Show do
         end
       end)
 
-    betslip = []
+    # Load betslip and stake from DB for authenticated users
+    betslip = get_betslip_from_socket(socket)
+    stake = get_stake_from_socket(socket)
 
     {:ok,
      socket
      |> assign(:game, game)
      |> assign(:betslip, betslip)
+     |> assign(:stake, stake)
      |> assign(:sidebar_open, false)
      |> assign(:page_title, "#{game.home_team.name} vs #{game.away_team.name}")
      |> assign(:events, display_events)
@@ -107,7 +110,12 @@ defmodule WaziBetWeb.GameLive.Show do
     outcome = Bets.get_outcome!(outcome_id)
     game = socket.assigns.game
 
-    if Enum.any?(socket.assigns.betslip, fn s -> s.outcome_id == outcome.id end) do
+    betslip_contains_outcome? =
+      Enum.any?(socket.assigns.betslip, fn s ->
+        (Map.get(s, "outcome_id") || Map.get(s, :outcome_id)) == outcome.id
+      end)
+
+    if betslip_contains_outcome? do
       {:noreply, socket}
     else
       selection = %{
@@ -121,14 +129,33 @@ defmodule WaziBetWeb.GameLive.Show do
 
       new_betslip =
         socket.assigns.betslip
-        |> Enum.reject(fn s -> s.game_id == game.id end)
+        |> Enum.reject(fn s ->
+          (Map.get(s, "game_id") || Map.get(s, :game_id)) == game.id
+        end)
         |> Kernel.++([selection])
+
+      # Persist to DB for authenticated users
+      persist_betslip(socket, new_betslip)
 
       {:noreply,
        socket
        |> assign(:betslip, new_betslip)
        |> push_event("betslip_updated", %{betslip: new_betslip})}
     end
+  end
+
+  @impl true
+  def handle_event("remove_from_betslip", %{"game_id" => game_id}, socket) do
+    new_betslip =
+      Enum.reject(socket.assigns.betslip, fn s -> s.game_id == String.to_integer(game_id) end)
+
+    # Persist to DB for authenticated users
+    persist_betslip(socket, new_betslip)
+
+    {:noreply,
+     socket
+     |> assign(:betslip, new_betslip)
+     |> push_event("betslip_updated", %{betslip: new_betslip})}
   end
 
   @impl true
@@ -157,6 +184,61 @@ defmodule WaziBetWeb.GameLive.Show do
   @impl true
   def handle_event("close_sidebar", _params, socket) do
     {:noreply, assign(socket, :sidebar_open, false)}
+  end
+
+  @impl true
+  def handle_event("update_stake", %{"stake" => stake}, socket) do
+    persist_stake(socket, stake)
+    {:noreply, assign(socket, :stake, stake)}
+  end
+
+  @impl true
+  def handle_event("place_bet", params, socket) do
+    user = socket.assigns.current_scope.user
+
+    # Get stake from params (passed from button click via phx-value-stake)
+    stake_from_params = Map.get(params, "stake")
+    stake_from_socket = socket.assigns[:stake] || "100"
+
+    stake_str = stake_from_params || stake_from_socket
+    stake_decimal = Decimal.new(stake_str)
+
+    if Decimal.compare(stake_decimal, Decimal.new(0)) <= 0 do
+      {:noreply, put_flash(socket, :error, "Stake must be greater than 0")}
+    else
+      selections = socket.assigns.betslip
+
+      case Bets.place_betslip(user, selections, stake_decimal) do
+        {:ok, _betslip} ->
+          clear_betslip_from_db(socket)
+
+          {:noreply,
+           socket
+           |> assign(:betslip, [])
+           |> assign(:stake, "100")
+           |> put_flash(:info, "Bet placed successfully!")}
+
+        {:error, :validate_balance, :insufficient_balance, _} ->
+          {:noreply, put_flash(socket, :error, "Insufficient balance to place this bet")}
+
+        {:error, :invalid_stake, _, _} ->
+          {:noreply, put_flash(socket, :error, "Stake must be greater than 0")}
+
+        {:error, :betslip, changeset, _} ->
+          {:noreply,
+           put_flash(socket, :error, "Failed to place bet: #{inspect(changeset.errors)}")}
+
+        {:error, _, _, _} ->
+          {:noreply, put_flash(socket, :error, "Failed to place bet. Please try again.")}
+      end
+    end
+  end
+
+  defp clear_betslip_from_db(socket) do
+    if socket.assigns[:current_scope] && socket.assigns.current_scope.user do
+      user_id = socket.assigns.current_scope.user.id
+      {:ok, _} = Bets.clear_pending_selections(user_id)
+    end
   end
 
   # Handle GameServer events - goal scored
@@ -271,21 +353,16 @@ defmodule WaziBetWeb.GameLive.Show do
 
   defp presence_topic(game_id), do: "game:#{game_id}:presence"
 
-  # Track game events in Presence state
-  defp track_game_event(game_id, event) do
-    topic = presence_topic(game_id)
-
-    # Get current events from presence
-    current_events = get_game_events(game_id)
-
-    # Add new event
-    # Keep last 50 events
-    updated_events = [event | current_events] |> Enum.take(50)
-
-    # Update presence state with game events
-    {:ok, _} = Presence.update(self(), topic, %{game_events: updated_events})
-
+  # Track game events - simplified version
+  defp track_game_event(_game_id, _event) do
+    # Game events are now handled via PubSub broadcasts directly
+    # No need to store in Presence
     :ok
+  end
+
+  defp socket_id_for_presence do
+    # Generate a consistent ID for presence tracking
+    "game_#{:rand.uniform(999_999)}"
   end
 
   # Get game events from Presence
@@ -304,4 +381,42 @@ defmodule WaziBetWeb.GameLive.Show do
 
   # Alias for getting events from presence
   defp get_game_events_from_presence(game_id), do: get_game_events(game_id)
+
+  # Load betslip from DB for authenticated users
+  defp get_betslip_from_socket(socket) do
+    if socket.assigns[:current_scope] && socket.assigns.current_scope.user do
+      user_id = socket.assigns.current_scope.user.id
+      pending = Bets.get_or_create_pending_betslip(user_id)
+      pending.selections || []
+    else
+      []
+    end
+  end
+
+  defp get_stake_from_socket(socket) do
+    # Always return default - stake should only come from user input in the UI
+    "100"
+  end
+
+  defp persist_betslip(socket, selections) do
+    if socket.assigns[:current_scope] && socket.assigns.current_scope.user do
+      user_id = socket.assigns.current_scope.user.id
+      {:ok, _} = Bets.update_pending_selections(user_id, selections)
+    end
+  end
+
+  defp persist_stake(socket, stake) when is_binary(stake) do
+    with true <- stake != "",
+         {stake_num, _} <- Integer.parse(stake),
+         stake_num > 0 do
+      if socket.assigns[:current_scope] && socket.assigns.current_scope.user do
+        user_id = socket.assigns.current_scope.user.id
+        {:ok, _} = Bets.update_pending_stake(user_id, Decimal.new(stake_num))
+      end
+    else
+      _ -> {:error, :invalid_stake}
+    end
+  end
+
+  defp persist_stake(_socket, _stake), do: {:error, :invalid_stake}
 end

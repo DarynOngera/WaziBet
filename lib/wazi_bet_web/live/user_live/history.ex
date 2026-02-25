@@ -4,7 +4,6 @@ defmodule WaziBetWeb.UserLive.History do
   Requires authentication and 'view_bet_history' permission.
   """
 
-
   use WaziBetWeb, :live_view
 
   alias WaziBet.{Bets, Repo}

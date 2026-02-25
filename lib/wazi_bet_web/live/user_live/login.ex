@@ -65,7 +65,6 @@ defmodule WaziBetWeb.UserLive.Login do
 
             <div class="divider my-6">or</div>
 
-
             <%!-- Password Login --%>
             <.form
               :let={f}

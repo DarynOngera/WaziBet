@@ -85,6 +85,8 @@ defmodule WaziBet.Bets do
   end
 
   def settle_outcomes_for_game(game_id, winning_label) do
+    IO.puts("DEBUG: settle_outcomes_for_game called for game #{game_id} with #{winning_label}")
+
     Multi.new()
     |> Multi.run(:outcomes, fn repo, _ ->
       outcomes = repo.all(from o in Outcome, where: o.game_id == ^game_id)
@@ -104,12 +106,46 @@ defmodule WaziBet.Bets do
 
       {:ok, outcomes}
     end)
+    |> Multi.run(:selections, fn repo, _ ->
+      # Get all selections for this game and update their status
+      selections =
+        repo.all(
+          from s in BetslipSelection,
+            where: s.game_id == ^game_id and s.status == :pending,
+            preload: [:outcome]
+        )
+
+      Enum.each(selections, fn selection ->
+        result =
+          if selection.outcome.label == winning_label do
+            :won
+          else
+            :lost
+          end
+
+        selection
+        |> BetslipSelection.status_changeset(result)
+        |> repo.update()
+      end)
+
+      {:ok, selections}
+    end)
     |> Repo.transaction()
   end
 
   # Betslips
 
   def place_betslip(user, selections, stake) do
+    zero = Decimal.new(0)
+
+    if Decimal.compare(stake, zero) <= 0 do
+      {:error, :invalid_stake, :stake_must_be_positive, %{}}
+    else
+      do_place_betslip_with_validation(user, selections, stake)
+    end
+  end
+
+  defp do_place_betslip_with_validation(user, selections, stake) do
     # Validate all games before placing bet
     with {:ok, _} <- validate_selections(selections) do
       do_place_betslip(user, selections, stake)
@@ -118,7 +154,10 @@ defmodule WaziBet.Bets do
 
   defp validate_selections(selections) do
     # Get unique game IDs from selections
-    game_ids = selections |> Enum.map(& &1.game_id) |> Enum.uniq()
+    game_ids =
+      selections
+      |> Enum.map(fn s -> Map.get(s, "game_id") || Map.get(s, :game_id) end)
+      |> Enum.uniq()
 
     # Check each game
     Enum.each(game_ids, fn game_id ->
@@ -165,12 +204,17 @@ defmodule WaziBet.Bets do
       })
     end)
     |> Multi.insert_all(:selections, BetslipSelection, fn %{betslip: betslip} ->
-      Enum.map(selections, fn %{outcome_id: outcome_id, game_id: game_id, odds: odds} ->
+      Enum.map(selections, fn selection ->
+        outcome_id = Map.get(selection, "outcome_id") || Map.get(selection, :outcome_id)
+        game_id = Map.get(selection, "game_id") || Map.get(selection, :game_id)
+        odds = Map.get(selection, "odds") || Map.get(selection, :odds)
+        odds_value = convert_odds_to_decimal(odds)
+
         %{
           betslip_id: betslip.id,
           outcome_id: outcome_id,
           game_id: game_id,
-          odds_at_placement: odds,
+          odds_at_placement: odds_value,
           status: :pending,
           inserted_at: NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second),
           updated_at: NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
@@ -186,7 +230,7 @@ defmodule WaziBet.Bets do
 
   def get_betslip_with_selections!(id) do
     Repo.get!(Betslip, id)
-    |> Repo.preload(selections: [:outcome, :game])
+    |> Repo.preload(selections: [:outcome, game: [:home_team, :away_team]])
   end
 
   def list_user_betslips(user_id) do
@@ -310,5 +354,76 @@ defmodule WaziBet.Bets do
   defp count_all_by_status(status) do
     from(b in Betslip, where: b.status == ^status, select: count(b.id))
     |> Repo.one()
+  end
+
+  # Pending Betslip Functions
+
+  alias WaziBet.Bets.PendingBetslip
+
+  @doc """
+  Gets or creates a pending betslip for a user.
+  """
+  def get_or_create_pending_betslip(user_id) do
+    case Repo.get_by(PendingBetslip, user_id: user_id) do
+      nil ->
+        %PendingBetslip{user_id: user_id, selections: [], stake: Decimal.new(0)}
+        |> Repo.insert!()
+
+      pending ->
+        pending
+    end
+  end
+
+  @doc """
+  Updates the selections for a pending betslip.
+  """
+  def update_pending_selections(user_id, selections) do
+    pending = get_or_create_pending_betslip(user_id)
+
+    pending
+    |> PendingBetslip.changeset(%{selections: selections})
+    |> Repo.update()
+  end
+
+  @doc """
+  Updates the stake for a pending betslip.
+  """
+  def update_pending_stake(user_id, stake) do
+    pending = get_or_create_pending_betslip(user_id)
+
+    pending
+    |> PendingBetslip.changeset(%{stake: stake})
+    |> Repo.update()
+  end
+
+  @doc """
+  Clears all selections from a pending betslip.
+  """
+  def clear_pending_selections(user_id) do
+    pending = get_or_create_pending_betslip(user_id)
+
+    pending
+    |> PendingBetslip.changeset(%{selections: [], stake: Decimal.new(0)})
+    |> Repo.update()
+  end
+
+  defp convert_odds_to_decimal(odds) do
+    case odds do
+      %Decimal{} ->
+        odds
+
+      %{"coef" => coef, "exp" => exp, "sign" => sign} ->
+        result = coef * :math.pow(10, exp) * sign
+        Decimal.new(Float.to_string(result))
+
+      odds when is_binary(odds) ->
+        Decimal.new(odds)
+
+      odds when is_number(odds) ->
+        Decimal.new(odds)
+
+      _ ->
+        Decimal.new(1)
+    end
   end
 end

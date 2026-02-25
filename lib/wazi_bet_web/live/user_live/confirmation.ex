@@ -3,7 +3,6 @@ defmodule WaziBetWeb.UserLive.Confirmation do
 
   alias WaziBet.Accounts
 
-  #render
   @impl true
   def render(assigns) do
     ~H"""

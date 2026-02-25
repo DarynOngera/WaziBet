@@ -3,6 +3,7 @@ defmodule WaziBet.Sport do
 
   alias WaziBet.Sport.{SportsCategory, Team, Game, GameEvent}
   alias WaziBet.Bets.{Outcome, OddsCalculator}
+  alias WaziBet.Bets
   alias WaziBet.Repo
 
   # Categories
@@ -71,6 +72,10 @@ defmodule WaziBet.Sport do
     Repo.get!(Game, id)
   end
 
+  def get_game(id) do
+    Repo.get(Game, id)
+  end
+
   def get_game_with_teams!(id) do
     Repo.get!(Game, id)
     |> Repo.preload([:home_team, :away_team, :category])
@@ -83,9 +88,31 @@ defmodule WaziBet.Sport do
   end
 
   def transition_game_status(game, new_status) do
-    game
-    |> Game.status_changeset(new_status)
-    |> Repo.update()
+    IO.inspect(new_status, label: "DEBUG: transition_game_status called with")
+
+    result =
+      game
+      |> Game.status_changeset(new_status)
+      |> Repo.update()
+
+    # When game is marked as finished, settle the outcomes
+    if new_status == :finished and match?({:ok, _}, result) do
+      # Reload game to get scores
+      finished_game = get_game!(game.id)
+      IO.inspect(finished_game, label: "DEBUG: finished_game")
+
+      winning_label =
+        cond do
+          finished_game.home_score > finished_game.away_score -> :home
+          finished_game.home_score < finished_game.away_score -> :away
+          true -> :draw
+        end
+
+      IO.inspect(winning_label, label: "DEBUG: winning_label")
+      Bets.settle_outcomes_for_game(game.id, winning_label)
+    end
+
+    result
   end
 
   def create_game_with_calculated_odds(attrs) do

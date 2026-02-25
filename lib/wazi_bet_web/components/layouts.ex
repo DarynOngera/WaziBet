@@ -15,7 +15,6 @@ defmodule WaziBetWeb.Layouts do
 
   @doc """
   Renders your app layout.
-
   This function is typically invoked from every template,
   and it often contains your application menu, sidebar,
   or similar.
@@ -59,8 +58,8 @@ defmodule WaziBetWeb.Layouts do
           </div>
         <% end %>
       </div>
-      <div class="navbar-end">
-        <ul class="menu menu-horizontal items-center gap-2">
+      <div>
+        <ul class="flex items-center gap-2">
           <%= if @current_scope do %>
             <%!-- Balance Display --%>
             <li>
@@ -77,6 +76,13 @@ defmodule WaziBetWeb.Layouts do
             <li class="hidden sm:block">
               <span class="text-base-content/70 font-mono text-sm">{@current_scope.user.email}</span>
             </li>
+          <% end %>
+        </ul>
+      </div>
+      <div class="navbar-end">
+        <ul class="menu menu-horizontal items-center gap-2">
+          <%= if @current_scope do %>
+            <%!-- Balance Display --%>
             <li>
               <.link href={~p"/account"} class="btn btn-sm btn-ghost" title="My Account">
                 <.icon name="hero-user-circle" class="w-4 h-4" />

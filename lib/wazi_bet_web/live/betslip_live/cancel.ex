@@ -66,8 +66,6 @@ defmodule WaziBetWeb.BetslipLive.Cancel do
   end
 
   defp cancel_betslip_with_refund(betslip) do
-    Multi.new()
-    |> Multi.update(:betslip, Settlement.refund_betslip(betslip))
-    |> Repo.transaction()
+    Settlement.refund_betslip(betslip)
   end
 end
