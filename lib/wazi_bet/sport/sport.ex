@@ -2,7 +2,8 @@ defmodule WaziBet.Sport do
   import Ecto.Query
 
   alias WaziBet.Sport.{SportsCategory, Team, Game, GameEvent}
-  alias WaziBet.Bets.{Outcome, OddsCalculator, Bets}
+  alias WaziBet.Bets.{Outcome, OddsCalculator}
+  alias WaziBet.Bets
   alias WaziBet.Repo
 
   # Categories
