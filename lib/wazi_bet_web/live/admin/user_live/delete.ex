@@ -6,15 +6,24 @@ defmodule WaziBetWeb.Admin.UserLive.Delete do
 
   use WaziBetWeb, :live_view
 
-  alias WaziBet.{Accounts, Bets}
+  alias WaziBet.Accounts
 
   @impl true
   def mount(%{"id" => id}, _session, socket) do
+    user = socket.assigns.current_scope.user
+    current_path = "/admin/users/#{id}/delete"
+
+    user_permissions = Accounts.get_user_permission_slugs(user.id)
+    is_superuser = Accounts.user_has_permission?(user.id, "grant-revoke-admin-access")
+
     user = Accounts.get_user_with_betslips!(id)
     pending_bets = count_pending_bets(user)
 
     {:ok,
      socket
+     |> assign(:user_permissions, user_permissions)
+     |> assign(:is_superuser, is_superuser)
+     |> assign(:current_path, current_path)
      |> assign(:user, user)
      |> assign(:pending_bets, pending_bets)
      |> assign(:page_title, "Delete User")}
@@ -42,4 +51,6 @@ defmodule WaziBetWeb.Admin.UserLive.Delete do
     user.betslips
     |> Enum.count(fn betslip -> betslip.status == :pending end)
   end
+
+  def has_permission?(permissions, slug), do: slug in permissions
 end

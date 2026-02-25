@@ -1,149 +1,152 @@
-<Layouts.app flash={@flash} current_scope={@current_scope}>
-  <div class="container mx-auto px-4 py-8">
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-      <div class="flex items-center gap-4">
-        <.link navigate={~p"/admin"} class="btn btn-ghost btn-sm">
-          <.icon name="hero-arrow-left" class="w-4 h-4" />
-        </.link>
-        <div>
-          <h1 class="text-3xl lg:text-4xl font-bold text-base-content flex items-center gap-3">
-            <.icon name="hero-trophy" class="w-8 h-8 text-primary" /> Game Management
-          </h1>
-          <p class="text-base-content/60 mt-2">Configure and manage games</p>
-        </div>
-      </div>
-
-      <.link navigate={~p"/admin/games/new"} class="btn btn-primary border-2">
-        <.icon name="hero-plus" class="w-5 h-5 mr-2" /> New Game
+<Layouts.admin
+  flash={@flash}
+  current_scope={@current_scope}
+  user_permissions={@user_permissions}
+  is_superuser={@is_superuser}
+  current_path={@current_path}
+>
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+    <div class="flex items-center gap-4">
+      <.link navigate={~p"/admin"} class="btn btn-ghost btn-sm">
+        <.icon name="hero-arrow-left" class="w-4 h-4" />
       </.link>
+      <div>
+        <h1 class="text-3xl lg:text-4xl font-bold text-base-content flex items-center gap-3">
+          <.icon name="hero-trophy" class="w-8 h-8 text-primary" /> Game Management
+        </h1>
+        <p class="text-base-content/60 mt-2">Configure and manage games</p>
+      </div>
     </div>
 
-    <%= if Enum.empty?(@games) do %>
-      <div class="card bg-base-100 shadow-xl border-2 border-base-300">
-        <div class="card-body text-center py-16">
-          <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-base-200 flex items-center justify-center">
-            <.icon name="hero-trophy" class="w-10 h-10 text-base-content/30" />
-          </div>
-          <h2 class="text-xl font-semibold mb-2">No games found</h2>
-          <p class="text-base-content/60 mb-6">Create your first game to start</p>
-          <.link navigate={~p"/admin/games/new"} class="btn btn-primary border-2">
-            Create Game
-          </.link>
-        </div>
-      </div>
-    <% else %>
-      <div class="card bg-base-100 shadow-xl border-2 border-base-300 overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="table table-zebra">
-            <thead>
-              <tr class="bg-base-200">
-                <th>Game</th>
-                <th>Category</th>
-                <th>Status</th>
-                <th>Score</th>
-                <th>Time</th>
-                <th>Viewers</th>
-                <th>Outcomes</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <%= for game <- @games do %>
-                <tr class="hover">
-                  <td>
-                    <div>
-                      <div class="font-medium">
-                        {game.home_team.name} vs {game.away_team.name}
-                      </div>
-                      <div class="text-xs text-base-content/60 font-mono">ID: {game.id}</div>
-                    </div>
-                  </td>
-                  <td>
-                    <span class="badge badge-outline badge-sm">
-                      {game.category.name}
-                    </span>
-                  </td>
-                  <td>
-                    <span class={["badge badge-sm", status_color(game.status)]}>
-                      {String.capitalize(to_string(game.status))}
-                      <%= if game.status == :live do %>
-                        ({game.minute}')
-                      <% end %>
-                    </span>
-                  </td>
-                  <td class="font-mono font-bold">
-                    <%= if game.status == :scheduled do %>
-                      vs
-                    <% else %>
-                      {game.home_score} - {game.away_score}
-                    <% end %>
-                  </td>
-                  <td class="text-sm">
-                    <%= if game.status == :scheduled do %>
-                      {format_starts_at(game.starts_at)}
-                    <% else %>
-                      -
-                    <% end %>
-                  </td>
-                  <td>
-                    <%= if game.status == :live do %>
-                      <div class="flex items-center gap-1">
-                        <.icon name="hero-eye" class="w-4 h-4 text-base-content/60" />
-                        <span class={[
-                          "font-mono text-sm",
-                          if(Map.get(@viewer_counts, game.id, 0) > 0,
-                            do: "text-warning font-bold",
-                            else: "text-base-content/40"
-                          )
-                        ]}>
-                          {Map.get(@viewer_counts, game.id, 0)}
-                        </span>
-                      </div>
-                    <% else %>
-                      <span class="text-base-content/30">-</span>
-                    <% end %>
-                  </td>
-                  <td>
-                    <%= if game.outcomes != [] do %>
-                      <div class="flex gap-1">
-                        <%= for outcome <- game.outcomes do %>
-                          <span class={[
-                            "badge badge-xs",
-                            if(outcome.status == :open, do: "badge-success", else: "badge-ghost")
-                          ]}>
-                            {String.first(to_string(outcome.label))}
-                          </span>
-                        <% end %>
-                      </div>
-                    <% else %>
-                      <span class="text-xs text-base-content/50">None</span>
-                    <% end %>
-                  </td>
-                  <td>
-                    <div class="flex gap-2">
-                      <.link
-                        navigate={~p"/admin/games/#{game.id}"}
-                        class="btn btn-ghost btn-xs"
-                      >
-                        <.icon name="hero-eye" class="w-4 h-4" />
-                      </.link>
-                      <%= if game.status == :scheduled do %>
-                        <span class="badge badge-info badge-sm">Scheduled</span>
-                      <% end %>
-                      <%= if game.status == :live do %>
-                        <span class="badge badge-success badge-sm">Live {game.minute}'</span>
-                      <% end %>
-                      <%= if game.status == :finished do %>
-                        <span class="text-xs text-base-content/50">Finished</span>
-                      <% end %>
-                    </div>
-                  </td>
-                </tr>
-              <% end %>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    <% end %>
+    <.link navigate={~p"/admin/games/new"} class="btn btn-primary border-2">
+      <.icon name="hero-plus" class="w-5 h-5 mr-2" /> New Game
+    </.link>
   </div>
-</Layouts.app>
+
+  <%= if Enum.empty?(@games) do %>
+    <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+      <div class="card-body text-center py-16">
+        <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-base-200 flex items-center justify-center">
+          <.icon name="hero-trophy" class="w-10 h-10 text-base-content/30" />
+        </div>
+        <h2 class="text-xl font-semibold mb-2">No games found</h2>
+        <p class="text-base-content/60 mb-6">Create your first game to start</p>
+        <.link navigate={~p"/admin/games/new"} class="btn btn-primary border-2">
+          Create Game
+        </.link>
+      </div>
+    </div>
+  <% else %>
+    <div class="card bg-base-100 shadow-xl border-2 border-base-300 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="table table-zebra">
+          <thead>
+            <tr class="bg-base-200">
+              <th>Game</th>
+              <th>Category</th>
+              <th>Status</th>
+              <th>Score</th>
+              <th>Time</th>
+              <th>Viewers</th>
+              <th>Outcomes</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <%= for game <- @games do %>
+              <tr class="hover">
+                <td>
+                  <div>
+                    <div class="font-medium">
+                      {game.home_team.name} vs {game.away_team.name}
+                    </div>
+                    <div class="text-xs text-base-content/60 font-mono">ID: {game.id}</div>
+                  </div>
+                </td>
+                <td>
+                  <span class="badge badge-outline badge-sm">
+                    {game.category.name}
+                  </span>
+                </td>
+                <td>
+                  <span class={["badge badge-sm", status_color(game.status)]}>
+                    {String.capitalize(to_string(game.status))}
+                    <%= if game.status == :live do %>
+                      ({game.minute}')
+                    <% end %>
+                  </span>
+                </td>
+                <td class="font-mono font-bold">
+                  <%= if game.status == :scheduled do %>
+                    vs
+                  <% else %>
+                    {game.home_score} - {game.away_score}
+                  <% end %>
+                </td>
+                <td class="text-sm">
+                  <%= if game.status == :scheduled do %>
+                    {format_starts_at(game.starts_at)}
+                  <% else %>
+                    -
+                  <% end %>
+                </td>
+                <td>
+                  <%= if game.status == :live do %>
+                    <div class="flex items-center gap-1">
+                      <.icon name="hero-eye" class="w-4 h-4 text-base-content/60" />
+                      <span class={[
+                        "font-mono text-sm",
+                        Map.get(@viewer_counts, game.id, 0) > 0 && "text-warning font-bold",
+                        Map.get(@viewer_counts, game.id, 0) == 0 && "text-base-content/40"
+                      ]}>
+                        {Map.get(@viewer_counts, game.id, 0)}
+                      </span>
+                    </div>
+                  <% else %>
+                    <span class="text-base-content/30">-</span>
+                  <% end %>
+                </td>
+                <td>
+                  <%= if game.outcomes != [] do %>
+                    <div class="flex gap-1">
+                      <%= for outcome <- game.outcomes do %>
+                        <span class={[
+                          "badge badge-xs",
+                          outcome.status == :open && "badge-success",
+                          outcome.status != :open && "badge-ghost"
+                        ]}>
+                          {String.first(to_string(outcome.label))}
+                        </span>
+                      <% end %>
+                    </div>
+                  <% else %>
+                    <span class="text-xs text-base-content/50">None</span>
+                  <% end %>
+                </td>
+                <td>
+                  <div class="flex gap-2">
+                    <.link
+                      navigate={~p"/admin/games/#{game.id}"}
+                      class="btn btn-ghost btn-xs"
+                    >
+                      <.icon name="hero-eye" class="w-4 h-4" />
+                    </.link>
+                    <%= if game.status == :scheduled do %>
+                      <span class="badge badge-info badge-sm">Scheduled</span>
+                    <% end %>
+                    <%= if game.status == :live do %>
+                      <span class="badge badge-success badge-sm">Live {game.minute}'</span>
+                    <% end %>
+                    <%= if game.status == :finished do %>
+                      <span class="text-xs text-base-content/50">Finished</span>
+                    <% end %>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  <% end %>
+</Layouts.admin>

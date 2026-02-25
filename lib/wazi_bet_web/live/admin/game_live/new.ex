@@ -6,7 +6,7 @@ defmodule WaziBetWeb.Admin.GameLive.New do
 
   use WaziBetWeb, :live_view
 
-  alias WaziBet.Sport
+  alias WaziBet.{Sport, Accounts}
   alias WaziBet.Bets
   alias WaziBet.Bets.OddsCalculator
   alias WaziBet.Workers.GameStartWorker
@@ -15,11 +15,20 @@ defmodule WaziBetWeb.Admin.GameLive.New do
 
   @impl true
   def mount(_params, _session, socket) do
+    user = socket.assigns.current_scope.user
+    current_path = "/admin/games/new"
+
+    user_permissions = Accounts.get_user_permission_slugs(user.id)
+    is_superuser = Accounts.user_has_permission?(user.id, "grant-revoke-admin-access")
+
     categories = Sport.list_categories()
     changeset = Sport.Game.create_changeset(%Sport.Game{}, %{})
 
     {:ok,
      socket
+     |> assign(:user_permissions, user_permissions)
+     |> assign(:is_superuser, is_superuser)
+     |> assign(:current_path, current_path)
      |> assign(:categories, categories)
      |> assign(:teams, [])
      |> assign(:selected_category, nil)
@@ -180,4 +189,6 @@ defmodule WaziBetWeb.Admin.GameLive.New do
     # Apply bookmaker margin
     OddsCalculator.apply_margin(fair_odds, 0.05)
   end
+
+  def has_permission?(permissions, slug), do: slug in permissions
 end

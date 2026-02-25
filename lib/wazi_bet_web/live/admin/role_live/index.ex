@@ -10,10 +10,19 @@ defmodule WaziBetWeb.Admin.RoleLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
+    user = socket.assigns.current_scope.user
+    current_path = "/admin/roles"
+
+    user_permissions = Accounts.get_user_permission_slugs(user.id)
+    is_superuser = Accounts.user_has_permission?(user.id, "grant-revoke-admin-access")
+
     roles = Accounts.list_roles_with_permissions()
 
     {:ok,
      socket
+     |> assign(:user_permissions, user_permissions)
+     |> assign(:is_superuser, is_superuser)
+     |> assign(:current_path, current_path)
      |> assign(:roles, roles)
      |> assign(:page_title, "Roles")}
   end
@@ -31,4 +40,6 @@ defmodule WaziBetWeb.Admin.RoleLive.Index do
   def permission_badge_color("view-profits-from-losses"), do: "badge-error"
   def permission_badge_color("configure-games"), do: "badge-error"
   def permission_badge_color(_), do: "badge-ghost"
+
+  def has_permission?(permissions, slug), do: slug in permissions
 end

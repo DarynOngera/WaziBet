@@ -1,328 +1,303 @@
-<Layouts.app flash={@flash} current_scope={@current_scope}>
-  <div class="container mx-auto px-4 py-8">
-    <%!-- Header --%>
-    <div class="mb-8">
-      <h1 class="text-3xl lg:text-4xl font-bold text-base-content flex items-center gap-3">
-        <.icon name="hero-shield-check" class="w-8 h-8 text-primary" /> Admin Dashboard
-      </h1>
-      <p class="text-base-content/60 mt-2">
-        <%= if @is_superuser do %>
-          <span class="badge badge-error badge-lg">Superuser</span> Full administrative access
-        <% else %>
-          <span class="badge badge-warning badge-lg">Admin</span> Standard administrative access
-        <% end %>
-      </p>
+<Layouts.admin
+  flash={@flash}
+  current_scope={@current_scope}
+  user_permissions={@user_permissions}
+  is_superuser={@is_superuser}
+  current_path={@current_path}
+>
+  <%!-- Header --%>
+  <div class="mb-8">
+    <h1 class="text-3xl lg:text-4xl font-bold text-base-content flex items-center gap-3">
+      <.icon name="hero-shield-check" class="w-8 h-8 text-primary" /> Admin Dashboard
+    </h1>
+    <p class="text-base-content/60 mt-2">
+      Welcome back! Here's an overview of your platform.
+    </p>
+  </div>
+
+  <%!-- Stats Overview --%>
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <%= if has_permission?(@user_permissions, "view-users") do %>
+      <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+        <div class="card-body p-4">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+              <.icon name="hero-users" class="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <p class="text-sm text-base-content/60">Total Users</p>
+              <p class="text-2xl font-bold font-mono">{@total_users}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <%= if has_permission?(@user_permissions, "view-profits-from-losses") do %>
+      <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+        <div class="card-body p-4">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center">
+              <.icon name="hero-currency-dollar" class="w-6 h-6 text-success" />
+            </div>
+            <div>
+              <p class="text-sm text-base-content/60">Net Profit</p>
+              <p class="text-2xl font-bold font-mono text-success">
+                ${Decimal.round(Decimal.abs(@stats.net_profit), 0)}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <%= if has_permission?(@user_permissions, "configure-games") do %>
+      <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+        <div class="card-body p-4">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-full bg-info/10 flex items-center justify-center">
+              <.icon name="hero-trophy" class="w-6 h-6 text-info" />
+            </div>
+            <div>
+              <p class="text-sm text-base-content/60">Active Games</p>
+              <p class="text-2xl font-bold font-mono text-info">
+                {@game_counts.scheduled + @game_counts.live}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+      <div class="card-body p-4">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center">
+            <.icon name="hero-ticket" class="w-6 h-6 text-secondary" />
+          </div>
+          <div>
+            <p class="text-sm text-base-content/60">Total Bets</p>
+            <p class="text-2xl font-bold font-mono text-secondary">
+              {@bet_counts.total}
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
 
-    <%!-- Stats Overview --%>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-      <%= if has_permission?(@user_permissions, "view-users") do %>
-        <.link navigate={~p"/admin/users"} class="block">
-          <div class="card bg-base-100 shadow-xl border-2 border-base-300 hover:border-primary transition-all hover:shadow-2xl">
-            <div class="card-body p-4">
-              <div class="flex items-center gap-3">
-                <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                  <.icon name="hero-users" class="w-6 h-6 text-primary" />
-                </div>
-                <div>
-                  <p class="text-sm text-base-content/60">Total Users</p>
-                  <p class="text-2xl font-bold font-mono">{@total_users}</p>
-                </div>
-              </div>
-            </div>
+  <%!-- Win/Loss Stats --%>
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+      <div class="card-body p-4">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center">
+            <.icon name="hero-check-circle" class="w-6 h-6 text-success" />
           </div>
-        </.link>
-      <% end %>
-
-      <%= if has_permission?(@user_permissions, "view-profits-from-losses") do %>
-        <.link navigate={~p"/admin/profits"} class="block">
-          <div class="card bg-base-100 shadow-xl border-2 border-base-300 hover:border-success transition-all hover:shadow-2xl">
-            <div class="card-body p-4">
-              <div class="flex items-center gap-3">
-                <div class="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center">
-                  <.icon name="hero-currency-dollar" class="w-6 h-6 text-success" />
-                </div>
-                <div>
-                  <p class="text-sm text-base-content/60">Net Profit</p>
-                  <p class="text-2xl font-bold font-mono text-success">
-                    ${Decimal.round(Decimal.abs(@stats.net_profit), 0)}
-                  </p>
-                </div>
-              </div>
-            </div>
+          <div>
+            <p class="text-sm text-base-content/60">Bets Won</p>
+            <p class="text-2xl font-bold font-mono text-success">
+              {@stats.total_bets_won}
+            </p>
           </div>
-        </.link>
-      <% end %>
-
-      <%= if has_permission?(@user_permissions, "configure-games") do %>
-        <.link navigate={~p"/admin/games"} class="block">
-          <div class="card bg-base-100 shadow-xl border-2 border-base-300 hover:border-info transition-all hover:shadow-2xl">
-            <div class="card-body p-4">
-              <div class="flex items-center gap-3">
-                <div class="w-12 h-12 rounded-full bg-info/10 flex items-center justify-center">
-                  <.icon name="hero-trophy" class="w-6 h-6 text-info" />
-                </div>
-                <div>
-                  <p class="text-sm text-base-content/60">Games</p>
-                  <p class="text-xl font-bold font-mono text-info">Manage</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </.link>
-      <% end %>
-
-      <%= if has_permission?(@user_permissions, "assign-roles") do %>
-        <.link navigate={~p"/admin/roles"} class="block">
-          <div class="card bg-base-100 shadow-xl border-2 border-base-300 hover:border-warning transition-all hover:shadow-2xl">
-            <div class="card-body p-4">
-              <div class="flex items-center gap-3">
-                <div class="w-12 h-12 rounded-full bg-warning/10 flex items-center justify-center">
-                  <.icon name="hero-key" class="w-6 h-6 text-warning" />
-                </div>
-                <div>
-                  <p class="text-sm text-base-content/60">Roles</p>
-                  <p class="text-xl font-bold font-mono text-warning">Manage</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </.link>
-      <% end %>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <%!-- User Management Section --%>
-      <%= if has_permission?(@user_permissions, "view-users") do %>
-        <div class="card bg-base-100 shadow-xl border-2 border-base-300">
-          <div class="card-body">
-            <div class="flex items-center gap-2 mb-4">
-              <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <.icon name="hero-users" class="w-5 h-5 text-primary" />
-              </div>
-              <h2 class="text-xl font-bold">User Management</h2>
-            </div>
-
-            <div class="space-y-2">
-              <.link
-                navigate={~p"/admin/users"}
-                class="btn btn-outline w-full justify-start border-2"
-              >
-                <.icon name="hero-list-bullet" class="w-5 h-5 mr-2" />
-                <span class="flex-1 text-left">View All Users</span>
-                <.icon name="hero-chevron-right" class="w-4 h-4" />
-              </.link>
-
-              <%= if has_permission?(@user_permissions, "create-users") do %>
-                <.link
-                  navigate={~p"/admin/users/new"}
-                  class="btn btn-outline w-full justify-start border-2"
-                >
-                  <.icon name="hero-user-plus" class="w-5 h-5 mr-2" />
-                  <span class="flex-1 text-left">Create New User</span>
-                  <.icon name="hero-chevron-right" class="w-4 h-4" />
-                </.link>
-              <% end %>
-            </div>
-          </div>
-        </div>
-      <% end %>
-
-      <%!-- Game Management Section --%>
-      <%= if has_permission?(@user_permissions, "configure-games") do %>
-        <div class="card bg-base-100 shadow-xl border-2 border-base-300">
-          <div class="card-body">
-            <div class="flex items-center gap-2 mb-4">
-              <div class="w-10 h-10 rounded-full bg-info/10 flex items-center justify-center">
-                <.icon name="hero-trophy" class="w-5 h-5 text-info" />
-              </div>
-              <h2 class="text-xl font-bold">Game Management</h2>
-            </div>
-
-            <div class="space-y-2">
-              <.link
-                navigate={~p"/admin/categories"}
-                class="btn btn-outline w-full justify-start border-2"
-              >
-                <.icon name="hero-sport-court" class="w-5 h-5 mr-2" />
-                <span class="flex-1 text-left">Sports Categories</span>
-                <.icon name="hero-chevron-right" class="w-4 h-4" />
-              </.link>
-
-              <.link
-                navigate={~p"/admin/teams"}
-                class="btn btn-outline w-full justify-start border-2"
-              >
-                <.icon name="hero-user-group" class="w-5 h-5 mr-2" />
-                <span class="flex-1 text-left">Teams</span>
-                <.icon name="hero-chevron-right" class="w-4 h-4" />
-              </.link>
-
-              <.link
-                navigate={~p"/admin/games"}
-                class="btn btn-outline w-full justify-start border-2"
-              >
-                <.icon name="hero-list-bullet" class="w-5 h-5 mr-2" />
-                <span class="flex-1 text-left">View All Games</span>
-                <.icon name="hero-chevron-right" class="w-4 h-4" />
-              </.link>
-
-              <.link
-                navigate={~p"/admin/games/new"}
-                class="btn btn-outline w-full justify-start border-2"
-              >
-                <.icon name="hero-plus-circle" class="w-5 h-5 mr-2" />
-                <span class="flex-1 text-left">Create New Game</span>
-                <.icon name="hero-chevron-right" class="w-4 h-4" />
-              </.link>
-            </div>
-          </div>
-        </div>
-      <% end %>
-
-      <%!-- Role & Permissions Section --%>
-      <%= if has_permission?(@user_permissions, "assign-roles") do %>
-        <div class="card bg-base-100 shadow-xl border-2 border-base-300">
-          <div class="card-body">
-            <div class="flex items-center gap-2 mb-4">
-              <div class="w-10 h-10 rounded-full bg-warning/10 flex items-center justify-center">
-                <.icon name="hero-key" class="w-5 h-5 text-warning" />
-              </div>
-              <h2 class="text-xl font-bold">Role Management</h2>
-            </div>
-
-            <div class="space-y-2">
-              <.link
-                navigate={~p"/admin/roles"}
-                class="btn btn-outline w-full justify-start border-2"
-              >
-                <.icon name="hero-shield-check" class="w-5 h-5 mr-2" />
-                <span class="flex-1 text-left">View Roles & Permissions</span>
-                <.icon name="hero-chevron-right" class="w-4 h-4" />
-              </.link>
-
-              <.link
-                navigate={~p"/admin/roles/assign"}
-                class="btn btn-outline w-full justify-start border-2"
-              >
-                <.icon name="hero-user-group" class="w-5 h-5 mr-2" />
-                <span class="flex-1 text-left">Assign Roles to Users</span>
-                <.icon name="hero-chevron-right" class="w-4 h-4" />
-              </.link>
-
-              <%= if @is_superuser do %>
-                <div class="divider text-error text-sm">Superuser Only</div>
-
-                <.link
-                  navigate={~p"/admin/roles/assign"}
-                  class="btn btn-outline btn-error w-full justify-start border-2"
-                >
-                  <.icon name="hero-shield-exclamation" class="w-5 h-5 mr-2" />
-                  <span class="flex-1 text-left">Grant/Revoke Admin Access</span>
-                  <.icon name="hero-chevron-right" class="w-4 h-4" />
-                </.link>
-              <% end %>
-            </div>
-          </div>
-        </div>
-      <% end %>
-
-      <%!-- Financial Section --%>
-      <%= if has_permission?(@user_permissions, "view-profits-from-losses") do %>
-        <div class="card bg-base-100 shadow-xl border-2 border-base-300">
-          <div class="card-body">
-            <div class="flex items-center gap-2 mb-4">
-              <div class="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center">
-                <.icon name="hero-currency-dollar" class="w-5 h-5 text-success" />
-              </div>
-              <h2 class="text-xl font-bold">Financial Overview</h2>
-            </div>
-
-            <div class="space-y-2">
-              <.link
-                navigate={~p"/admin/profits"}
-                class="btn btn-outline w-full justify-start border-2"
-              >
-                <.icon name="hero-chart-pie" class="w-5 h-5 mr-2" />
-                <span class="flex-1 text-left">View Profits Dashboard</span>
-                <.icon name="hero-chevron-right" class="w-4 h-4" />
-              </.link>
-
-              <div class="mt-4 p-3 bg-base-200 rounded-lg">
-                <div class="flex justify-between text-sm">
-                  <span class="text-base-content/60">Total Stakes Lost</span>
-                  <span class="font-mono font-bold text-success">
-                    ${Decimal.round(@stats.total_stakes_lost, 2)}
-                  </span>
-                </div>
-                <div class="flex justify-between text-sm mt-1">
-                  <span class="text-base-content/60">Total Payouts</span>
-                  <span class="font-mono font-bold text-error">
-                    ${Decimal.round(@stats.total_payouts, 2)}
-                  </span>
-                </div>
-                <div class="divider my-1"></div>
-                <div class="flex justify-between">
-                  <span class="font-medium">Net Profit</span>
-                  <span class="font-mono font-bold">
-                    ${Decimal.round(Decimal.abs(@stats.net_profit), 2)}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      <% end %>
-    </div>
-
-    <%!-- Quick Navigation Footer --%>
-    <div class="mt-8 card bg-base-200 border-2 border-base-300">
-      <div class="card-body">
-        <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
-          <.icon name="hero-rocket-launch" class="w-5 h-5 text-primary" /> Quick Navigation
-        </h2>
-        <div class="flex flex-wrap gap-2">
-          <%= if has_permission?(@user_permissions, "view-users") do %>
-            <.link navigate={~p"/admin/users"} class="btn btn-sm btn-primary">
-              <.icon name="hero-users" class="w-4 h-4 mr-1" /> Users
-            </.link>
-          <% end %>
-
-          <%= if has_permission?(@user_permissions, "configure-games") do %>
-            <.link navigate={~p"/admin/games"} class="btn btn-sm btn-info">
-              <.icon name="hero-trophy" class="w-4 h-4 mr-1" /> Games
-            </.link>
-          <% end %>
-
-          <%= if has_permission?(@user_permissions, "assign-roles") do %>
-            <.link navigate={~p"/admin/roles"} class="btn btn-sm btn-warning">
-              <.icon name="hero-key" class="w-4 h-4 mr-1" /> Roles
-            </.link>
-          <% end %>
-
-          <%= if has_permission?(@user_permissions, "view-profits-from-losses") do %>
-            <.link navigate={~p"/admin/profits"} class="btn btn-sm btn-success">
-              <.icon name="hero-chart-pie" class="w-4 h-4 mr-1" /> Profits
-            </.link>
-          <% end %>
-
-          <div class="flex-1"></div>
-
-          <.link navigate={~p"/"} class="btn btn-sm btn-ghost">
-            <.icon name="hero-home" class="w-4 h-4 mr-1" /> Back to Site
-          </.link>
         </div>
       </div>
     </div>
 
-    <%!-- Permissions Info --%>
-    <div class="mt-6 text-center">
-      <p class="text-sm text-base-content/60">
-        Logged in as <span class="font-medium">{@current_scope.user.email}</span>
-        <%= if @is_superuser do %>
-          <span class="badge badge-error badge-sm ml-2">Superuser</span>
-        <% end %>
-      </p>
+    <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+      <div class="card-body p-4">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-full bg-warning/10 flex items-center justify-center">
+            <.icon name="hero-clock" class="w-6 h-6 text-warning" />
+          </div>
+          <div>
+            <p class="text-sm text-base-content/60">Pending Bets</p>
+            <p class="text-2xl font-bold font-mono text-warning">
+              {@bet_counts.pending}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+      <div class="card-body p-4">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-full bg-info/10 flex items-center justify-center">
+            <.icon name="hero-chart-bar" class="w-6 h-6 text-info" />
+          </div>
+          <div>
+            <p class="text-sm text-base-content/60">Games Completed</p>
+            <p class="text-2xl font-bold font-mono text-info">
+              {@game_counts.completed}
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-</Layouts.app>
+
+  <%!-- Financial Overview & Quick Actions --%>
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <%= if has_permission?(@user_permissions, "view-profits-from-losses") do %>
+      <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+        <div class="card-body">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center">
+              <.icon name="hero-currency-dollar" class="w-5 h-5 text-success" />
+            </div>
+            <h2 class="text-xl font-bold">Financial Overview</h2>
+          </div>
+
+          <div class="space-y-3">
+            <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+              <span class="text-base-content/70">Total Stakes Lost</span>
+              <span class="font-mono font-bold text-success">
+                ${Decimal.round(@stats.total_stakes_lost, 2)}
+              </span>
+            </div>
+            <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+              <span class="text-base-content/70">Total Payouts</span>
+              <span class="font-mono font-bold text-error">
+                ${Decimal.round(@stats.total_payouts, 2)}
+              </span>
+            </div>
+            <div class="divider my-2"></div>
+            <div class="flex justify-between items-center p-3 bg-primary/10 rounded-lg">
+              <span class="font-medium">Net Profit</span>
+              <span class="font-mono font-bold text-xl text-success">
+                ${Decimal.round(Decimal.abs(@stats.net_profit), 2)}
+              </span>
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <.link
+              navigate={~p"/admin/profits"}
+              class="btn btn-primary w-full border-2"
+            >
+              <.icon name="hero-chart-pie" class="w-5 h-5 mr-2" /> View Detailed Profits
+            </.link>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <%= if has_permission?(@user_permissions, "configure-games") do %>
+      <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+        <div class="card-body">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="w-10 h-10 rounded-full bg-info/10 flex items-center justify-center">
+              <.icon name="hero-trophy" class="w-5 h-5 text-info" />
+            </div>
+            <h2 class="text-xl font-bold">Games Overview</h2>
+          </div>
+
+          <div class="space-y-3">
+            <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+              <span class="text-base-content/70 flex items-center gap-2">
+                <.icon name="hero-play" class="w-4 h-4 text-success" /> Live Games
+              </span>
+              <span class="font-mono font-bold text-success">
+                {@game_counts.live}
+              </span>
+            </div>
+            <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+              <span class="text-base-content/70 flex items-center gap-2">
+                <.icon name="hero-clock" class="w-4 h-4 text-warning" /> Scheduled
+              </span>
+              <span class="font-mono font-bold text-warning">
+                {@game_counts.scheduled}
+              </span>
+            </div>
+            <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+              <span class="text-base-content/70 flex items-center gap-2">
+                <.icon name="hero-check" class="w-4 h-4 text-info" /> Completed
+              </span>
+              <span class="font-mono font-bold text-info">
+                {@game_counts.completed}
+              </span>
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <.link
+              navigate={~p"/admin/games"}
+              class="btn btn-info w-full border-2"
+            >
+              <.icon name="hero-list-bullet" class="w-5 h-5 mr-2" /> Manage Games
+            </.link>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <%= if has_permission?(@user_permissions, "view-users") do %>
+      <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+        <div class="card-body">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <.icon name="hero-users" class="w-5 h-5 text-primary" />
+            </div>
+            <h2 class="text-xl font-bold">User Management</h2>
+          </div>
+
+          <div class="space-y-2">
+            <.link
+              navigate={~p"/admin/users"}
+              class="btn btn-outline w-full justify-start border-2"
+            >
+              <.icon name="hero-list-bullet" class="w-5 h-5 mr-2" />
+              <span class="flex-1 text-left">View All Users</span>
+              <.icon name="hero-chevron-right" class="w-4 h-4" />
+            </.link>
+
+            <%= if has_permission?(@user_permissions, "create-users") do %>
+              <.link
+                navigate={~p"/admin/users/new"}
+                class="btn btn-outline w-full justify-start border-2"
+              >
+                <.icon name="hero-user-plus" class="w-5 h-5 mr-2" />
+                <span class="flex-1 text-left">Create New User</span>
+                <.icon name="hero-chevron-right" class="w-4 h-4" />
+              </.link>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <%= if has_permission?(@user_permissions, "assign-roles") do %>
+      <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+        <div class="card-body">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="w-10 h-10 rounded-full bg-warning/10 flex items-center justify-center">
+              <.icon name="hero-key" class="w-5 h-5 text-warning" />
+            </div>
+            <h2 class="text-xl font-bold">Role Management</h2>
+          </div>
+
+          <div class="space-y-2">
+            <.link
+              navigate={~p"/admin/roles"}
+              class="btn btn-outline w-full justify-start border-2"
+            >
+              <.icon name="hero-shield-check" class="w-5 h-5 mr-2" />
+              <span class="flex-1 text-left">View Roles & Permissions</span>
+              <.icon name="hero-chevron-right" class="w-4 h-4" />
+            </.link>
+
+            <.link
+              navigate={~p"/admin/roles/assign"}
+              class="btn btn-outline w-full justify-start border-2"
+            >
+              <.icon name="hero-user-group" class="w-5 h-5 mr-2" />
+              <span class="flex-1 text-left">Assign Roles to Users</span>
+              <.icon name="hero-chevron-right" class="w-4 h-4" />
+            </.link>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</Layouts.admin>

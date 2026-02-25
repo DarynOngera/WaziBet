@@ -1,257 +1,261 @@
-<Layouts.app flash={@flash} current_scope={@current_scope}>
-  <div class="container mx-auto px-4 py-8">
-    <div class="mb-6">
-      <.link navigate={~p"/admin/games"} class="btn btn-ghost btn-sm">
-        <.icon name="hero-arrow-left" class="w-4 h-4 mr-2" /> Back to Games
-      </.link>
-    </div>
+<Layouts.admin
+  flash={@flash}
+  current_scope={@current_scope}
+  user_permissions={@user_permissions}
+  is_superuser={@is_superuser}
+  current_path={@current_path}
+>
+  <div class="mb-6">
+    <.link navigate={~p"/admin/games"} class="btn btn-ghost btn-sm">
+      <.icon name="hero-arrow-left" class="w-4 h-4 mr-2" /> Back to Games
+    </.link>
+  </div>
 
-    <div class="max-w-4xl mx-auto">
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <%!-- Game Creation Form --%>
-        <div class="card bg-base-100 shadow-xl border-2 border-base-300">
-          <div class="card-body">
-            <h1 class="text-2xl font-bold mb-6 flex items-center gap-2">
-              <.icon name="hero-plus-circle" class="w-6 h-6 text-primary" /> Create New Game
-            </h1>
+  <div class="max-w-4xl mx-auto">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <%!-- Game Creation Form --%>
+      <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+        <div class="card-body">
+          <h1 class="text-2xl font-bold mb-6 flex items-center gap-2">
+            <.icon name="hero-plus-circle" class="w-6 h-6 text-primary" /> Create New Game
+          </h1>
 
-            <% form = to_form(@changeset, as: :game) %>
-            <.form
-              for={form}
-              phx-change="validate"
-              phx-submit="save"
-              id="new-game-form"
-            >
-              <div class="form-control">
-                <label class="label">
-                  <span class="label-text font-medium">Category</span>
+          <% form = to_form(@changeset, as: :game) %>
+          <.form
+            for={form}
+            phx-change="validate"
+            phx-submit="save"
+            id="new-game-form"
+          >
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text font-medium">Category</span>
+              </label>
+              <select
+                name="game[category_id]"
+                class="select select-bordered w-full border-2"
+                phx-change="category_changed"
+              >
+                <option value="">Select category...</option>
+                <%= for category <- @categories do %>
+                  <option
+                    value={category.id}
+                    selected={@selected_category == category.id}
+                  >
+                    {category.name}
+                  </option>
+                <% end %>
+              </select>
+            </div>
+
+            <%= if @selected_category do %>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div class="form-control">
+                  <label class="label">
+                    <span class="label-text font-medium">Home Team</span>
+                  </label>
+                  <select
+                    name="game[home_team_id]"
+                    class="select select-bordered w-full border-2"
+                    phx-change="team_selected"
+                  >
+                    <option value="">Select home team...</option>
+                    <%= for team <- @teams do %>
+                      <option
+                        value={team.id}
+                        selected={@home_team && @home_team.id == team.id}
+                      >
+                        {team.name} (A:{team.attack_rating} D:{team.defense_rating})
+                      </option>
+                    <% end %>
+                  </select>
+                </div>
+
+                <div class="form-control">
+                  <label class="label">
+                    <span class="label-text font-medium">Away Team</span>
+                  </label>
+                  <select
+                    name="game[away_team_id]"
+                    class="select select-bordered w-full border-2"
+                    phx-change="team_selected"
+                  >
+                    <option value="">Select away team...</option>
+                    <%= for team <- @teams do %>
+                      <option
+                        value={team.id}
+                        selected={@away_team && @away_team.id == team.id}
+                      >
+                        {team.name} (A:{team.attack_rating} D:{team.defense_rating})
+                      </option>
+                    <% end %>
+                  </select>
+                </div>
+              </div>
+            <% end %>
+
+            <%= if @selected_category && @home_team && @away_team do %>
+              <div class="form-control mt-4">
+                <label class="label cursor-pointer justify-start gap-3">
+                  <input
+                    type="checkbox"
+                    name="game[start_immediately]"
+                    class="checkbox checkbox-primary"
+                    phx-click="toggle_immediate_start"
+                    checked={@start_immediately}
+                  />
+                  <span class="label-text font-medium">Start Game Immediately</span>
                 </label>
-                <select
-                  name="game[category_id]"
-                  class="select select-bordered w-full border-2"
-                  phx-change="category_changed"
-                >
-                  <option value="">Select category...</option>
-                  <%= for category <- @categories do %>
-                    <option
-                      value={category.id}
-                      selected={@selected_category == category.id}
-                    >
-                      {category.name}
-                    </option>
-                  <% end %>
-                </select>
+                <label class="label">
+                  <span class="label-text-alt text-base-content/60">
+                    If checked, the game will start right after creation. Otherwise, set a schedule time.
+                  </span>
+                </label>
               </div>
 
-              <%= if @selected_category do %>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                  <div class="form-control">
-                    <label class="label">
-                      <span class="label-text font-medium">Home Team</span>
-                    </label>
-                    <select
-                      name="game[home_team_id]"
-                      class="select select-bordered w-full border-2"
-                      phx-change="team_selected"
-                    >
-                      <option value="">Select home team...</option>
-                      <%= for team <- @teams do %>
-                        <option
-                          value={team.id}
-                          selected={@home_team && @home_team.id == team.id}
-                        >
-                          {team.name} (A:{team.attack_rating} D:{team.defense_rating})
-                        </option>
-                      <% end %>
-                    </select>
-                  </div>
-
-                  <div class="form-control">
-                    <label class="label">
-                      <span class="label-text font-medium">Away Team</span>
-                    </label>
-                    <select
-                      name="game[away_team_id]"
-                      class="select select-bordered w-full border-2"
-                      phx-change="team_selected"
-                    >
-                      <option value="">Select away team...</option>
-                      <%= for team <- @teams do %>
-                        <option
-                          value={team.id}
-                          selected={@away_team && @away_team.id == team.id}
-                        >
-                          {team.name} (A:{team.attack_rating} D:{team.defense_rating})
-                        </option>
-                      <% end %>
-                    </select>
-                  </div>
-                </div>
-              <% end %>
-
-              <%= if @selected_category && @home_team && @away_team do %>
+              <%= if !@start_immediately do %>
                 <div class="form-control mt-4">
-                  <label class="label cursor-pointer justify-start gap-3">
-                    <input
-                      type="checkbox"
-                      name="game[start_immediately]"
-                      class="checkbox checkbox-primary"
-                      phx-click="toggle_immediate_start"
-                      checked={@start_immediately}
-                    />
-                    <span class="label-text font-medium">Start Game Immediately</span>
-                  </label>
                   <label class="label">
-                    <span class="label-text-alt text-base-content/60">
-                      If checked, the game will start right after creation. Otherwise, set a schedule time.
-                    </span>
+                    <span class="label-text font-medium">Schedule Start Time</span>
                   </label>
+                  <.input field={form[:starts_at]} type="datetime-local" />
                 </div>
+              <% end %>
+            <% end %>
 
-                <%= if !@start_immediately do %>
-                  <div class="form-control mt-4">
-                    <label class="label">
-                      <span class="label-text font-medium">Schedule Start Time</span>
-                    </label>
-                    <.input field={form[:starts_at]} type="datetime-local" />
-                  </div>
+            <%= if @calculated_odds do %>
+              <div class="alert alert-success mt-6 border-2 border-success">
+                <.icon name="hero-check-circle" class="w-5 h-5" />
+                <div>
+                  <p class="font-medium">Odds Calculated from Team Ratings</p>
+                  <p class="text-sm">
+                    Home: {@calculated_odds.home} | Draw: {@calculated_odds.draw} | Away: {@calculated_odds.away}
+                  </p>
+                </div>
+              </div>
+            <% end %>
+
+            <%= if @home_team && @away_team do %>
+              <div class="flex gap-3 mt-6">
+                <.link navigate={~p"/admin/games"} class="btn btn-outline flex-1 border-2">
+                  Cancel
+                </.link>
+                <%= if @start_immediately do %>
+                  <button type="submit" class="btn btn-success flex-1 border-2">
+                    <.icon name="hero-play" class="w-5 h-5 mr-2" /> Create & Start Now
+                  </button>
+                <% else %>
+                  <button type="submit" class="btn btn-primary flex-1 border-2">
+                    <.icon name="hero-calendar" class="w-5 h-5 mr-2" /> Schedule Game
+                  </button>
                 <% end %>
-              <% end %>
+              </div>
+            <% end %>
+          </.form>
+        </div>
+      </div>
 
-              <%= if @calculated_odds do %>
-                <div class="alert alert-success mt-6 border-2 border-success">
-                  <.icon name="hero-check-circle" class="w-5 h-5" />
-                  <div>
-                    <p class="font-medium">Odds Calculated from Team Ratings</p>
-                    <p class="text-sm">
-                      Home: {@calculated_odds.home} | Draw: {@calculated_odds.draw} | Away: {@calculated_odds.away}
-                    </p>
+      <%!-- Preview Panel --%>
+      <%= if @home_team || @away_team do %>
+        <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+          <div class="card-body">
+            <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+              <.icon name="hero-eye" class="w-5 h-5 text-primary" /> Preview
+            </h2>
+
+            <%= if @home_team do %>
+              <div class="p-4 bg-primary/5 rounded-lg border border-primary/20 mb-4">
+                <div class="text-lg font-bold text-primary mb-2">{@home_team.name} (Home)</div>
+                <div class="space-y-2">
+                  <div class="flex justify-between text-sm">
+                    <span class="text-base-content/60">Attack Rating</span>
+                    <div class="flex items-center gap-2">
+                      <progress
+                        class="progress progress-warning w-20"
+                        value={@home_team.attack_rating}
+                        max="100"
+                      >
+                      </progress>
+                      <span class="font-mono">{@home_team.attack_rating}</span>
+                    </div>
+                  </div>
+                  <div class="flex justify-between text-sm">
+                    <span class="text-base-content/60">Defense Rating</span>
+                    <div class="flex items-center gap-2">
+                      <progress
+                        class="progress progress-info w-20"
+                        value={@home_team.defense_rating}
+                        max="100"
+                      >
+                      </progress>
+                      <span class="font-mono">{@home_team.defense_rating}</span>
+                    </div>
                   </div>
                 </div>
-              <% end %>
+              </div>
+            <% end %>
 
-              <%= if @home_team && @away_team do %>
-                <div class="flex gap-3 mt-6">
-                  <.link navigate={~p"/admin/games"} class="btn btn-outline flex-1 border-2">
-                    Cancel
-                  </.link>
-                  <%= if @start_immediately do %>
-                    <button type="submit" class="btn btn-success flex-1 border-2">
-                      <.icon name="hero-play" class="w-5 h-5 mr-2" /> Create & Start Now
-                    </button>
-                  <% else %>
-                    <button type="submit" class="btn btn-primary flex-1 border-2">
-                      <.icon name="hero-calendar" class="w-5 h-5 mr-2" /> Schedule Game
-                    </button>
-                  <% end %>
+            <%= if @away_team do %>
+              <div class="p-4 bg-info/5 rounded-lg border border-info/20 mb-4">
+                <div class="text-lg font-bold text-info mb-2">{@away_team.name} (Away)</div>
+                <div class="space-y-2">
+                  <div class="flex justify-between text-sm">
+                    <span class="text-base-content/60">Attack Rating</span>
+                    <div class="flex items-center gap-2">
+                      <progress
+                        class="progress progress-warning w-20"
+                        value={@away_team.attack_rating}
+                        max="100"
+                      >
+                      </progress>
+                      <span class="font-mono">{@away_team.attack_rating}</span>
+                    </div>
+                  </div>
+                  <div class="flex justify-between text-sm">
+                    <span class="text-base-content/60">Defense Rating</span>
+                    <div class="flex items-center gap-2">
+                      <progress
+                        class="progress progress-info w-20"
+                        value={@away_team.defense_rating}
+                        max="100"
+                      >
+                      </progress>
+                      <span class="font-mono">{@away_team.defense_rating}</span>
+                    </div>
+                  </div>
                 </div>
-              <% end %>
-            </.form>
+              </div>
+            <% end %>
+
+            <%= if @calculated_odds do %>
+              <div class="divider">Calculated Odds</div>
+              <div class="grid grid-cols-3 gap-2">
+                <div class="text-center p-3 bg-success/10 rounded-lg">
+                  <div class="text-xs text-base-content/60">Home Win</div>
+                  <div class="text-xl font-bold font-mono text-success">
+                    {@calculated_odds.home}
+                  </div>
+                </div>
+                <div class="text-center p-3 bg-warning/10 rounded-lg">
+                  <div class="text-xs text-base-content/60">Draw</div>
+                  <div class="text-xl font-bold font-mono text-warning">
+                    {@calculated_odds.draw}
+                  </div>
+                </div>
+                <div class="text-center p-3 bg-info/10 rounded-lg">
+                  <div class="text-xs text-base-content/60">Away Win</div>
+                  <div class="text-xl font-bold font-mono text-info">
+                    {@calculated_odds.away}
+                  </div>
+                </div>
+              </div>
+              <p class="text-xs text-base-content/60 mt-2 text-center">
+                Odds calculated using team ratings with 5% bookmaker margin
+              </p>
+            <% end %>
           </div>
         </div>
-
-        <%!-- Preview Panel --%>
-        <%= if @home_team || @away_team do %>
-          <div class="card bg-base-100 shadow-xl border-2 border-base-300">
-            <div class="card-body">
-              <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
-                <.icon name="hero-eye" class="w-5 h-5 text-primary" /> Preview
-              </h2>
-
-              <%= if @home_team do %>
-                <div class="p-4 bg-primary/5 rounded-lg border border-primary/20 mb-4">
-                  <div class="text-lg font-bold text-primary mb-2">{@home_team.name} (Home)</div>
-                  <div class="space-y-2">
-                    <div class="flex justify-between text-sm">
-                      <span class="text-base-content/60">Attack Rating</span>
-                      <div class="flex items-center gap-2">
-                        <progress
-                          class="progress progress-warning w-20"
-                          value={@home_team.attack_rating}
-                          max="100"
-                        >
-                        </progress>
-                        <span class="font-mono">{@home_team.attack_rating}</span>
-                      </div>
-                    </div>
-                    <div class="flex justify-between text-sm">
-                      <span class="text-base-content/60">Defense Rating</span>
-                      <div class="flex items-center gap-2">
-                        <progress
-                          class="progress progress-info w-20"
-                          value={@home_team.defense_rating}
-                          max="100"
-                        >
-                        </progress>
-                        <span class="font-mono">{@home_team.defense_rating}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              <% end %>
-
-              <%= if @away_team do %>
-                <div class="p-4 bg-info/5 rounded-lg border border-info/20 mb-4">
-                  <div class="text-lg font-bold text-info mb-2">{@away_team.name} (Away)</div>
-                  <div class="space-y-2">
-                    <div class="flex justify-between text-sm">
-                      <span class="text-base-content/60">Attack Rating</span>
-                      <div class="flex items-center gap-2">
-                        <progress
-                          class="progress progress-warning w-20"
-                          value={@away_team.attack_rating}
-                          max="100"
-                        >
-                        </progress>
-                        <span class="font-mono">{@away_team.attack_rating}</span>
-                      </div>
-                    </div>
-                    <div class="flex justify-between text-sm">
-                      <span class="text-base-content/60">Defense Rating</span>
-                      <div class="flex items-center gap-2">
-                        <progress
-                          class="progress progress-info w-20"
-                          value={@away_team.defense_rating}
-                          max="100"
-                        >
-                        </progress>
-                        <span class="font-mono">{@away_team.defense_rating}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              <% end %>
-
-              <%= if @calculated_odds do %>
-                <div class="divider">Calculated Odds</div>
-                <div class="grid grid-cols-3 gap-2">
-                  <div class="text-center p-3 bg-success/10 rounded-lg">
-                    <div class="text-xs text-base-content/60">Home Win</div>
-                    <div class="text-xl font-bold font-mono text-success">
-                      {@calculated_odds.home}
-                    </div>
-                  </div>
-                  <div class="text-center p-3 bg-warning/10 rounded-lg">
-                    <div class="text-xs text-base-content/60">Draw</div>
-                    <div class="text-xl font-bold font-mono text-warning">
-                      {@calculated_odds.draw}
-                    </div>
-                  </div>
-                  <div class="text-center p-3 bg-info/10 rounded-lg">
-                    <div class="text-xs text-base-content/60">Away Win</div>
-                    <div class="text-xl font-bold font-mono text-info">
-                      {@calculated_odds.away}
-                    </div>
-                  </div>
-                </div>
-                <p class="text-xs text-base-content/60 mt-2 text-center">
-                  Odds calculated using team ratings with 5% bookmaker margin
-                </p>
-              <% end %>
-            </div>
-          </div>
-        <% end %>
-      </div>
+      <% end %>
     </div>
   </div>
-</Layouts.app>
+</Layouts.admin>
