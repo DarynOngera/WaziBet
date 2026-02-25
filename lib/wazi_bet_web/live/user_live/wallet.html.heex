@@ -1,0 +1,151 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <div class="container mx-auto px-4 py-8">
+    <div class="mb-8">
+      <h1 class="text-3xl lg:text-4xl font-bold text-base-content flex items-center gap-3">
+        <.icon name="hero-wallet" class="w-8 h-8 text-primary" /> My Wallet
+      </h1>
+      <p class="text-base-content/60 mt-2">View your balance and betting statistics</p>
+    </div>
+
+    <%!-- Current Balance Card --%>
+    <div class="card bg-gradient-to-br from-primary to-primary-focus text-primary-content shadow-xl mb-8">
+      <div class="card-body">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h2 class="text-lg opacity-80">Current Balance</h2> 
+            <div class="text-4xl lg:text-5xl font-bold font-mono">
+              ${Decimal.round(@user.balance, 2)}
+            </div>
+          </div>
+
+          <div class="flex gap-2">
+            <.link
+              navigate={~p"/betslip/new"}
+              class="btn btn-lg bg-white/20 hover:bg-white/30 border-2 border-white/30"
+            >
+              <.icon name="hero-shopping-cart" class="w-5 h-5 mr-2" /> Place Bet
+            </.link>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <%!-- Stats Grid --%>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+        <div class="card-body p-4">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-full bg-info/10 flex items-center justify-center">
+              <.icon name="hero-currency-dollar" class="w-6 h-6 text-info" />
+            </div>
+            <div>
+              <p class="text-sm text-base-content/60">Total Wagered</p>
+              <p class="text-xl font-bold font-mono">
+                ${Decimal.round(@summary.total_wagered, 2)}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+        <div class="card-body p-4">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center">
+              <.icon name="hero-arrow-trending-up" class="w-6 h-6 text-success" />
+            </div>
+            <div>
+              <p class="text-sm text-base-content/60">Total Won</p>
+              <p class="text-xl font-bold font-mono text-success">
+                ${Decimal.round(@summary.total_won, 2)}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+        <div class="card-body p-4">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-full bg-error/10 flex items-center justify-center">
+              <.icon name="hero-arrow-trending-down" class="w-6 h-6 text-error" />
+            </div>
+            <div>
+              <p class="text-sm text-base-content/60">Total Lost</p>
+              <p class="text-xl font-bold font-mono text-error">
+                ${Decimal.round(@summary.total_lost, 2)}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+        <div class="card-body p-4">
+          <div class="flex items-center gap-3">
+            <div class={[
+              "w-12 h-12 rounded-full flex items-center justify-center",
+              if(Decimal.compare(net_profit(@summary), Decimal.new(0)) == :gt,
+                do: "bg-success/10",
+                else: "bg-error/10"
+              )
+            ]}>
+              <.icon name="hero-scale" class={"w-6 h-6 #{profit_color(@summary)}"} />
+            </div>
+            <div>
+              <p class="text-sm text-base-content/60">Net Profit/Loss</p>
+              <p class={["text-xl font-bold font-mono", profit_color(@summary)]}>
+                ${Decimal.round(Decimal.abs(net_profit(@summary)), 2)}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <%!-- Betting Summary --%>
+    <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+      <div class="card-body">
+        <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+          <.icon name="hero-chart-bar" class="w-5 h-5 text-primary" /> Betting Summary
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="text-center p-4 bg-base-200 rounded-lg">
+            <div class="text-3xl font-bold text-warning font-mono mb-2">
+              {@summary.bets_pending}
+            </div>
+            <p class="text-sm text-base-content/60">Pending Bets</p>
+          </div>
+
+          <div class="text-center p-4 bg-base-200 rounded-lg">
+            <div class="text-3xl font-bold text-success font-mono mb-2">
+              {@summary.bets_won}
+            </div>
+            <p class="text-sm text-base-content/60">Won Bets</p>
+          </div>
+
+          <div class="text-center p-4 bg-base-200 rounded-lg">
+            <div class="text-3xl font-bold text-error font-mono mb-2">
+              {@summary.bets_lost}
+            </div>
+            <p class="text-sm text-base-content/60">Lost Bets</p>
+          </div>
+        </div>
+
+        <div class="mt-6 p-4 bg-base-200 rounded-lg">
+          <div class="flex justify-between items-center">
+            <span class="text-base-content/60">Total Bets Placed</span>
+            <span class="text-2xl font-bold font-mono">{@summary.total_bets}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-6">
+      <.link navigate={~p"/history"} class="btn btn-outline btn-primary border-2">
+        <.icon name="hero-clock" class="w-5 h-5 mr-2" /> View Full History
+      </.link>
+    </div>
+  </div>
+</Layouts.app>
