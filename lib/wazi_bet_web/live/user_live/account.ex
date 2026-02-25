@@ -23,6 +23,7 @@ defmodule WaziBetWeb.UserLive.Account do
      |> assign(:page_title, "My Account")}
   end
 
+  #handle_event
   @impl true
   def handle_event("deposit", %{"amount" => amount}, socket) do
     user = socket.assigns.current_scope.user
