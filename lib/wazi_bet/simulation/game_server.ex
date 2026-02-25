@@ -59,10 +59,16 @@ defmodule WaziBet.Simulation.GameServer do
         IO.inspect(game, label: "DEBUG: Game before transition")
         Sport.transition_game_status(game, :finished)
 
-        # Broadcast finished event
-        broadcast(
-          data.game_id,
+        finished_payload =
           {:finished, %{home_score: new_state.home_score, away_score: new_state.away_score}}
+
+        # Broadcast finished event
+        broadcast(data.game_id, finished_payload)
+
+        Phoenix.PubSub.broadcast(
+          WaziBet.PubSub,
+          "game:finished",
+          {__MODULE__, data.game_id, finished_payload}
         )
 
         {:stop, :normal, %{data | state: new_state}}
