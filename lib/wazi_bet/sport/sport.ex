@@ -9,7 +9,7 @@ defmodule WaziBet.Sport do
   # Categories
 
   def list_categories do
-    Repo.all(SportsCategory)
+    Repo.all(SportsCategory) |> Repo.preload(:teams)
   end
 
   def create_category(attrs) do
@@ -28,12 +28,26 @@ defmodule WaziBet.Sport do
 
   # Teams
 
-  def list_teams do
-    Repo.all(Team) |> Repo.preload(:category)
+  def list_teams(category_id \\ nil, opts \\ [])
+
+  def list_teams(nil, opts) do
+    page = Keyword.get(opts, :page, 1)
+    page_size = Keyword.get(opts, :page_size, 10)
+
+    Team
+    |> order_by([t], t.id)
+    |> limit(^page_size)
+    |> offset(^((page - 1) * page_size))
+    |> Repo.all()
+    |> Repo.preload(:category)
   end
 
-  def list_teams(category_id) do
+  def list_teams(category_id, _opts) do
     Repo.all(from t in Team, where: t.category_id == ^category_id)
+  end
+
+  def count_teams do
+    Repo.one(from t in Team, select: count(t.id)) || 0
   end
 
   def create_team(attrs) do
@@ -52,10 +66,25 @@ defmodule WaziBet.Sport do
 
   # Games
 
-  def list_games(filters \\ []) do
+  def list_games(filters \\ [], opts \\ []) do
+    query = Game |> filter_games(filters) |> order_by([g], desc: g.starts_at)
+
+    query =
+      if opts != [] do
+        page = Keyword.get(opts, :page, 1)
+        page_size = Keyword.get(opts, :page_size, 10)
+        query |> limit(^page_size) |> offset(^((page - 1) * page_size))
+      else
+        query
+      end
+
+    Repo.all(query)
+  end
+
+  def count_games(filters \\ []) do
     Game
     |> filter_games(filters)
-    |> Repo.all()
+    |> Repo.aggregate(:count, :id)
   end
 
   def list_live_games do
@@ -213,5 +242,18 @@ defmodule WaziBet.Sport do
 
   defp filter_games(query, [_ | rest]) do
     filter_games(query, rest)
+  end
+
+  def count_games_by_status do
+    scheduled = Repo.one(from g in Game, where: g.status == :scheduled, select: count(g.id)) || 0
+    live = Repo.one(from g in Game, where: g.status == :live, select: count(g.id)) || 0
+    finished = Repo.one(from g in Game, where: g.status == :finished, select: count(g.id)) || 0
+
+    %{
+      scheduled: scheduled,
+      live: live,
+      completed: finished,
+      total: scheduled + live + finished
+    }
   end
 end

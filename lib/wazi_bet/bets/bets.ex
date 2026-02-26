@@ -330,6 +330,16 @@ defmodule WaziBet.Bets do
     }
   end
 
+  def count_total_bets do
+    total = Repo.one(from b in Betslip, select: count(b.id)) || 0
+    pending = Repo.one(from b in Betslip, where: b.status == :pending, select: count(b.id)) || 0
+
+    %{
+      total: total,
+      pending: pending
+    }
+  end
+
   defp calculate_total_wagered(betslips) do
     betslips
     |> Enum.reduce(Decimal.new(0), fn b, acc -> Decimal.add(acc, b.stake) end)
