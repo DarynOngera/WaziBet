@@ -43,6 +43,8 @@ defmodule WaziBetWeb.GameLive.Index do
     # Load betslip and stake from storage (DB for authenticated users)
     betslip = get_betslip_from_storage(socket)
     stake = get_stake_from_storage(socket)
+    total_odds = calculate_total_odds(betslip)
+    potential_payout = calculate_potential_payout(stake, total_odds)
 
     {:ok,
      socket
@@ -52,7 +54,8 @@ defmodule WaziBetWeb.GameLive.Index do
      |> assign(:viewer_counts, viewer_counts)
      |> assign(:betslip, betslip)
      |> assign(:stake, stake)
-     |> assign(:sidebar_open, false)
+     |> assign(:total_odds, total_odds)
+     |> assign(:potential_payout, potential_payout)
      |> assign(:page_title, "Games")}
   end
 
@@ -113,6 +116,11 @@ defmodule WaziBetWeb.GameLive.Index do
       {:noreply,
        socket
        |> assign(:betslip, new_betslip)
+       |> assign(:total_odds, calculate_total_odds(new_betslip))
+       |> assign(
+         :potential_payout,
+         calculate_potential_payout(socket.assigns.stake, calculate_total_odds(new_betslip))
+       )
        |> push_event("betslip_updated", %{betslip: new_betslip})}
     end
   end
@@ -124,9 +132,16 @@ defmodule WaziBetWeb.GameLive.Index do
     # Persist to DB for authenticated users
     persist_betslip(socket, new_betslip)
 
+    new_total_odds = calculate_total_odds(new_betslip)
+
     {:noreply,
      socket
      |> assign(:betslip, new_betslip)
+     |> assign(:total_odds, new_total_odds)
+     |> assign(
+       :potential_payout,
+       calculate_potential_payout(socket.assigns.stake, new_total_odds)
+     )
      |> push_event("betslip_updated", %{betslip: new_betslip})}
   end
 
@@ -138,35 +153,45 @@ defmodule WaziBetWeb.GameLive.Index do
     {:noreply,
      socket
      |> assign(:betslip, [])
+     |> assign(:total_odds, Decimal.new(1))
+     |> assign(:potential_payout, Decimal.new(0))
      |> push_event("betslip_updated", %{betslip: []})}
   end
 
   @impl true
-  def handle_event("toggle_sidebar", _params, socket) do
-    {:noreply, assign(socket, :sidebar_open, !socket.assigns.sidebar_open)}
-  end
-
-  @impl true
-  def handle_event("close_sidebar", _params, socket) do
-    {:noreply, assign(socket, :sidebar_open, false)}
-  end
-
-  @impl true
   def handle_event("update_stake", %{"stake" => stake}, socket) do
-    persist_stake(socket, stake)
-    {:noreply, assign(socket, :stake, stake)}
+    stake_str = stake |> to_string() |> String.trim()
+
+    stake_decimal =
+      case stake_str do
+        "" -> Decimal.new(0)
+        _ -> Decimal.new(stake_str)
+      end
+
+    stake_decimal = Decimal.round(stake_decimal, 2)
+    persist_stake(socket, Decimal.to_string(stake_decimal, :normal))
+
+    potential_payout = Decimal.mult(stake_decimal, socket.assigns.total_odds)
+
+    {:noreply,
+     socket
+     |> assign(:stake, Decimal.to_string(stake_decimal, :normal))
+     |> assign(:potential_payout, potential_payout)}
   end
 
   @impl true
-  def handle_event("place_bet", params, socket) do
+  def handle_event("place_bet", %{"stake" => stake} = _params, socket) do
     user = socket.assigns.current_scope.user
 
-    # Get stake from params first (button click), then socket
-    stake_from_params = Map.get(params, "stake")
-    stake_from_socket = socket.assigns[:stake] || "100"
-
-    stake_str = stake_from_params || stake_from_socket
-    stake_decimal = Decimal.new(stake_str)
+    stake_decimal =
+      stake
+      |> to_string()
+      |> String.trim()
+      |> then(fn
+        "" -> Decimal.new(0)
+        val -> Decimal.new(val)
+      end)
+      |> Decimal.round(2)
 
     if Decimal.compare(stake_decimal, Decimal.new(0)) <= 0 do
       {:noreply, put_flash(socket, :error, "Stake must be greater than 0")}
@@ -181,6 +206,8 @@ defmodule WaziBetWeb.GameLive.Index do
            socket
            |> assign(:betslip, [])
            |> assign(:stake, "100")
+           |> assign(:total_odds, Decimal.new(1))
+           |> assign(:potential_payout, Decimal.new(0))
            |> put_flash(:info, "Bet placed successfully!")}
 
         {:error, :validate_balance, :insufficient_balance, _} ->
@@ -331,15 +358,15 @@ defmodule WaziBetWeb.GameLive.Index do
   end
 
   defp persist_stake(socket, stake) when is_binary(stake) do
-    with true <- stake != "",
-         {stake_num, _} <- Integer.parse(stake),
-         stake_num > 0 do
+    stake_decimal = Decimal.new(stake)
+
+    if Decimal.compare(stake_decimal, Decimal.new(0)) > 0 do
       if socket.assigns[:current_scope] && socket.assigns.current_scope.user do
         user_id = socket.assigns.current_scope.user.id
-        {:ok, _} = Bets.update_pending_stake(user_id, Decimal.new(stake_num))
+        {:ok, _} = Bets.update_pending_stake(user_id, stake_decimal)
       end
     else
-      _ -> {:error, :invalid_stake}
+      {:error, :invalid_stake}
     end
   end
 
@@ -549,5 +576,55 @@ defmodule WaziBetWeb.GameLive.Index do
         <.icon name={@icon} class={@class} />
     <% end %>
     """
+  end
+
+  defp calculate_total_odds([]), do: Decimal.new(1)
+
+  defp calculate_total_odds(betslip) do
+    Enum.reduce(betslip, Decimal.new(1), fn selection, acc ->
+      odds = get_odds(selection)
+      Decimal.mult(acc, odds)
+    end)
+  end
+
+  defp get_odds(selection) do
+    odds_value =
+      selection
+      |> Map.get(:odds)
+      |> Kernel.||(Map.get(selection, "odds", 1))
+
+    case odds_value do
+      %Decimal{} ->
+        odds_value
+
+      %{"coef" => coef, "exp" => exp, "sign" => sign} ->
+        %Decimal{coef: coef, exp: exp, sign: sign}
+
+      nil ->
+        Decimal.new(1)
+
+      val when is_number(val) ->
+        Decimal.new(val)
+
+      val when is_binary(val) ->
+        Decimal.new(val)
+
+      _ ->
+        Decimal.new(1)
+    end
+  end
+
+  defp get_field(map, key, default \\ nil) do
+    Map.get(map, key) |> Kernel.||(Map.get(map, to_string(key), default))
+  end
+
+  defp format_odds(odds) do
+    odds
+  end
+
+  defp calculate_potential_payout(stake, total_odds) do
+    stake_val = if stake == "" or stake == nil, do: "0", else: stake
+    stake_decimal = Decimal.new(stake_val)
+    Decimal.mult(stake_decimal, total_odds)
   end
 end

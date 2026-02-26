@@ -160,19 +160,17 @@ defmodule WaziBet.Bets do
       |> Enum.uniq()
 
     # Check each game
-    Enum.each(game_ids, fn game_id ->
+    Enum.reduce_while(game_ids, {:ok, :validated}, fn game_id, _acc ->
       game = Sport.get_game!(game_id)
 
       case can_bet_on_game?(game) do
         :ok ->
-          :ok
+          {:cont, {:ok, :validated}}
 
         {:error, reason} ->
-          {:error, reason}
+          {:halt, {:error, reason}}
       end
     end)
-
-    {:ok, :validated}
   end
 
   defp do_place_betslip(user, selections, stake) do
@@ -417,20 +415,27 @@ defmodule WaziBet.Bets do
     |> Repo.update()
   end
 
-  defp convert_odds_to_decimal(odds) do
+  def convert_odds_to_decimal(odds) do
     case odds do
       %Decimal{} ->
-        odds
+        Decimal.round(odds, 2)
 
       %{"coef" => coef, "exp" => exp, "sign" => sign} ->
         result = coef * :math.pow(10, exp) * sign
-        Decimal.new(Float.to_string(result))
+        result
+        |> Float.to_string()
+        |> Decimal.new()
+        |> Decimal.round(2)
 
       odds when is_binary(odds) ->
-        Decimal.new(odds)
+        odds
+        |> Decimal.new()
+        |> Decimal.round(2)
 
       odds when is_number(odds) ->
-        Decimal.new(odds)
+        odds
+        |> Decimal.new()
+        |> Decimal.round(2)
 
       _ ->
         Decimal.new(1)

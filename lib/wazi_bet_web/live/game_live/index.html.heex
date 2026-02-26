@@ -1,148 +1,275 @@
 <Layouts.app flash={@flash} current_scope={@current_scope} categories={@categories}>
-  <div class="container mx-auto px-4 py-8">
-    <%!-- Header --%>
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-      <div>
-        <h1 class="text-3xl lg:text-4xl font-bold text-base-content flex items-center gap-3">
-          <.icon name="hero-trophy" class="w-8 h-8 text-primary" />
-          <%= if @selected_category do %>
-            <% category =
-              Enum.find(@categories, &(&1.id == String.to_integer(@selected_category))) %>
-            {category.name} Games
-          <% else %>
-            All Games
-          <% end %>
-        </h1>
-        <p class="text-base-content/60 mt-2">
-          <%= if @selected_category do %>
-            Browse {Enum.find(@categories, &(&1.id == String.to_integer(@selected_category))).name} matches
-          <% else %>
-            Browse all available matches and place your bets
-          <% end %>
-        </p>
-      </div>
-
-      <div class="flex items-center gap-2">
-        <%= if @selected_category do %>
-          <button phx-click="clear_filter" class="btn btn-ghost btn-sm">
-            <.icon name="hero-x-mark" class="w-4 h-4 mr-1" /> Clear Filter
-          </button>
-        <% end %>
-        <button
-          phx-click="toggle_sidebar"
-          class="btn btn-primary relative group"
-        >
-          <.icon
-            name="hero-ticket"
-            class="h-5 w-5 mr-2 transition-transform group-hover:scale-110"
-          /> Betslip
-          <%= if length(@betslip) > 0 do %>
-            <span class="badge badge-sm badge-secondary absolute -top-2 -right-2 border-2 border-base-100">
-              {length(@betslip)}
-            </span>
-          <% end %>
-        </button>
-      </div>
-    </div>
-
-    <%!-- Mobile Category Filter --%>
-    <div class="md:hidden mb-6">
-      <div class="flex gap-2 overflow-x-auto pb-2">
-        <button
-          phx-click="clear_filter"
-          class={[
-            "btn btn-sm whitespace-nowrap",
-            if(is_nil(@selected_category), do: "btn-primary", else: "btn-outline")
-          ]}
-        >
-          All
-        </button>
-        <%= for category <- @categories do %>
-          <button
-            phx-click="select_category"
-            phx-value-category_id={category.id}
-            class={[
-              "btn btn-sm whitespace-nowrap",
-              if(@selected_category == to_string(category.id),
-                do: "btn-primary",
-                else: "btn-outline"
-              )
-            ]}
-          >
-            <.category_icon icon={category.icon} class="w-4 h-4 mr-1" />
-            {category.name}
-          </button>
-        <% end %>
-      </div>
-    </div>
-
-    <%!-- Games by Category --%>
-    <%= if Enum.empty?(@games_by_category) do %>
-      <div class="card bg-base-100 shadow-xl border-2 border-base-300">
-        <div class="card-body text-center py-16">
-          <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-base-200 flex items-center justify-center">
-            <.icon name="hero-inbox" class="w-10 h-10 text-base-content/30" />
-          </div>
-          <h2 class="text-xl font-semibold mb-2">No games available</h2>
-          <p class="text-base-content/60">Check back later for upcoming matches</p>
+  <div class="flex h-screen">
+    <%!-- Left Sidebar - Categories --%>
+    <aside class="w-56 bg-base-200 border-r border-base-300 hidden lg:block flex-shrink-0">
+      <div class="p-4 pt-6">
+          <h3 class="text-sm font-semibold text-base-content/60 uppercase tracking-wider mb-3">
+            Categories
+          </h3>
+          <nav class="space-y-1">
+            <.link
+              patch={~p"/"}
+              class={[
+                "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                (is_nil(@selected_category) && "bg-primary text-primary-content") ||
+                  "hover:bg-base-300"
+              ]}
+            >
+              <.icon name="hero-trophy" class="w-5 h-5" /> All Games
+            </.link>
+            <%= for category <- @categories do %>
+              <.link
+                patch={~p"/?category=#{category.id}"}
+                class={[
+                  "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                  (@selected_category == to_string(category.id) &&
+                     "bg-primary text-primary-content") ||
+                    "hover:bg-base-300"
+                ]}
+              >
+                <.category_icon icon={category.icon} class="w-5 h-5" />
+                {category.name}
+              </.link>
+            <% end %>
+          </nav>
         </div>
-      </div>
-    <% else %>
-      <div class="space-y-8">
-        <%= for %{category: category, live_games: live, scheduled_games: scheduled} <- @games_by_category do %>
-          <div class="space-y-4">
-            <%!-- Category Header --%>
-            <div class="flex items-center gap-3 pb-2 border-b-2 border-base-300">
-              <.category_icon icon={category.icon} class="w-6 h-6 text-primary" />
-              <h2 class="text-2xl font-bold">{category.name}</h2>
-              <%= if length(live) > 0 do %>
-                <span class="badge badge-success badge-sm animate-pulse border-2">LIVE</span>
-              <% end %>
+      </aside>
+
+      <%!-- Main Content --%>
+      <main class="flex-1 overflow-y-auto">
+        <div class="p-6">
+          <%!-- Header --%>
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <div>
+              <h1 class="text-2xl lg:text-3xl font-bold text-base-content flex items-center gap-3">
+                <%= if @selected_category do %>
+                  <% category =
+                    Enum.find(@categories, &(&1.id == String.to_integer(@selected_category))) %>
+                  <.category_icon icon={category.icon} class="w-7 h-7 text-primary" />
+                  {category.name} Games
+                <% else %>
+                  <.icon name="hero-trophy" class="w-7 h-7 text-primary" /> All Games
+                <% end %>
+              </h1>
+              <p class="text-base-content/60 mt-1">
+                <%= if @selected_category do %>
+                  Browse {Enum.find(
+                    @categories,
+                    &(&1.id == String.to_integer(@selected_category))
+                  ).name} matches
+                <% else %>
+                  Browse all available matches and place your bets
+                <% end %>
+              </p>
             </div>
 
-            <%!-- Live Games Section --%>
-            <%= if length(live) > 0 do %>
-              <div>
-                <h3 class="text-sm font-semibold text-success mb-3 flex items-center gap-2">
-                  <span class="w-2 h-2 bg-success rounded-full animate-pulse"></span>
-                  Live Now ({length(live)})
-                </h3>
-                <div class="grid gap-4">
-                  <%= for game <- live do %>
-                    <.game_card
-                      game={game}
-                      betslip={@betslip}
-                      viewer_count={Map.get(@viewer_counts, game.id, 0)}
-                    />
-                  <% end %>
-                </div>
-              </div>
+            <%= if @selected_category do %>
+              <button phx-click="clear_filter" class="btn btn-ghost btn-sm">
+                <.icon name="hero-x-mark" class="w-4 h-4 mr-1" /> Clear Filter
+              </button>
             <% end %>
+          </div>
 
-            <%!-- Scheduled Games Section --%>
-            <%= if length(scheduled) > 0 do %>
-              <div>
-                <h3 class="text-sm font-semibold text-base-content/60 mb-3">
-                  Upcoming ({length(scheduled)})
-                </h3>
-                <div class="grid gap-4">
-                  <%= for game <- scheduled do %>
-                    <.game_card game={game} betslip={@betslip} />
+          <%!-- Mobile Category Filter --%>
+          <div class="lg:hidden mb-6">
+            <div class="flex gap-2 overflow-x-auto pb-2">
+              <button
+                phx-click="clear_filter"
+                class={[
+                  "btn btn-sm whitespace-nowrap",
+                  if(is_nil(@selected_category), do: "btn-primary", else: "btn-outline")
+                ]}
+              >
+                All
+              </button>
+              <%= for category <- @categories do %>
+                <button
+                  phx-click="select_category"
+                  phx-value-category_id={category.id}
+                  class={[
+                    "btn btn-sm whitespace-nowrap",
+                    if(@selected_category == to_string(category.id),
+                      do: "btn-primary",
+                      else: "btn-outline"
+                    )
+                  ]}
+                >
+                  <.category_icon icon={category.icon} class="w-4 h-4 mr-1" />
+                  {category.name}
+                </button>
+              <% end %>
+            </div>
+          </div>
+
+          <%!-- Games by Category --%>
+          <%= if Enum.empty?(@games_by_category) do %>
+            <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+              <div class="card-body text-center py-16">
+                <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-base-200 flex items-center justify-center">
+                  <.icon name="hero-inbox" class="w-10 h-10 text-base-content/30" />
+                </div>
+                <h2 class="text-xl font-semibold mb-2">No games available</h2>
+                <p class="text-base-content/60">Check back later for upcoming matches</p>
+              </div>
+            </div>
+          <% else %>
+            <div class="space-y-8">
+              <%= for %{category: category, live_games: live, scheduled_games: scheduled} <- @games_by_category do %>
+                <div class="space-y-4">
+                  <%!-- Category Header --%>
+                  <div class="flex items-center gap-3 pb-2 border-b-2 border-base-300">
+                    <.category_icon icon={category.icon} class="w-6 h-6 text-primary" />
+                    <h2 class="text-xl font-bold">{category.name}</h2>
+                    <%= if length(live) > 0 do %>
+                      <span class="badge badge-success badge-sm animate-pulse border-2">
+                        LIVE
+                      </span>
+                    <% end %>
+                  </div>
+
+                  <%!-- Live Games Section --%>
+                  <%= if length(live) > 0 do %>
+                    <div>
+                      <h3 class="text-sm font-semibold text-success mb-3 flex items-center gap-2">
+                        <span class="w-2 h-2 bg-success rounded-full animate-pulse"></span>
+                        Live Now ({length(live)})
+                      </h3>
+                      <div class="grid gap-4">
+                        <%= for game <- live do %>
+                          <.game_card
+                            game={game}
+                            betslip={@betslip}
+                            viewer_count={Map.get(@viewer_counts, game.id, 0)}
+                          />
+                        <% end %>
+                      </div>
+                    </div>
+                  <% end %>
+
+                  <%!-- Scheduled Games Section --%>
+                  <%= if length(scheduled) > 0 do %>
+                    <div>
+                      <h3 class="text-sm font-semibold text-base-content/60 mb-3">
+                        Upcoming ({length(scheduled)})
+                      </h3>
+                      <div class="grid gap-4">
+                        <%= for game <- scheduled do %>
+                          <.game_card game={game} betslip={@betslip} />
+                        <% end %>
+                      </div>
+                    </div>
                   <% end %>
                 </div>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      </main>
+
+      <%!-- Right Sidebar - Persistent Betslip --%>
+      <aside class="w-80 bg-base-200 border-l border-base-300 hidden xl:block flex-shrink-0">
+        <div class="flex flex-col h-full">
+          <%!-- Header --%>
+          <div class="p-4 border-b-2 border-base-300 bg-base-200">
+            <h2 class="text-xl font-bold flex items-center gap-2">
+              <.icon name="hero-ticket" class="w-5 h-5 text-primary" /> Betslip
+            </h2>
+          </div>
+
+          <%!-- Content --%>
+          <div class="flex-1 overflow-y-auto p-4">
+            <%= if Enum.empty?(@betslip) do %>
+              <div class="text-center text-base-content/50 py-12">
+                <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-base-200 flex items-center justify-center">
+                  <.icon name="hero-ticket" class="w-8 h-8 opacity-50" />
+                </div>
+                <p class="font-medium">Your betslip is empty</p>
+                <p class="text-sm mt-2">Click on odds to add selections</p>
+              </div>
+            <% else %>
+              <div class="space-y-3">
+                <%= for {selection, index} <- Enum.with_index(@betslip) do %>
+                  <div class="card bg-base-100 border border-base-300">
+                    <div class="card-body p-4">
+                      <div class="flex justify-between items-start">
+                        <div class="flex-1 min-w-0">
+                          <p class="font-medium truncate">{get_field(selection, :game_name)}</p>
+                          <p class="text-sm text-base-content/60 mt-1 font-mono">
+                            {String.capitalize(to_string(get_field(selection, :label)))} @ {selection
+                            |> get_field(:odds)
+                            |> WaziBet.Bets.convert_odds_to_decimal()
+                            |> Decimal.to_string(:normal)}
+                          </p>
+                        </div>
+                        <button
+                          phx-click="remove_from_betslip"
+                          phx-value-index={index}
+                          class="btn btn-ghost btn-xs btn-circle"
+                        >
+                          <.icon name="hero-x-mark" class="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                <% end %>
               </div>
             <% end %>
           </div>
-        <% end %>
-      </div>
-    <% end %>
-  </div>
 
-  <%!-- Sidebar Betslip --%>
-  <Components.sidebar_betslip
-    betslip={@betslip}
-    open={@sidebar_open}
-    current_scope={@current_scope}
-    stake={@stake}
-  />
+          <%!-- Footer with Stake and Submit --%>
+          <%= if Enum.any?(@betslip) do %>
+            <.form
+              for={%{}}
+              id="place-bet-form"
+              phx-submit="place_bet"
+              class="p-4 border-t-2 border-base-300 bg-base-200 space-y-3"
+            >
+              <div class="form-control">
+                <label class="label py-2" for="stake-input">
+                  <span class="label-text font-medium">Stake Amount</span>
+                </label>
+                <input
+                  type="number"
+                  name="stake"
+                  id="stake-input"
+                  value={@stake}
+                  phx-change="update_stake"
+                  phx-debounce="300"
+                  min="1"
+                  step="0.01"
+                  class="input input-bordered w-full border-2"
+                />
+              </div>
+
+              <div class="flex justify-between items-center">
+                <span class="text-sm font-medium">Total Odds:</span>
+                <span class="font-mono font-bold text-lg">
+                  {Decimal.to_string(@total_odds, :normal)}
+                </span>
+              </div>
+
+              <div class="flex justify-between items-center">
+                <span class="text-sm font-medium">Potential Return:</span>
+                <span class="font-mono font-bold text-success text-lg">
+                  ${Decimal.to_string(@potential_payout, :normal)}
+                </span>
+              </div>
+
+              <%= if @current_scope && @current_scope.user do %>
+                <button type="submit" class="btn btn-primary w-full border-2 mt-2">
+                  <.icon name="hero-check" class="w-5 h-5 mr-2" /> Place Bet
+                </button>
+              <% else %>
+                <.link
+                  navigate={~p"/users/register"}
+                  class="btn btn-secondary w-full border-2 mt-2"
+                >
+                  <.icon name="hero-arrow-right-on-rectangle" class="w-5 h-5 mr-2" /> Login to Bet
+                </.link>
+              <% end %>
+            </.form>
+          <% end %>
+        </div>
+      </aside>
+    </div>
 </Layouts.app>

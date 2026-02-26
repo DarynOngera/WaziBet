@@ -21,7 +21,9 @@ defmodule WaziBetWeb.BetslipLive.New do
     # Filter out any selections from games that are no longer available
     selections =
       Enum.filter(selections, fn s ->
-        case Sport.get_game(s.game_id) do
+        game_id = Map.get(s, :game_id) || Map.get(s, "game_id")
+
+        case Sport.get_game(game_id) do
           nil -> false
           game -> game.status == :scheduled
         end
@@ -32,13 +34,30 @@ defmodule WaziBetWeb.BetslipLive.New do
       Bets.update_pending_selections(user.id, selections)
     end
 
+    # Normalize selections to use atom keys for template access
+    selections =
+      Enum.map(selections, fn s ->
+        %{
+          outcome_id: get_selection_field(s, :outcome_id),
+          game_id: get_selection_field(s, :game_id),
+          game_name: get_selection_field(s, :game_name),
+          label: get_selection_field(s, :label),
+          odds: get_selection_field(s, :odds)
+        }
+      end)
+
     games = load_available_games()
 
+    # Get stake from params or pending betslip
     stake_value =
-      if pending.stake && Decimal.compare(pending.stake, Decimal.new(0)) > 0 do
-        Decimal.to_string(pending.stake)
+      if params["stake"] do
+        params["stake"]
       else
-        "100"
+        if pending.stake && Decimal.compare(pending.stake, Decimal.new(0)) > 0 do
+          Decimal.to_string(pending.stake)
+        else
+          "100"
+        end
       end
 
     {:ok,
@@ -57,7 +76,9 @@ defmodule WaziBetWeb.BetslipLive.New do
     outcome_id = String.to_integer(outcome_id)
 
     # If this exact outcome is already selected, do nothing
-    if Enum.any?(socket.assigns.selections, fn s -> s.outcome_id == outcome_id end) do
+    if Enum.any?(socket.assigns.selections, fn s ->
+         get_selection_field(s, :outcome_id) == outcome_id
+       end) do
       {:noreply, socket}
     else
       game = Sport.get_game_with_teams!(game_id)
@@ -74,7 +95,7 @@ defmodule WaziBetWeb.BetslipLive.New do
       # Remove any existing selection from this game, then add the new one
       new_selections =
         socket.assigns.selections
-        |> Enum.reject(fn s -> s.game_id == game_id end)
+        |> Enum.reject(fn s -> get_selection_field(s, :game_id) == game_id end)
         |> Kernel.++([selection])
 
       # Persist to DB
@@ -188,5 +209,9 @@ defmodule WaziBetWeb.BetslipLive.New do
   def calculate_potential_payout(selections, stake) do
     total_odds = calculate_total_odds(selections)
     OddsCalculator.payout(Decimal.new(stake), total_odds)
+  end
+
+  defp get_selection_field(selection, key, default \\ nil) do
+    Map.get(selection, key) || Map.get(selection, to_string(key), default)
   end
 end
