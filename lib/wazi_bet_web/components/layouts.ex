@@ -36,6 +36,18 @@ defmodule WaziBetWeb.Layouts do
 
   attr :categories, :list, default: []
 
+  attr :user_permissions, :list,
+    default: [],
+    doc: "list of user permission slugs for admin layout"
+
+  attr :is_superuser, :boolean,
+    default: false,
+    doc: "whether the user is a superuser"
+
+  attr :current_path, :string,
+    default: "",
+    doc: "current request path for active menu highlighting"
+
   def app(assigns) do
     ~H"""
     <header class="navbar bg-base-200 border-b border-base-300 sticky top-0 z-50">
@@ -43,20 +55,6 @@ defmodule WaziBetWeb.Layouts do
         <.link href={~p"/"} class="btn btn-ghost text-xl font-bold tracking-wider">
           <span class="text-primary">WAZI</span><span class="text-secondary">BET</span>
         </.link>
-        <%!-- Category Icons --%>
-        <%= if length(@categories) > 0 do %>
-          <div class="hidden md:flex items-center gap-1 border-l-2 border-base-300 pl-3">
-            <%= for category <- @categories do %>
-              <.link
-                href={~p"/?category=#{category.id}"}
-                class="btn btn-ghost btn-sm tooltip"
-                data-tip={category.name}
-              >
-                <.icon name={category.icon} class="w-5 h-5" />
-              </.link>
-            <% end %>
-          </div>
-        <% end %>
       </div>
       <div>
         <ul class="flex items-center gap-2">
@@ -119,10 +117,8 @@ defmodule WaziBetWeb.Layouts do
       </div>
     </header>
 
-    <main class="px-4 py-8 sm:px-6 lg:px-8 min-h-[calc(100vh-4rem)]">
-      <div class="mx-auto max-w-6xl">
-        {render_slot(@inner_block)}
-      </div>
+    <main class="px-0 py-0 min-h-[calc(100vh-4rem)]">
+      {render_slot(@inner_block)}
     </main>
 
     <.flash_group flash={@flash} />
@@ -207,5 +203,9 @@ defmodule WaziBetWeb.Layouts do
       </button>
     </div>
     """
+  end
+
+  def has_permission?(permissions, slug) do
+    slug in permissions
   end
 end

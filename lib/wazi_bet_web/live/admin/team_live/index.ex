@@ -8,16 +8,23 @@ defmodule WaziBetWeb.Admin.TeamLive.Index do
 
   alias WaziBet.{Sport, Accounts}
 
+  @page_size 10
+
   @impl true
-  def mount(_params, _session, socket) do
+  def mount(params, _session, socket) do
     user = socket.assigns.current_scope.user
     current_path = "/admin/teams"
 
     user_permissions = Accounts.get_user_permission_slugs(user.id)
     is_superuser = Accounts.user_has_permission?(user.id, "grant-revoke-admin-access")
 
-    teams = Sport.list_teams()
+    page = Map.get(params, "page", "1") |> String.to_integer() |> max(1)
+
+    teams = Sport.list_teams(nil, page: page, page_size: @page_size)
     categories = Sport.list_categories()
+
+    total_teams = Sport.count_teams()
+    total_pages = ceil(total_teams / @page_size)
 
     {:ok,
      socket
@@ -26,17 +33,42 @@ defmodule WaziBetWeb.Admin.TeamLive.Index do
      |> assign(:current_path, current_path)
      |> assign(:teams, teams)
      |> assign(:categories, categories)
-     |> assign(:page_title, "Teams")}
+     |> assign(:page_title, "Teams")
+     |> assign(:current_page, page)
+     |> assign(:total_pages, total_pages)
+     |> assign(:total_count, total_teams)}
+  end
+
+  @impl true
+  def handle_params(params, _url, socket) do
+    page = Map.get(params, "page", "1") |> String.to_integer() |> max(1)
+    teams = Sport.list_teams(nil, page: page, page_size: @page_size)
+    total_teams = Sport.count_teams()
+    total_pages = ceil(total_teams / @page_size)
+
+    {:noreply,
+     socket
+     |> assign(:teams, teams)
+     |> assign(:current_page, page)
+     |> assign(:total_pages, total_pages)
+     |> assign(:total_count, total_teams)}
   end
 
   @impl true
   def handle_event("create_team", %{"team" => team_params}, socket) do
     case Sport.create_team(team_params) do
       {:ok, _team} ->
-        teams = Sport.list_teams()
+        page = socket.assigns.current_page
+        teams = Sport.list_teams(nil, page: page, page_size: @page_size)
+        total_teams = Sport.count_teams()
+        total_pages = ceil(total_teams / @page_size)
 
         {:noreply,
-         socket |> assign(:teams, teams) |> put_flash(:info, "Team created successfully!")}
+         socket
+         |> assign(:teams, teams)
+         |> assign(:total_pages, total_pages)
+         |> assign(:total_count, total_teams)
+         |> put_flash(:info, "Team created successfully!")}
 
       {:error, changeset} ->
         {:noreply,
@@ -50,10 +82,17 @@ defmodule WaziBetWeb.Admin.TeamLive.Index do
 
     case Sport.delete_team(team) do
       {:ok, _} ->
-        teams = Sport.list_teams()
+        page = socket.assigns.current_page
+        teams = Sport.list_teams(nil, page: page, page_size: @page_size)
+        total_teams = Sport.count_teams()
+        total_pages = ceil(total_teams / @page_size)
 
         {:noreply,
-         socket |> assign(:teams, teams) |> put_flash(:info, "Team deleted successfully!")}
+         socket
+         |> assign(:teams, teams)
+         |> assign(:total_pages, total_pages)
+         |> assign(:total_count, total_teams)
+         |> put_flash(:info, "Team deleted successfully!")}
 
       {:error, changeset} ->
         {:noreply,
@@ -62,4 +101,16 @@ defmodule WaziBetWeb.Admin.TeamLive.Index do
   end
 
   def has_permission?(permissions, slug), do: slug in permissions
+
+  def pagination_start(%{current_page: page, total_count: total}) when total == 0, do: 0
+
+  def pagination_start(%{current_page: page, total_count: _total}),
+    do: (page - 1) * @page_size + 1
+
+  def pagination_end(%{current_page: page, total_count: total}) do
+    end_val = page * @page_size
+    min(end_val, total)
+  end
+
+  def page_size, do: @page_size
 end

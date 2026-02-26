@@ -194,6 +194,7 @@ defmodule WaziBetWeb.Router do
         {WaziBetWeb.UserAuth, {:require_permission, "view-users"}}
       ] do
       live "/users", UserLive.Index, :index
+      live "/users/new", UserLive.New, :new
       live "/users/:id", UserLive.Show, :show
     end
   end
@@ -235,19 +236,6 @@ defmodule WaziBetWeb.Router do
         {WaziBetWeb.UserAuth, {:require_permission, "soft-delete-users"}}
       ] do
       live "/users/:id/delete", UserLive.Delete, :delete
-    end
-  end
-
-  # Admin: Create users
-  scope "/admin", WaziBetWeb.Admin do
-    pipe_through [:browser, :require_authenticated_user]
-
-    live_session :admin_create_users,
-      on_mount: [
-        {WaziBetWeb.UserAuth, :require_authenticated},
-        {WaziBetWeb.UserAuth, {:require_permission, "create-users"}}
-      ] do
-      live "/users/new", UserLive.New, :new
     end
   end
 

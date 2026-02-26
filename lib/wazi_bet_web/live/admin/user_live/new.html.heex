@@ -85,6 +85,18 @@
             </label>
           </div>
 
+          <div class="form-control mt-4">
+            <label class="label">
+              <span class="label-text font-medium">Role</span>
+            </label>
+            <select name="user[role_id]" class="select select-bordered w-full">
+              <option value="">Select a role (default: User)</option>
+              <%= for role <- @roles do %>
+                <option value={role.id}>{role.role}</option>
+              <% end %>
+            </select>
+          </div>
+
           <div class="flex gap-3 mt-6">
             <.link navigate={~p"/admin/users"} class="btn btn-outline flex-1 border-2">
               Cancel

@@ -10,13 +10,17 @@ defmodule WaziBetWeb.Admin.GameLive.Index do
   alias WaziBetWeb.Timezone
   alias WaziBetWeb.Presence
 
+  @page_size 10
+
   @impl true
-  def mount(_params, _session, socket) do
+  def mount(params, _session, socket) do
     user = socket.assigns.current_scope.user
     current_path = "/admin/games"
 
     user_permissions = Accounts.get_user_permission_slugs(user.id)
     is_superuser = Accounts.user_has_permission?(user.id, "grant-revoke-admin-access")
+
+    page = Map.get(params, "page", "1") |> String.to_integer() |> max(1)
 
     if connected?(socket) do
       Phoenix.PubSub.subscribe(WaziBet.PubSub, "games")
@@ -28,8 +32,11 @@ defmodule WaziBetWeb.Admin.GameLive.Index do
       Phoenix.PubSub.subscribe(WaziBet.PubSub, "presence:admin:games:index")
     end
 
-    games = Sport.list_games() |> Enum.map(&preload_game/1)
+    games = list_paginated_games(page)
     categories = Sport.list_categories()
+
+    total_games = Sport.count_games()
+    total_pages = ceil(total_games / @page_size)
 
     live_games = Enum.filter(games, &(&1.status == :live))
     viewer_counts = get_live_game_viewer_counts(live_games)
@@ -42,7 +49,33 @@ defmodule WaziBetWeb.Admin.GameLive.Index do
      |> assign(:games, games)
      |> assign(:categories, categories)
      |> assign(:viewer_counts, viewer_counts)
-     |> assign(:page_title, "Game Management")}
+     |> assign(:page_title, "Game Management")
+     |> assign(:current_page, page)
+     |> assign(:total_pages, total_pages)
+     |> assign(:total_count, total_games)}
+  end
+
+  defp list_paginated_games(page) do
+    Sport.list_games([], page: page, page_size: @page_size)
+    |> Enum.map(&preload_game/1)
+  end
+
+  @impl true
+  def handle_params(params, _url, socket) do
+    page = Map.get(params, "page", "1") |> String.to_integer() |> max(1)
+    games = list_paginated_games(page)
+    total_games = Sport.count_games()
+    total_pages = ceil(total_games / @page_size)
+    live_games = Enum.filter(games, &(&1.status == :live))
+    viewer_counts = get_live_game_viewer_counts(live_games)
+
+    {:noreply,
+     socket
+     |> assign(:games, games)
+     |> assign(:viewer_counts, viewer_counts)
+     |> assign(:current_page, page)
+     |> assign(:total_pages, total_pages)
+     |> assign(:total_count, total_games)}
   end
 
   @impl true
@@ -95,4 +128,15 @@ defmodule WaziBetWeb.Admin.GameLive.Index do
   def status_color(:finished), do: "badge-ghost"
 
   def has_permission?(permissions, slug), do: slug in permissions
+
+  def pagination_start(%{current_page: _page, total_count: total}) when total == 0, do: 0
+
+  def pagination_start(%{current_page: page, total_count: _total}),
+    do: (page - 1) * @page_size + 1
+
+  def pagination_end(%{current_page: page, total_count: total}) do
+    min(page * @page_size, total)
+  end
+
+  def page_size, do: @page_size
 end

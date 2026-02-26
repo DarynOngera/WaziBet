@@ -16,6 +16,8 @@ defmodule WaziBetWeb.Admin.UserLive.New do
     user_permissions = Accounts.get_user_permission_slugs(user.id)
     is_superuser = Accounts.user_has_permission?(user.id, "grant-revoke-admin-access")
 
+    roles = Accounts.list_roles()
+
     changeset = Accounts.User.registration_changeset(%Accounts.User{}, %{}, validate_email: false)
 
     {:ok,
@@ -23,6 +25,7 @@ defmodule WaziBetWeb.Admin.UserLive.New do
      |> assign(:user_permissions, user_permissions)
      |> assign(:is_superuser, is_superuser)
      |> assign(:current_path, current_path)
+     |> assign(:roles, roles)
      |> assign(:changeset, changeset)
      |> assign(:page_title, "New User")}
   end
@@ -39,8 +42,16 @@ defmodule WaziBetWeb.Admin.UserLive.New do
 
   @impl true
   def handle_event("save", %{"user" => user_params}, socket) do
-    case Accounts.create_user(user_params) do
+    role_id = user_params["role_id"]
+
+    user_params_clean = Map.drop(user_params, ["role_id"])
+
+    case Accounts.create_user(user_params_clean) do
       {:ok, user} ->
+        if role_id && role_id != "" do
+          Accounts.assign_role_to_user(user.id, String.to_integer(role_id))
+        end
+
         {:noreply,
          socket
          |> put_flash(:info, "User created successfully")
