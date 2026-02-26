@@ -119,6 +119,32 @@
           </tbody>
         </table>
       </div>
+      <%= if @total_pages > 1 do %>
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-4 p-4 border-t border-base-200 bg-base-200/30">
+          <div class="text-sm text-base-content/60">
+            Showing {pagination_start(%{current_page: @current_page, total_count: @total_count})} to {pagination_end(
+              %{current_page: @current_page, total_count: @total_count}
+            )} of {@total_count} users
+          </div>
+          <div class="join">
+            <.link
+              patch={"/admin/users?page=#{@current_page - 1}#{if @search_query != "", do: "&query=#{@search_query}"}"}
+              class={"join-item btn btn-sm #{if @current_page <= 1, do: "btn-disabled pointer-events-none"}"}
+            >
+              <.icon name="hero-chevron-left" class="w-4 h-4" />
+            </.link>
+            <span class="join-item btn btn-sm btn-ghost">
+              Page {@current_page} of {@total_pages}
+            </span>
+            <.link
+              patch={"/admin/users?page=#{@current_page + 1}#{if @search_query != "", do: "&query=#{@search_query}"}"}
+              class={"join-item btn btn-sm #{if @current_page >= @total_pages, do: "btn-disabled pointer-events-none"}"}
+            >
+              <.icon name="hero-chevron-right" class="w-4 h-4" />
+            </.link>
+          </div>
+        </div>
+      <% end %>
     </div>
   <% end %>
 </Layouts.admin>

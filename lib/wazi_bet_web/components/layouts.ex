@@ -36,6 +36,18 @@ defmodule WaziBetWeb.Layouts do
 
   attr :categories, :list, default: []
 
+  attr :user_permissions, :list,
+    default: [],
+    doc: "list of user permission slugs for admin layout"
+
+  attr :is_superuser, :boolean,
+    default: false,
+    doc: "whether the user is a superuser"
+
+  attr :current_path, :string,
+    default: "",
+    doc: "current request path for active menu highlighting"
+
   def app(assigns) do
     ~H"""
     <header class="navbar bg-base-200 border-b border-base-300 sticky top-0 z-50">
@@ -207,5 +219,9 @@ defmodule WaziBetWeb.Layouts do
       </button>
     </div>
     """
+  end
+
+  def has_permission?(permissions, slug) do
+    slug in permissions
   end
 end
