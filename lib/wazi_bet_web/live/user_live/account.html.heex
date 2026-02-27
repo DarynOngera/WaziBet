@@ -15,7 +15,7 @@
           <div class="card-body">
             <h2 class="text-lg font-medium text-base-content/60">Current Balance</h2>
             <div class="text-4xl lg:text-5xl font-bold font-mono text-success">
-              ${Decimal.round(@user.balance, 2)}
+              {Decimal.round(@user.balance, 2)}Kes
             </div>
           </div>
         </div>
@@ -155,7 +155,7 @@
                         <td class="font-mono">${Decimal.round(bet.stake, 2)}</td>
                         <td class="font-mono">{Decimal.round(bet.total_odds, 2)}</td>
                         <td class="font-mono text-success">
-                          ${Decimal.round(bet.potential_payout, 2)}
+                          {Decimal.round(bet.potential_payout, 2)}Kes
                         </td>
                         <td>
                           <span class={["badge badge-sm", status_color(bet.status)]}>
