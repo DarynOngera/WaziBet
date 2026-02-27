@@ -15,7 +15,7 @@ defmodule WaziBetWeb.UserLive.Settings do
           <:subtitle>Manage your account email address and password settings</:subtitle>
         </.header>
       </div>
-
+      <div class= "mx-auto" style="max-width: 768px">
       <.form for={@email_form} id="email_form" phx-submit="update_email" phx-change="validate_email">
         <.input
           field={@email_form[:email]}
@@ -37,6 +37,7 @@ defmodule WaziBetWeb.UserLive.Settings do
         phx-change="validate_password"
         phx-submit="update_password"
         phx-trigger-action={@trigger_submit}
+  
       >
         <input
           name={@password_form[:email].name}
@@ -62,6 +63,7 @@ defmodule WaziBetWeb.UserLive.Settings do
           Save Password
         </.button>
       </.form>
+    </div>
     </Layouts.app>
     """
   end
