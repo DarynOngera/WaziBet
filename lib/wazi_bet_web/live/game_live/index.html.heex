@@ -324,14 +324,14 @@
               <div class="flex justify-between items-center">
                 <span class="text-sm font-medium">Total Odds:</span>
                 <span class="font-mono font-bold text-lg">
-                  {Decimal.to_string(@total_odds, :normal)}
+                  {Decimal.round(@total_odds, 2)}
                 </span>
               </div>
 
               <div class="flex justify-between items-center">
                 <span class="text-sm font-medium">Potential Return:</span>
                 <span class="font-mono font-bold text-success text-lg">
-                  ${Decimal.to_string(@potential_payout, :normal)}
+                  {Decimal.round(@potential_payout, 2)}Kes
                 </span>
               </div>
 

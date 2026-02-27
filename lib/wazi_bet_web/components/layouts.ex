@@ -62,9 +62,8 @@ defmodule WaziBetWeb.Layouts do
             <%!-- Balance Display --%>
             <li>
               <.link href={~p"/account"} class="btn btn-sm btn-ghost">
-                <.icon name="hero-currency-dollar" class="w-4 h-4 text-success" />
                 <span class="font-mono text-sm">
-                  ${Decimal.round(@current_scope.user.balance, 2)}
+                  {Decimal.round(@current_scope.user.balance, 2)}Kes
                 </span>
               </.link>
             </li>
