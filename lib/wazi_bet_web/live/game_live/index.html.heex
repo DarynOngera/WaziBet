@@ -40,86 +40,86 @@
         <div class="p-6">
           <%!-- Header --%>
             <%!-- Hero Promo Carousel --%>
-<div class="relative w-full overflow-hidden rounded-box mb-6" style="height: 200px;" id="promo-carousel" phx-hook="PromoCarousel">
-  
-  <!-- Slides -->
-  <div id="carousel-track" class="flex h-full transition-transform duration-500 ease-in-out" style="width: 300%;">
+    <div class="relative w-full overflow-hidden rounded-box mb-6" style="height: 200px;" id="promo-carousel" phx-hook="PromoCarousel">
+      
+      <!-- Slides -->
+      <div id="carousel-track" class="flex h-full transition-transform duration-500 ease-in-out" style="width: 300%;">
 
-    <!-- Slide 1: Welcome Bonus - Primary color -->
-    <div class="relative flex-shrink-0 h-full" style="width: 33.333%;">
-      <div class="absolute inset-0 bg-primary"></div>
-      <!-- Diagonal accent stripe -->
-      <div class="absolute inset-0 opacity-20" style="background: repeating-linear-gradient(135deg, transparent, transparent 20px, oklch(0% 0 0 / 0.3) 20px, oklch(0% 0 0 / 0.3) 21px);"></div>
-      <!-- Glow blob -->
-      <div class="absolute -right-10 -top-10 w-48 h-48 rounded-full bg-secondary opacity-20 blur-3xl"></div>
-      <div class="relative h-full flex items-center px-8 gap-5">
-        <div class="text-5xl drop-shadow-lg">🏆</div>
-        <div class="flex-1">
-          <div class="text-xs font-bold uppercase tracking-widest text-primary-content/60 mb-1">Limited Offer</div>
-          <div class="text-primary-content font-black text-2xl lg:text-3xl leading-tight">
-            Welcome Bonus
-            <span class="block text-accent">Up to 500 Kes Free!</span>
+        <!-- Slide 1: Welcome Bonus - Primary color -->
+        <div class="relative flex-shrink-0 h-full" style="width: 33.333%;">
+          <div class="absolute inset-0 bg-primary"></div>
+          <!-- Diagonal accent stripe -->
+          <div class="absolute inset-0 opacity-20" style="background: repeating-linear-gradient(135deg, transparent, transparent 20px, oklch(0% 0 0 / 0.3) 20px, oklch(0% 0 0 / 0.3) 21px);"></div>
+          <!-- Glow blob -->
+          <div class="absolute -right-10 -top-10 w-48 h-48 rounded-full bg-secondary opacity-20 blur-3xl"></div>
+          <div class="relative h-full flex items-center px-8 gap-5">
+            <div class="text-5xl drop-shadow-lg">🏆</div>
+            <div class="flex-1">
+              <div class="text-xs font-bold uppercase tracking-widest text-primary-content/60 mb-1">Limited Offer</div>
+              <div class="text-primary-content font-black text-2xl lg:text-3xl leading-tight">
+                Welcome Bonus
+                <span class="block text-accent">Up to 500 Kes Free!</span>
+              </div>
+              <button class="mt-3 btn btn-accent btn-sm btn-retro">Claim Now →</button>
+            </div>
+            <!-- Big decorative number -->
+            <div class="hidden sm:block text-primary-content/10 font-black" style="font-size: 8rem; line-height: 1; user-select: none;">1</div>
           </div>
-          <button class="mt-3 btn btn-accent btn-sm btn-retro">Claim Now →</button>
         </div>
-        <!-- Big decorative number -->
-        <div class="hidden sm:block text-primary-content/10 font-black" style="font-size: 8rem; line-height: 1; user-select: none;">1</div>
-      </div>
-    </div>
 
-    <!-- Slide 2: Live Betting - Secondary color -->
-    <div class="relative flex-shrink-0 h-full" style="width: 33.333%;">
-      <div class="absolute inset-0 bg-secondary"></div>
-      <div class="absolute inset-0 opacity-20" style="background: radial-gradient(circle at 80% 50%, oklch(100% 0 0 / 0.2) 0%, transparent 60%);"></div>
-      <div class="absolute -left-10 -bottom-10 w-48 h-48 rounded-full bg-primary opacity-20 blur-3xl"></div>
-      <div class="relative h-full flex items-center px-8 gap-5">
-        <div class="text-5xl drop-shadow-lg">⚽</div>
-        <div class="flex-1">
-          <div class="text-xs font-bold uppercase tracking-widest text-secondary-content/60 mb-1">This Weekend</div>
-          <div class="text-secondary-content font-black text-2xl lg:text-3xl leading-tight">
-            Champions League
-            <span class="block text-accent">Live Betting Now Open</span>
+        <!-- Slide 2: Live Betting - Secondary color -->
+        <div class="relative flex-shrink-0 h-full" style="width: 33.333%;">
+          <div class="absolute inset-0 bg-secondary"></div>
+          <div class="absolute inset-0 opacity-20" style="background: radial-gradient(circle at 80% 50%, oklch(100% 0 0 / 0.2) 0%, transparent 60%);"></div>
+          <div class="absolute -left-10 -bottom-10 w-48 h-48 rounded-full bg-primary opacity-20 blur-3xl"></div>
+          <div class="relative h-full flex items-center px-8 gap-5">
+            <div class="text-5xl drop-shadow-lg">⚽</div>
+            <div class="flex-1">
+              <div class="text-xs font-bold uppercase tracking-widest text-secondary-content/60 mb-1">This Weekend</div>
+              <div class="text-secondary-content font-black text-2xl lg:text-3xl leading-tight">
+                Champions League
+                <span class="block text-accent">Live Betting Now Open</span>
+              </div>
+              <button class="mt-3 btn btn-accent btn-sm btn-retro">Bet Live →</button>
+            </div>
+            <div class="hidden sm:block text-secondary-content/10 font-black" style="font-size: 8rem; line-height: 1; user-select: none;">2</div>
           </div>
-          <button class="mt-3 btn btn-accent btn-sm btn-retro">Bet Live →</button>
         </div>
-        <div class="hidden sm:block text-secondary-content/10 font-black" style="font-size: 8rem; line-height: 1; user-select: none;">2</div>
-      </div>
-    </div>
 
-    <!-- Slide 3: Acca Boost - Accent color -->
-    <div class="relative flex-shrink-0 h-full" style="width: 33.333%;">
-      <div class="absolute inset-0 bg-accent"></div>
-      <div class="absolute inset-0 opacity-30" style="background: repeating-linear-gradient(90deg, transparent, transparent 40px, oklch(0% 0 0 / 0.08) 40px, oklch(0% 0 0 / 0.08) 41px);"></div>
-      <div class="absolute -right-10 -bottom-10 w-48 h-48 rounded-full bg-primary opacity-25 blur-3xl"></div>
-      <div class="relative h-full flex items-center px-8 gap-5">
-        <div class="text-5xl drop-shadow-lg">🎯</div>
-        <div class="flex-1">
-          <div class="text-xs font-bold uppercase tracking-widest text-accent-content/60 mb-1">Accumulator Special</div>
-          <div class="text-accent-content font-black text-2xl lg:text-3xl leading-tight">
-            Boost Your Odds
-            <span class="block text-primary">3+ Folds = +20% Boost</span>
+        <!-- Slide 3: Acca Boost - Accent color -->
+        <div class="relative flex-shrink-0 h-full" style="width: 33.333%;">
+          <div class="absolute inset-0 bg-accent"></div>
+          <div class="absolute inset-0 opacity-30" style="background: repeating-linear-gradient(90deg, transparent, transparent 40px, oklch(0% 0 0 / 0.08) 40px, oklch(0% 0 0 / 0.08) 41px);"></div>
+          <div class="absolute -right-10 -bottom-10 w-48 h-48 rounded-full bg-primary opacity-25 blur-3xl"></div>
+          <div class="relative h-full flex items-center px-8 gap-5">
+            <div class="text-5xl drop-shadow-lg">🎯</div>
+            <div class="flex-1">
+              <div class="text-xs font-bold uppercase tracking-widest text-accent-content/60 mb-1">Accumulator Special</div>
+              <div class="text-accent-content font-black text-2xl lg:text-3xl leading-tight">
+                Boost Your Odds
+                <span class="block text-primary">3+ Folds = +20% Boost</span>
+              </div>
+              <button class="mt-3 btn btn-primary btn-sm btn-retro">Build Acca →</button>
+            </div>
+            <div class="hidden sm:block text-accent-content/10 font-black" style="font-size: 8rem; line-height: 1; user-select: none;">3</div>
           </div>
-          <button class="mt-3 btn btn-primary btn-sm btn-retro">Build Acca →</button>
         </div>
-        <div class="hidden sm:block text-accent-content/10 font-black" style="font-size: 8rem; line-height: 1; user-select: none;">3</div>
+
       </div>
+
+      <!-- Prev/Next Arrows -->
+      <button id="carousel-prev" class="absolute left-3 top-1/2 -translate-y-1/2 btn btn-circle btn-ghost btn-sm bg-base-100/30 hover:bg-base-100/60 backdrop-blur-sm text-base-content z-10">‹</button>
+      <button id="carousel-next" class="absolute right-3 top-1/2 -translate-y-1/2 btn btn-circle btn-ghost btn-sm bg-base-100/30 hover:bg-base-100/60 backdrop-blur-sm text-base-content z-10">›</button>
+
+      <!-- Dot Indicators -->
+      <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+        <button class="carousel-dot w-2 h-2 rounded-full bg-base-content transition-all" data-index="0"></button>
+        <button class="carousel-dot w-2 h-2 rounded-full bg-base-content/30 transition-all" data-index="1"></button>
+        <button class="carousel-dot w-2 h-2 rounded-full bg-base-content/30 transition-all" data-index="2"></button>
+      </div>
+
     </div>
-
-  </div>
-
-  <!-- Prev/Next Arrows -->
-  <button id="carousel-prev" class="absolute left-3 top-1/2 -translate-y-1/2 btn btn-circle btn-ghost btn-sm bg-base-100/30 hover:bg-base-100/60 backdrop-blur-sm text-base-content z-10">‹</button>
-  <button id="carousel-next" class="absolute right-3 top-1/2 -translate-y-1/2 btn btn-circle btn-ghost btn-sm bg-base-100/30 hover:bg-base-100/60 backdrop-blur-sm text-base-content z-10">›</button>
-
-  <!-- Dot Indicators -->
-  <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-    <button class="carousel-dot w-2 h-2 rounded-full bg-base-content transition-all" data-index="0"></button>
-    <button class="carousel-dot w-2 h-2 rounded-full bg-base-content/30 transition-all" data-index="1"></button>
-    <button class="carousel-dot w-2 h-2 rounded-full bg-base-content/30 transition-all" data-index="2"></button>
-  </div>
-
-</div>
-          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+              <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             <div>
               <h1 class="text-2xl lg:text-3xl font-bold text-base-content flex items-center gap-3">
                 <%= if @selected_category do %>
