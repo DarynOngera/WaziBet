@@ -7,16 +7,15 @@ defmodule WaziBet.Workers.BetslipSettlementWorker do
 
   require Logger
 
+  alias WaziBet.Accounts
   alias WaziBet.Bets
   alias WaziBet.Bets.Settlement
+  alias WaziBet.Mail.BetslipEmail
+  alias WaziBet.Mailer 
   alias WaziBet.Sport
 
   @impl Oban.Worker
-  def perform(%Oban.Job{
-        args: %{
-          "betslip_id" => betslip_id
-        }
-      }) do
+  def perform(%Oban.Job{args: %{"betslip_id" => betslip_id}}) do
     Logger.debug("BetslipSettlementWorker starting for betslip_id=#{betslip_id}")
     betslip = Bets.get_betslip_with_selections!(betslip_id)
 
@@ -65,10 +64,10 @@ defmodule WaziBet.Workers.BetslipSettlementWorker do
         betslip = Bets.get_betslip_with_selections!(betslip_id)
 
         case Settlement.settle_betslip_with_credit(betslip) do
-          {:ok, _} ->
+          {:ok, result} ->
             Logger.info(
-              "BetslipSettlementWorker settled betslip_id=#{betslip_id} status=#{betslip.status}"
-            )
+              "BetslipSettlementWorker settled betslip_id=#{betslip_id} status=#{betslip.status}")
+            send_result_email(betslip, result)
 
             :ok
 
@@ -79,6 +78,37 @@ defmodule WaziBet.Workers.BetslipSettlementWorker do
 
             error
         end
+      end
+    end
+  end
+
+  defp send_result_email(betslip, settlement_result) do
+    user = Accounts.get_user!(betslip.user_id)
+
+    status = 
+      case settlement_result do 
+        %{betslip: %{status: status}} -> status
+        %{status: status} -> status
+        _ -> betslip.status
+      end
+    email = 
+      case status do 
+        :won ->
+          settled = Bets.get_betslip!(betslip.id)
+          BetslipEmail.won(user, settled)
+
+        :lost -> 
+          BetslipEmail.lost(user, betslip)
+
+        _ ->
+          nil
+  end
+
+    if email do
+      case Mailer.deliver(email) do
+        {:ok, _} -> Logger.info( "BetslipSettlementWorker sent #{status} email to user_id=#{user.id} for betslip_id=#{betslip.id}")
+        {:error, reason} ->  Logger.warning("BetslipSettlementWorker failed to send email for betslip_id=#{betslip.id}: #{inspect(reason)}")
+
       end
     end
   end
