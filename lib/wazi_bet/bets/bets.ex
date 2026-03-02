@@ -74,7 +74,7 @@ defmodule WaziBet.Bets do
 
       # Betting closes 5 minutes before start
       DateTime.compare(
-        DateTime.add(game.starts_at, -5, :minute),
+        DateTime.add(game.starts_at, -0, :minute),
         DateTime.utc_now()
       ) == :lt ->
         {:error, :betting_closed}
