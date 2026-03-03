@@ -14,7 +14,6 @@ defmodule WaziBet.Accounts.Scope do
 
   Feel free to extend the fields on this struct to fit the needs of
   growing application requirements.
-  #docs
   """
 
   alias WaziBet.Accounts.User

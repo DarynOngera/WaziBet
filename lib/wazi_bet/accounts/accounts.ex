@@ -38,6 +38,20 @@ defmodule WaziBet.Accounts do
     %User{}
     |> User.registration_changeset(attrs)
     |> Repo.insert()
+    |> case do
+      {:ok, user} ->
+        case Repo.get_by(Role, slug: "user") do
+          nil ->
+            {:ok, user}
+
+          role ->
+            assign_role_to_user(user.id, role.id)
+            {:ok, user}
+        end
+
+      error ->
+        error
+    end
   end
 
   def create_user(attrs) do
@@ -171,6 +185,13 @@ defmodule WaziBet.Accounts do
     |> Repo.one()
   end
 
+
+  def create_role(role, attrs) do
+    role
+    |> Role.changeset(attrs)
+    |> Repo.insert()
+  end 
+
   ## Permission Checking
 
   def user_has_permission?(user_id, permission_slug) when is_binary(permission_slug) do
@@ -222,17 +243,29 @@ defmodule WaziBet.Accounts do
     |> Repo.preload(:permissions)
   end
 
-  def list_users do
+  def list_users(opts \\ []) do
+    page = Keyword.get(opts, :page, 1)
+    page_size = Keyword.get(opts, :page_size, 10)
+
     User
     |> where([u], is_nil(u.deleted_at))
+    |> order_by([u], u.id)
+    |> limit(^page_size)
+    |> offset(^((page - 1) * page_size))
     |> Repo.all()
     |> Repo.preload(:roles)
+  end
+
+  def count_users do
+    User
+    |> where([u], is_nil(u.deleted_at))
+    |> Repo.aggregate(:count, :id)
   end
 
   def get_user_with_betslips!(id) do
     User
     |> Repo.get!(id)
-    |> Repo.preload(betslips: [:selections])
+    |> Repo.preload(betslips: [:selections], roles: [:permissions])
   end
 
   def soft_delete_user(user) do

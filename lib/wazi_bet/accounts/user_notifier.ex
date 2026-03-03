@@ -4,7 +4,7 @@ defmodule WaziBet.Accounts.UserNotifier do
   alias WaziBet.Mailer
   alias WaziBet.Accounts.User
 
-
+  # Delivers the email using the application mailer.
   defp deliver(recipient, subject, body) do
     email =
       new()

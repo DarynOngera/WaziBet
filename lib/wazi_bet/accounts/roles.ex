@@ -5,7 +5,6 @@ defmodule WaziBet.Accounts.Role do
   alias WaziBet.Accounts.User
   alias WaziBet.Accounts.Permission
 
-  #Schema
   schema "roles" do
     field :role, :string
     field :slug, :string

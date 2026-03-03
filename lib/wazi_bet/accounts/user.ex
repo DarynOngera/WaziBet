@@ -38,7 +38,8 @@ defmodule WaziBet.Accounts.User do
       :balance,
       :first_name,
       :last_name,
-      :msisdn
+      :msisdn,
+      :confirmed_at, 
     ])
     |> validate_email(opts)
     |> validate_password(opts)
@@ -47,6 +48,7 @@ defmodule WaziBet.Accounts.User do
     |> validate_length(:first_name, max: 100)
     |> validate_length(:last_name, max: 100)
     |> validate_format(:msisdn, ~r/^\+?[0-9]+$/, message: "must be a valid phone number")
+    |> confirm_changeset()
   end
 
   defp validate_email(changeset, opts) do
