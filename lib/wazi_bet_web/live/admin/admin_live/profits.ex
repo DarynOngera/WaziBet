@@ -23,6 +23,9 @@ defmodule WaziBetWeb.Admin.AdminLive.Profits do
      |> assign(:user_permissions, user_permissions)
      |> assign(:is_superuser, is_superuser)
      |> assign(:current_path, current_path)
+     |> assign(:summary, Bets.get_all_bets_summary())
+     |> assign(:profit_stats, Bets.get_profit_stats())
+     |> assign(:bet_counts, Bets.count_total_bets())
      |> assign(:page_title, "Profits Dashboard")}
   end
 

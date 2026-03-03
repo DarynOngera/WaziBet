@@ -13,14 +13,22 @@
       <p class="text-base-content/60 mt-2">Manage roles and permissions</p>
     </div>
 
-    <.link navigate={~p"/admin/roles/assign"} class="btn btn-primary border-2">
-      <.icon name="hero-user-plus" class="w-5 h-5 mr-2" /> Assign Roles
-    </.link>
+    <div class="flex gap-2">
+      <.link navigate={~p"/admin/permissions"} class="btn btn-ghost border-2">
+        <.icon name="hero-shield-check" class="w-5 h-5 mr-2" /> Permissions
+      </.link>
+      <.link navigate={~p"/admin/roles/new"} class="btn btn-secondary border-2">
+        <.icon name="hero-plus" class="w-5 h-5 mr-2" /> New Role
+      </.link>
+      <.link navigate={~p"/admin/roles/assign"} class="btn btn-primary border-2">
+        <.icon name="hero-user-plus" class="w-5 h-5 mr-2" /> Assign Roles
+      </.link>
+    </div>
   </div>
 
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <%= for role <- @roles do %>
-      <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+      <div class="card bg-base-100 shadow-xs border-2 border-base-300">
         <div class="card-body">
           <div class="flex items-center gap-3 mb-4">
             <div class={[
