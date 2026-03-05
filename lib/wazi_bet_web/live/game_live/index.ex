@@ -11,6 +11,7 @@ defmodule WaziBetWeb.GameLive.Index do
   alias WaziBet.Bets
   alias WaziBetWeb.GameLive.Components
   alias WaziBetWeb.Presence
+  alias WaziBetWeb.Timezone
 
   @impl true
   def mount(params, _session, socket) do
@@ -393,8 +394,8 @@ defmodule WaziBetWeb.GameLive.Index do
 
   def game_card(assigns) do
     ~H"""
-    <div class="card bg-base-100 shadow-xl border-2 border-base-300 hover:border-primary transition-colors">
-      <div class="card-body p-4">
+    <div class="card bg-base-100 shadow-2xs border-2 border-base-300 hover:border-primary transition-colors">
+      <div class="card-body p-2">
         <div class="flex flex-col lg:flex-row gap-4">
           <%!-- Match Info --%>
           <div class="flex-1 flex items-center gap-4">
@@ -458,7 +459,7 @@ defmodule WaziBetWeb.GameLive.Index do
           <%!-- Odds --%>
           <%= if @game.status == :scheduled do %>
             <div class="flex gap-2 lg:justify-end">
-              <%= for outcome <- @game.outcomes do %>
+              <%= for outcome <- sort_outcomes(@game.outcomes) do %>
                 <button
                   phx-click="add_to_betslip"
                   phx-value-outcome_id={outcome.id}
@@ -626,5 +627,10 @@ defmodule WaziBetWeb.GameLive.Index do
     stake_val = if stake == "" or stake == nil, do: "0", else: stake
     stake_decimal = Decimal.new(stake_val)
     Decimal.mult(stake_decimal, total_odds)
+  end
+
+  defp sort_outcomes(outcomes) do
+    order = %{home: 0, draw: 1, away: 2}
+    Enum.sort_by(outcomes, &Map.get(order, &1.label, 99))
   end
 end

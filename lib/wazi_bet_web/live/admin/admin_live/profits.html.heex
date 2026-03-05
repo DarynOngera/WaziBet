@@ -15,7 +15,7 @@
   <%!-- Key Metrics --%>
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
     <%!-- Total Stakes from Losses --%>
-    <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+    <div class="card bg-base-100 shadow-xs border-2 border-base-300">
       <div class="card-body p-4">
         <div class="flex items-center gap-3">
           <div class="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center">
@@ -24,7 +24,7 @@
           <div>
             <p class="text-sm text-base-content/60">Profit from Losses</p>
             <p class="text-xl font-bold font-mono text-success">
-              ${Decimal.round(@stats.total_stakes_lost, 2)}
+              {Decimal.round(@stats.total_stakes_lost, 2)}Kes
             </p>
           </div>
         </div>
@@ -35,7 +35,7 @@
     </div>
 
     <%!-- Total Payouts --%>
-    <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+    <div class="card bg-base-100 shadow-xs border-2 border-base-300">
       <div class="card-body p-4">
         <div class="flex items-center gap-3">
           <div class="w-12 h-12 rounded-full bg-error/10 flex items-center justify-center">
@@ -44,7 +44,7 @@
           <div>
             <p class="text-sm text-base-content/60">Total Payouts</p>
             <p class="text-xl font-bold font-mono text-error">
-              ${Decimal.round(@stats.total_payouts, 2)}
+              {Decimal.round(@stats.total_payouts, 2)}Kes
             </p>
           </div>
         </div>
@@ -56,7 +56,7 @@
 
     <%!-- Net Profit --%>
     <div class={[
-      "card shadow-xl border-2",
+      "card shadow-xs border-2",
       Decimal.compare(@stats.net_profit, Decimal.new(0)) == :gt && "border-success bg-success/5",
       Decimal.compare(@stats.net_profit, Decimal.new(0)) != :gt && "border-error bg-error/5"
     ]}>
@@ -71,7 +71,7 @@
           <div>
             <p class="text-sm text-base-content/60">Net Profit</p>
             <p class={["text-xl font-bold font-mono", profit_color(@stats.net_profit)]}>
-              ${Decimal.round(Decimal.abs(@stats.net_profit), 2)}
+              {Decimal.round(Decimal.abs(@stats.net_profit), 2)}Kes
             </p>
           </div>
         </div>
@@ -86,7 +86,7 @@
     </div>
 
     <%!-- Total Bets --%>
-    <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+    <div class="card bg-base-100 shadow-xs border-2 border-base-300">
       <div class="card-body p-4">
         <div class="flex items-center gap-3">
           <div class="w-12 h-12 rounded-full bg-info/10 flex items-center justify-center">
@@ -106,59 +106,85 @@
     </div>
   </div>
 
-  <%!-- Summary Card --%>
-  <div class="card bg-base-100 shadow-xl border-2 border-base-300">
-    <div class="card-body">
-      <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
-        <.icon name="hero-chart-pie" class="w-5 h-5 text-primary" /> Financial Summary
-      </h2>
+    <%!-- Stats Dashboard --%>
+<div class="space-y-6 p-6">
 
-      <div class="space-y-4">
-        <div class="flex justify-between items-center p-4 bg-base-200 rounded-lg">
-          <span class="text-base-content/60">Gross Revenue (Lost Stakes)</span>
-          <span class="text-2xl font-bold font-mono text-success">
-            ${Decimal.round(@stats.total_stakes_lost, 2)}
-          </span>
-        </div>
+    <%!-- Charts Row --%>
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-        <div class="flex justify-between items-center p-4 bg-base-200 rounded-lg">
-          <span class="text-base-content/60">Total Expenses (Payouts)</span>
-          <span class="text-2xl font-bold font-mono text-error">
-            ${Decimal.round(@stats.total_payouts, 2)}
-          </span>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class={[
-          "flex justify-between items-center p-4 rounded-lg border-2",
-          Decimal.compare(@stats.net_profit, Decimal.new(0)) == :gt &&
-            "border-success bg-success/10",
-          Decimal.compare(@stats.net_profit, Decimal.new(0)) != :gt && "border-error bg-error/10"
-        ]}>
-          <span class="font-medium">Net Profit/Loss</span>
-          <span class={"text-3xl font-bold font-mono #{profit_color(@stats.net_profit)}"}>
-            ${Decimal.round(Decimal.abs(@stats.net_profit), 2)}
-          </span>
+    <%!-- Donut: Bet Status Breakdown --%>
+    <div class="card bg-base-100 border-2 border-base-300">
+      <div class="card-body p-4">
+        <h3 class="font-bold text-sm uppercase tracking-widest text-base-content/60 mb-4">Bet Breakdown</h3>
+        <div
+          id="bet-status-chart"
+          phx-hook="BetStatusChart"
+          phx-update="ignore"
+          data-won={@summary.bets_won}
+          data-lost={@summary.bets_lost}
+          data-pending={@summary.bets_pending}
+          style="position: relative; height: 220px;"
+        >
+          <canvas id="bet-status-canvas"></canvas>
         </div>
       </div>
+    </div>
 
-      <div class="mt-6 p-4 bg-base-200 rounded-lg">
-        <h3 class="font-medium mb-2 flex items-center gap-2">
-          <.icon name="hero-information-circle" class="w-5 h-5 text-info" />
-          Understanding the Numbers
-        </h3>
-        <ul class="text-sm text-base-content/60 space-y-1">
-          <li>
-            <strong>Profit from Losses:</strong> Total money received from users whose bets lost
-          </li>
-          <li><strong>Total Payouts:</strong> Total money paid out to users whose bets won</li>
-          <li>
-            <strong>Net Profit:</strong>
-            The difference between what was received and what was paid out
-          </li>
-        </ul>
+    <%!-- Bar: Wagered vs Won vs Lost --%>
+    <div class="card bg-base-100 border-2 border-base-300 lg:col-span-2">
+      <div class="card-body p-4">
+        <h3 class="font-bold text-sm uppercase tracking-widest text-base-content/60 mb-4">Money Flow</h3>
+        <div
+          id="money-flow-chart"
+          phx-hook="MoneyFlowChart"
+          phx-update="ignore"
+          data-wagered={@summary.total_wagered}
+          data-won={@summary.total_won}
+          data-lost={@summary.total_lost}
+          style="position: relative; height: 220px;"
+        >
+          <canvas id="money-flow-canvas"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <%!-- House Profit Stats --%>
+  <div class="card bg-base-100 border-2 border-base-300">
+    <div class="card-body p-4">
+      <h3 class="font-bold text-sm uppercase tracking-widest text-base-content/60 mb-4">House Stats</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div>
+          <div class="text-xs text-base-content/50 uppercase tracking-widest">Stakes Collected (losses)</div>
+          <div class="text-xl font-black text-success mt-1"><%= @profit_stats.total_stakes_lost %>Kes</div>
+        </div>
+        <div>
+          <div class="text-xs text-base-content/50 uppercase tracking-widest">Payouts Made</div>
+          <div class="text-xl font-black text-error mt-1"><%= @profit_stats.total_payouts %>Kes</div>
+        </div>
+        <div>
+          <div class="text-xs text-base-content/50 uppercase tracking-widest">Net Profit</div>
+          <div class={"text-xl font-black mt-1 #{if Decimal.compare(@profit_stats.net_profit, 0) == :gt, do: "text-success", else: "text-error"}"}>
+            <%= @profit_stats.net_profit %>Kes
+          </div>
+        </div>
+      </div>
+      <%!-- Net profit bar --%>
+      <div class="mt-4">
+        <div
+          id="profit-bar-chart"
+          phx-hook="ProfitBarChart"
+          phx-update="ignore"
+          data-collected={@profit_stats.total_stakes_lost}
+          data-payouts={@profit_stats.total_payouts}
+          style="position: relative; height: 80px;"
+        >
+          <canvas id="profit-bar-canvas"></canvas>
+        </div>
       </div>
     </div>
   </div>
+
+</div>
 </Layouts.admin>

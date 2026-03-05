@@ -71,7 +71,7 @@ defmodule WaziBetWeb.Layouts do
               <span class="text-base-content/50">|</span>
             </li>
             <li class="hidden sm:block">
-              <span class="text-base-content/70 font-mono text-sm">{@current_scope.user.email}</span>
+              <span class="text-base-content/70 font-mono text-sm">{@current_scope.user.first_name}</span>
             </li>
           <% end %>
         </ul>

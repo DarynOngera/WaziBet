@@ -1,0 +1,54 @@
+<Layouts.admin
+  flash={@flash}
+  current_scope={@current_scope}
+  user_permissions={@user_permissions}
+  is_superuser={@is_superuser}
+  current_path={@current_path}
+>
+  <div class="mb-6">
+    <.link navigate={~p"/admin/permissions"} class="btn btn-ghost btn-sm">
+      <.icon name="hero-arrow-left" class="w-4 h-4 mr-2" /> Back to Permissions
+    </.link>
+  </div>
+
+  <div class="mb-8">
+    <h1 class="text-3xl lg:text-4xl font-bold text-base-content flex items-center gap-3">
+      <.icon name="hero-plus-circle" class="w-8 h-8 text-primary" /> New Permission
+    </h1>
+    <p class="text-base-content/60 mt-2">Create a new system permission</p>
+  </div>
+
+  <div class="card bg-base-100 shadow-xl border-2 border-base-300 max-w-2xl">
+    <div class="card-body">
+      <.form
+        for={@changeset}
+        id="permission-form"
+        phx-change="validate"
+        phx-submit="save"
+        class="space-y-6"
+      >
+        <div>
+          <.input
+            field={@changeset[:permission]}
+            type="text"
+            label="Permission Name"
+            placeholder="e.g., manage_reports"
+            required
+          />
+          <p class="text-sm text-base-content/60 mt-1">
+            Use snake_case for the permission name. The slug will be auto-generated.
+          </p>
+        </div>
+
+        <div class="flex items-center gap-4 pt-4">
+          <.link navigate={~p"/admin/permissions"} class="btn btn-ghost">
+            Cancel
+          </.link>
+          <button type="submit" class="btn btn-primary">
+            <.icon name="hero-check" class="w-5 h-5 mr-2" /> Create Permission
+          </button>
+        </div>
+      </.form>
+    </div>
+  </div>
+</Layouts.admin>
