@@ -88,11 +88,11 @@
                 </td>
                 <td class="font-mono text-sm">{user.email}</td>
                 <td class="font-mono text-sm">{user.msisdn || "-"}</td>
-                <td class="font-mono font-bold">${Decimal.round(user.balance, 2)}</td>
+                <td class="font-mono font-bold">{Decimal.round(user.balance, 2)}Kes</td>
                 <td>
                   <div class="flex gap-1 flex-wrap">
                     <%= for role_slug <- user_roles(user) do %>
-                      <span class={["badge badge-sm", role_badge_color(role_slug)]}>
+                      <span class={["badge badge-sm rounded-full", role_badge_color(role_slug)]}>
                         {String.capitalize(role_slug)}
                       </span>
                     <% end %>

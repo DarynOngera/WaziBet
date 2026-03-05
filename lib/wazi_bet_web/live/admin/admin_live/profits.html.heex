@@ -106,85 +106,91 @@
     </div>
   </div>
 
-    <%!-- Stats Dashboard --%>
-<div class="space-y-6 p-6">
-
+  <%!-- Stats Dashboard --%>
+  <div class="space-y-6 p-6">
     <%!-- Charts Row --%>
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-
-    <%!-- Donut: Bet Status Breakdown --%>
-    <div class="card bg-base-100 border-2 border-base-300">
-      <div class="card-body p-4">
-        <h3 class="font-bold text-sm uppercase tracking-widest text-base-content/60 mb-4">Bet Breakdown</h3>
-        <div
-          id="bet-status-chart"
-          phx-hook="BetStatusChart"
-          phx-update="ignore"
-          data-won={@summary.bets_won}
-          data-lost={@summary.bets_lost}
-          data-pending={@summary.bets_pending}
-          style="position: relative; height: 220px;"
-        >
-          <canvas id="bet-status-canvas"></canvas>
-        </div>
-      </div>
-    </div>
-
-    <%!-- Bar: Wagered vs Won vs Lost --%>
-    <div class="card bg-base-100 border-2 border-base-300 lg:col-span-2">
-      <div class="card-body p-4">
-        <h3 class="font-bold text-sm uppercase tracking-widest text-base-content/60 mb-4">Money Flow</h3>
-        <div
-          id="money-flow-chart"
-          phx-hook="MoneyFlowChart"
-          phx-update="ignore"
-          data-wagered={@summary.total_wagered}
-          data-won={@summary.total_won}
-          data-lost={@summary.total_lost}
-          style="position: relative; height: 220px;"
-        >
-          <canvas id="money-flow-canvas"></canvas>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <%!-- House Profit Stats --%>
-  <div class="card bg-base-100 border-2 border-base-300">
-    <div class="card-body p-4">
-      <h3 class="font-bold text-sm uppercase tracking-widest text-base-content/60 mb-4">House Stats</h3>
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div>
-          <div class="text-xs text-base-content/50 uppercase tracking-widest">Stakes Collected (losses)</div>
-          <div class="text-xl font-black text-success mt-1"><%= @profit_stats.total_stakes_lost %>Kes</div>
-        </div>
-        <div>
-          <div class="text-xs text-base-content/50 uppercase tracking-widest">Payouts Made</div>
-          <div class="text-xl font-black text-error mt-1"><%= @profit_stats.total_payouts %>Kes</div>
-        </div>
-        <div>
-          <div class="text-xs text-base-content/50 uppercase tracking-widest">Net Profit</div>
-          <div class={"text-xl font-black mt-1 #{if Decimal.compare(@profit_stats.net_profit, 0) == :gt, do: "text-success", else: "text-error"}"}>
-            <%= @profit_stats.net_profit %>Kes
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <%!-- Donut: Bet Status Breakdown --%>
+      <div class="card bg-base-100 border-2 border-base-300">
+        <div class="card-body p-4">
+          <h3 class="font-bold text-sm uppercase tracking-widest text-base-content/60 mb-4">
+            Bet Breakdown
+          </h3>
+          <div
+            id="bet-status-chart"
+            phx-hook="BetStatusChart"
+            phx-update="ignore"
+            data-won={@summary.bets_won}
+            data-lost={@summary.bets_lost}
+            data-pending={@summary.bets_pending}
+            style="position: relative; height: 220px;"
+          >
+            <canvas id="bet-status-canvas"></canvas>
           </div>
         </div>
       </div>
-      <%!-- Net profit bar --%>
-      <div class="mt-4">
-        <div
-          id="profit-bar-chart"
-          phx-hook="ProfitBarChart"
-          phx-update="ignore"
-          data-collected={@profit_stats.total_stakes_lost}
-          data-payouts={@profit_stats.total_payouts}
-          style="position: relative; height: 80px;"
-        >
-          <canvas id="profit-bar-canvas"></canvas>
+
+      <%!-- Bar: Wagered vs Won vs Lost --%>
+      <div class="card bg-base-100 border-2 border-base-300 lg:col-span-2">
+        <div class="card-body p-4">
+          <h3 class="font-bold text-sm uppercase tracking-widest text-base-content/60 mb-4">
+            Money Flow
+          </h3>
+          <div
+            id="money-flow-chart"
+            phx-hook="MoneyFlowChart"
+            phx-update="ignore"
+            data-wagered={@summary.total_wagered}
+            data-won={@summary.total_won}
+            data-lost={@summary.total_lost}
+            style="position: relative; height: 220px;"
+          >
+            <canvas id="money-flow-canvas"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <%!-- House Profit Stats --%>
+    <div class="card bg-base-100 border-2 border-base-300">
+      <div class="card-body p-4">
+        <h3 class="font-bold text-sm uppercase tracking-widest text-base-content/60 mb-4">
+          House Stats
+        </h3>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div>
+            <div class="text-xs text-base-content/50 uppercase tracking-widest">
+              Stakes Collected (losses)
+            </div>
+            <div class="text-xl font-black text-success mt-1">
+              {@profit_stats.total_stakes_lost}Kes
+            </div>
+          </div>
+          <div>
+            <div class="text-xs text-base-content/50 uppercase tracking-widest">Payouts Made</div>
+            <div class="text-xl font-black text-error mt-1">{@profit_stats.total_payouts}Kes</div>
+          </div>
+          <div>
+            <div class="text-xs text-base-content/50 uppercase tracking-widest">Net Profit</div>
+            <div class={"text-xl font-black mt-1 #{if Decimal.compare(@profit_stats.net_profit, 0) == :gt, do: "text-success", else: "text-error"}"}>
+              {@profit_stats.net_profit}Kes
+            </div>
+          </div>
+        </div>
+        <%!-- Net profit bar --%>
+        <div class="mt-4">
+          <div
+            id="profit-bar-chart"
+            phx-hook="ProfitBarChart"
+            phx-update="ignore"
+            data-collected={@profit_stats.total_stakes_lost}
+            data-payouts={@profit_stats.total_payouts}
+            style="position: relative; height: 80px;"
+          >
+            <canvas id="profit-bar-canvas"></canvas>
+          </div>
         </div>
       </div>
     </div>
   </div>
-
-</div>
 </Layouts.admin>

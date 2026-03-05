@@ -51,44 +51,63 @@
           Select the permissions to assign to this role
         </p>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <%= for permission <- @permissions do %>
-            <% is_selected = permission.id in @selected_permissions %>
+        <div class="space-y-3">
+          <%= for group <- [:game_related, :user_related, :other] do %>
+            <% group_permissions = Map.get(@permission_groups, group, []) %>
 
-            <button
-              type="button"
-              phx-click="toggle_permission"
-              phx-value-permission_id={permission.id}
-              class={[
-                "p-4 rounded-lg border-2 text-left transition-all",
-                (is_selected && "bg-success/10 border-success") ||
-                  (!is_selected && "border-base-300 hover:border-primary/50")
-              ]}
-            >
-              <div class="flex items-start justify-between">
-                <div>
-                  <h4 class="font-bold">
-                    {String.replace(permission.permission, "_", " ") |> String.capitalize()}
-                  </h4>
-                  <p class="text-sm text-base-content/60">/{permission.slug}</p>
+            <%= if group_permissions != [] do %>
+              <div class="collapse collapse-arrow bg-base-200 border border-base-300">
+                <input type="checkbox" checked />
+                <div class="collapse-title font-semibold text-base flex items-center gap-2">
+                  <.icon name="hero-folder" class="w-5 h-5 text-primary" />
+                  {group_title(group)}
+                  <span class="badge badge-sm badge-outline">{length(group_permissions)}</span>
                 </div>
-                <div class={[
-                  "w-6 h-6 rounded-full border-2 flex items-center justify-center",
-                  is_selected && "bg-success border-success",
-                  !is_selected && "border-base-300"
-                ]}>
-                  <%= if is_selected do %>
-                    <.icon name="hero-check" class="w-4 h-4 text-success-content" />
-                  <% end %>
+                <div class="collapse-content">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                    <%= for permission <- group_permissions do %>
+                      <% is_selected = permission.id in @selected_permissions %>
+
+                      <button
+                        type="button"
+                        phx-click="toggle_permission"
+                        phx-value-permission_id={permission.id}
+                        class={[
+                          "p-4 rounded-lg border-2 text-left transition-all",
+                          (is_selected && "bg-success/10 border-success") ||
+                            (!is_selected && "border-base-300 hover:border-primary/50")
+                        ]}
+                      >
+                        <div class="flex items-start justify-between">
+                          <div>
+                            <h4 class="font-bold">
+                              {String.replace(permission.permission, "_", " ")
+                              |> String.capitalize()}
+                            </h4>
+                            <p class="text-sm text-base-content/60">/{permission.slug}</p>
+                          </div>
+                          <div class={[
+                            "w-6 h-6 rounded-full border-2 flex items-center justify-center",
+                            is_selected && "bg-success border-success",
+                            !is_selected && "border-base-300"
+                          ]}>
+                            <%= if is_selected do %>
+                              <.icon name="hero-check" class="w-4 h-4 text-success-content" />
+                            <% end %>
+                          </div>
+                        </div>
+
+                        <div class="mt-2">
+                          <span class={["badge badge-sm", permission_badge_color(permission.slug)]}>
+                            {permission.slug}
+                          </span>
+                        </div>
+                      </button>
+                    <% end %>
+                  </div>
                 </div>
               </div>
-
-              <div class="mt-2">
-                <span class={["badge badge-sm", permission_badge_color(permission.slug)]}>
-                  {permission.slug}
-                </span>
-              </div>
-            </button>
+            <% end %>
           <% end %>
         </div>
 

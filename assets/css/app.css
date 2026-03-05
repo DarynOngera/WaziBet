@@ -74,7 +74,7 @@
   --color-base-300: oklch(86% 0.03 95);
   --color-base-content: oklch(25% 0.04 30);
   /* Deep casino red primary */
-  --color-primary: oklch(50% 0.22 25);
+  --color-primary: oklch(0.513 0.17 26);
   --color-primary-content: oklch(97% 0.02 25);
   /* Rich gold secondary */
   --color-secondary: oklch(70% 0.15 85);

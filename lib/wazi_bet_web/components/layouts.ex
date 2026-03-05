@@ -71,7 +71,9 @@ defmodule WaziBetWeb.Layouts do
               <span class="text-base-content/50">|</span>
             </li>
             <li class="hidden sm:block">
-              <span class="text-base-content/70 font-mono text-sm">{@current_scope.user.first_name}</span>
+              <span class="text-base-content/70 font-mono text-sm">
+                {@current_scope.user.first_name}
+              </span>
             </li>
           <% end %>
         </ul>
@@ -175,17 +177,21 @@ defmodule WaziBetWeb.Layouts do
   def theme_toggle(assigns) do
     ~H"""
     <button
-    class="btn btn-ghost btn-circle"
-    phx-click={JS.dispatch("phx:cycle-theme")}
-    title="Toggle theme">
-    <.icon name="hero-computer-desktop-micro" class="size-5 [[data-theme=light]_&]:hidden [[data-theme=dark]_&]:hidden" />
-    <.icon name="hero-sun-micro"              class="size-5 hidden [[data-theme=light]_&]:block" />
-    <.icon name="hero-moon-micro"             class="size-5 hidden [[data-theme=dark]_&]:block" />
-  </button>
-  """
+      class="btn btn-ghost btn-circle"
+      phx-click={JS.dispatch("phx:cycle-theme")}
+      title="Toggle theme"
+    >
+      <.icon
+        name="hero-computer-desktop-micro"
+        class="size-5 [[data-theme=light]_&]:hidden [[data-theme=dark]_&]:hidden"
+      />
+      <.icon name="hero-sun-micro" class="size-5 hidden [[data-theme=light]_&]:block" />
+      <.icon name="hero-moon-micro" class="size-5 hidden [[data-theme=dark]_&]:block" />
+    </button>
+    """
   end
 
-   def has_permission?(permissions, slug) do
+  def has_permission?(permissions, slug) do
     slug in permissions
   end
 end

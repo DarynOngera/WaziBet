@@ -21,7 +21,7 @@ defmodule WaziBet.Mail.BetslipEmail do
   """
   def won(user, betslip) do
     payout = format_amount(betslip.potential_payout)
-    stake  = format_amount(betslip.stake)
+    stake = format_amount(betslip.stake)
 
     new()
     |> to(user.email)
