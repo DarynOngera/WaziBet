@@ -74,7 +74,7 @@
   --color-base-300: oklch(86% 0.03 95);
   --color-base-content: oklch(25% 0.04 30);
   /* Deep casino red primary */
-  --color-primary: oklch(50% 0.22 25);
+  --color-primary: oklch(0.513 0.17 26);
   --color-primary-content: oklch(97% 0.02 25);
   /* Rich gold secondary */
   --color-secondary: oklch(70% 0.15 85);
@@ -170,4 +170,23 @@
   transition-property: background-color, border-color, color, fill, stroke;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
+}
+
+/* Admin sidebar collapsed/expanded behavior (desktop) */
+@media (min-width: 1024px) {
+  html[data-sidebar-collapsed] #admin-sidebar {
+    width: 5rem;
+  }
+
+  html[data-sidebar-collapsed] #admin-sidebar [data-hide-collapsed] {
+    display: none !important;
+  }
+
+  html[data-sidebar-collapsed] #admin-sidebar [data-show-collapsed] {
+    display: flex !important;
+  }
+
+  html:not([data-sidebar-collapsed]) #admin-sidebar [data-show-collapsed] {
+    display: none !important;
+  }
 }

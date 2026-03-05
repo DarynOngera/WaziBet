@@ -11,7 +11,7 @@ defmodule WaziBet.Workers.BetslipSettlementWorker do
   alias WaziBet.Bets
   alias WaziBet.Bets.Settlement
   alias WaziBet.Mail.BetslipEmail
-  alias WaziBet.Mailer 
+  alias WaziBet.Mailer
   alias WaziBet.Sport
 
   @impl Oban.Worker
@@ -66,7 +66,9 @@ defmodule WaziBet.Workers.BetslipSettlementWorker do
         case Settlement.settle_betslip_with_credit(betslip) do
           {:ok, result} ->
             Logger.info(
-              "BetslipSettlementWorker settled betslip_id=#{betslip_id} status=#{betslip.status}")
+              "BetslipSettlementWorker settled betslip_id=#{betslip_id} status=#{betslip.status}"
+            )
+
             send_result_email(betslip, result)
 
             :ok
@@ -85,30 +87,37 @@ defmodule WaziBet.Workers.BetslipSettlementWorker do
   defp send_result_email(betslip, settlement_result) do
     user = Accounts.get_user!(betslip.user_id)
 
-    status = 
-      case settlement_result do 
+    status =
+      case settlement_result do
         %{betslip: %{status: status}} -> status
         %{status: status} -> status
         _ -> betslip.status
       end
-    email = 
-      case status do 
+
+    email =
+      case status do
         :won ->
           settled = Bets.get_betslip!(betslip.id)
           BetslipEmail.won(user, settled)
 
-        :lost -> 
+        :lost ->
           BetslipEmail.lost(user, betslip)
 
         _ ->
           nil
-  end
+      end
 
     if email do
       case Mailer.deliver(email) do
-        {:ok, _} -> Logger.info( "BetslipSettlementWorker sent #{status} email to user_id=#{user.id} for betslip_id=#{betslip.id}")
-        {:error, reason} ->  Logger.warning("BetslipSettlementWorker failed to send email for betslip_id=#{betslip.id}: #{inspect(reason)}")
+        {:ok, _} ->
+          Logger.info(
+            "BetslipSettlementWorker sent #{status} email to user_id=#{user.id} for betslip_id=#{betslip.id}"
+          )
 
+        {:error, reason} ->
+          Logger.warning(
+            "BetslipSettlementWorker failed to send email for betslip_id=#{betslip.id}: #{inspect(reason)}"
+          )
       end
     end
   end

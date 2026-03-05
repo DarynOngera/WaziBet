@@ -49,17 +49,18 @@ defmodule WaziBet.Bets do
   end
 
   def get_all_bets_summary do
-  betslips = list_betslips()
-  %{
-    total_wagered: calculate_total_wagered(betslips),
-    total_won: calculate_total_won(betslips),
-    total_lost: calculate_total_lost(betslips),
-    bets_won: count_bets_by_status(betslips, :won),
-    bets_lost: count_bets_by_status(betslips, :lost),
-    bets_pending: count_bets_by_status(betslips, :pending),
-    total_bets: length(betslips)
-  }
-end
+    betslips = list_betslips()
+
+    %{
+      total_wagered: calculate_total_wagered(betslips),
+      total_won: calculate_total_won(betslips),
+      total_lost: calculate_total_lost(betslips),
+      bets_won: count_bets_by_status(betslips, :won),
+      bets_lost: count_bets_by_status(betslips, :lost),
+      bets_pending: count_bets_by_status(betslips, :pending),
+      total_bets: length(betslips)
+    }
+  end
 
   def update_odds(outcome_id, new_odds, new_probability) do
     outcome = Repo.get!(Outcome, outcome_id)
@@ -440,6 +441,7 @@ end
 
       %{"coef" => coef, "exp" => exp, "sign" => sign} ->
         result = coef * :math.pow(10, exp) * sign
+
         result
         |> Float.to_string()
         |> Decimal.new()
