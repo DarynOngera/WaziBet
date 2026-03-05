@@ -18,7 +18,7 @@
   <%!-- Stats Overview --%>
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
     <%= if has_permission?(@user_permissions, "view-users") do %>
-      <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+      <div class="card bg-base-100 shadow-xs border-2 border-base-300">
         <div class="card-body p-4">
           <div class="flex items-center gap-3">
             <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -34,7 +34,7 @@
     <% end %>
 
     <%= if has_permission?(@user_permissions, "view-profits-from-losses") do %>
-      <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+      <div class="card bg-base-100 shadow-xs border-2 border-base-300">
         <div class="card-body p-4">
           <div class="flex items-center gap-3">
             <div class="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center">
@@ -43,7 +43,7 @@
             <div>
               <p class="text-sm text-base-content/60">Net Profit</p>
               <p class="text-2xl font-bold font-mono text-success">
-                ${Decimal.round(Decimal.abs(@stats.net_profit), 0)}
+                {Decimal.round(Decimal.abs(@stats.net_profit), 0)}Kes
               </p>
             </div>
           </div>
@@ -52,7 +52,7 @@
     <% end %>
 
     <%= if has_permission?(@user_permissions, "configure-games") do %>
-      <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+      <div class="card bg-base-100 shadow-xs border-2 border-base-300">
         <div class="card-body p-4">
           <div class="flex items-center gap-3">
             <div class="w-12 h-12 rounded-full bg-info/10 flex items-center justify-center">
@@ -69,7 +69,7 @@
       </div>
     <% end %>
 
-    <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+    <div class="card bg-base-100 shadow-xs border-2 border-base-300">
       <div class="card-body p-4">
         <div class="flex items-center gap-3">
           <div class="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center">
@@ -88,7 +88,7 @@
 
   <%!-- Win/Loss Stats --%>
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-    <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+    <div class="card bg-base-100 shadow-xs border-2 border-base-300">
       <div class="card-body p-4">
         <div class="flex items-center gap-3">
           <div class="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center">
@@ -104,7 +104,7 @@
       </div>
     </div>
 
-    <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+    <div class="card bg-base-100 shadow-xs border-2 border-base-300">
       <div class="card-body p-4">
         <div class="flex items-center gap-3">
           <div class="w-12 h-12 rounded-full bg-warning/10 flex items-center justify-center">
@@ -120,7 +120,7 @@
       </div>
     </div>
 
-    <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+    <div class="card bg-base-100 shadow-xs border-2 border-base-300">
       <div class="card-body p-4">
         <div class="flex items-center gap-3">
           <div class="w-12 h-12 rounded-full bg-info/10 flex items-center justify-center">
@@ -140,7 +140,7 @@
   <%!-- Financial Overview & Quick Actions --%>
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <%= if has_permission?(@user_permissions, "view-profits-from-losses") do %>
-      <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+      <div class="card bg-base-100 shadow-xs border-2 border-base-300">
         <div class="card-body">
           <div class="flex items-center gap-2 mb-4">
             <div class="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center">
@@ -153,20 +153,20 @@
             <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
               <span class="text-base-content/70">Total Stakes Lost</span>
               <span class="font-mono font-bold text-success">
-                ${Decimal.round(@stats.total_stakes_lost, 2)}
+                {Decimal.round(@stats.total_stakes_lost, 2)}Kes
               </span>
             </div>
             <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
               <span class="text-base-content/70">Total Payouts</span>
               <span class="font-mono font-bold text-error">
-                ${Decimal.round(@stats.total_payouts, 2)}
+                {Decimal.round(@stats.total_payouts, 2)}Kes
               </span>
             </div>
             <div class="divider my-2"></div>
             <div class="flex justify-between items-center p-3 bg-primary/10 rounded-lg">
               <span class="font-medium">Net Profit</span>
               <span class="font-mono font-bold text-xl text-success">
-                ${Decimal.round(Decimal.abs(@stats.net_profit), 2)}
+                {Decimal.round(Decimal.abs(@stats.net_profit), 2)}Kes
               </span>
             </div>
           </div>
@@ -184,7 +184,7 @@
     <% end %>
 
     <%= if has_permission?(@user_permissions, "configure-games") do %>
-      <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+      <div class="card bg-base-100 shadow-xs border-2 border-base-300">
         <div class="card-body">
           <div class="flex items-center gap-2 mb-4">
             <div class="w-10 h-10 rounded-full bg-info/10 flex items-center justify-center">
@@ -233,7 +233,7 @@
     <% end %>
 
     <%= if has_permission?(@user_permissions, "view-users") do %>
-      <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+      <div class="card bg-base-100 shadow-xs border-2 border-base-300">
         <div class="card-body">
           <div class="flex items-center gap-2 mb-4">
             <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -268,7 +268,7 @@
     <% end %>
 
     <%= if has_permission?(@user_permissions, "assign-roles") do %>
-      <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+      <div class="card bg-base-100 shadow-xs border-2 border-base-300">
         <div class="card-body">
           <div class="flex items-center gap-2 mb-4">
             <div class="w-10 h-10 rounded-full bg-warning/10 flex items-center justify-center">

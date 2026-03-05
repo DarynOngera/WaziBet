@@ -190,7 +190,7 @@ defmodule WaziBet.Accounts do
     role
     |> Role.changeset(attrs)
     |> Repo.insert()
-  end 
+  end
 
   ## Permission Checking
 
@@ -288,6 +288,86 @@ defmodule WaziBet.Accounts do
       select: count(r.id)
     )
     |> Repo.one() > 0
+  end
+
+  ## Permission Management
+
+  def list_permissions do
+    Permission
+    |> order_by([p], p.slug)
+    |> Repo.all()
+  end
+
+  def get_permission!(id), do: Repo.get!(Permission, id)
+
+  def create_permission(attrs \\ %{}) do
+    %Permission{}
+    |> Permission.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  def change_permission(permission \\ %Permission{}, attrs \\ %{}) do
+    Permission.changeset(permission, attrs)
+  end
+
+  def delete_permission(%Permission{} = permission) do
+    # Check if permission is assigned to any roles
+    role_count =
+      from(rp in "role_permissions", where: rp.permission_id == ^permission.id, select: count(rp.id))
+      |> Repo.one()
+
+    if role_count > 0 do
+      {:error, :permission_in_use}
+    else
+      Repo.delete(permission)
+    end
+  end
+
+  ## Role Permission Management
+
+  def get_role_with_permissions!(id) do
+    Role
+    |> Repo.get!(id)
+    |> Repo.preload(:permissions)
+  end
+
+  def assign_permission_to_role(role_id, permission_id) do
+    Repo.insert_all("role_permissions", [
+      %{
+        role_id: role_id,
+        permission_id: permission_id,
+        inserted_at: NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second),
+        updated_at: NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
+      }
+    ])
+  end
+
+  def remove_permission_from_role(role_id, permission_id) do
+    from(rp in "role_permissions",
+      where: rp.role_id == ^role_id and rp.permission_id == ^permission_id
+    )
+    |> Repo.delete_all()
+  end
+
+  def create_role_with_permissions(attrs, permission_ids) do
+    Repo.transact(fn ->
+      with {:ok, role} <- create_role(%Role{}, attrs),
+           :ok <- assign_permissions_to_role(role.id, permission_ids) do
+        {:ok, Repo.preload(role, :permissions)}
+      else
+        {:error, changeset} -> {:error, changeset}
+      end
+    end)
+  end
+
+  defp assign_permissions_to_role(_role_id, []), do: :ok
+
+  defp assign_permissions_to_role(role_id, permission_ids) do
+    Enum.each(permission_ids, fn permission_id ->
+      assign_permission_to_role(role_id, permission_id)
+    end)
+
+    :ok
   end
 
   ## Token helper

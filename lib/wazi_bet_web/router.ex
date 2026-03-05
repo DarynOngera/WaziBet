@@ -76,6 +76,7 @@ defmodule WaziBetWeb.Router do
 
     post "/users/log-in", UserSessionController, :create
     delete "/users/log-out", UserSessionController, :delete
+    get "/users/log-out", UserSessionController, :delete
   end
 
   # Routes requiring authentication (any logged-in user)
@@ -209,7 +210,10 @@ defmodule WaziBetWeb.Router do
         {WaziBetWeb.UserAuth, {:require_permission, "assign-roles"}}
       ] do
       live "/roles", RoleLive.Index, :index
+      live "/roles/new", RoleLive.New, :new
       live "/roles/assign", RoleLive.Assign, :assign
+      live "/permissions", PermissionLive.Index, :index
+      live "/permissions/new", PermissionLive.New, :new
     end
   end
 

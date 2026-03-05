@@ -44,6 +44,23 @@ defmodule WaziBet.Bets do
     )
   end
 
+  def list_betslips do
+    Repo.all(Betslip)
+  end
+
+  def get_all_bets_summary do
+  betslips = list_betslips()
+  %{
+    total_wagered: calculate_total_wagered(betslips),
+    total_won: calculate_total_won(betslips),
+    total_lost: calculate_total_lost(betslips),
+    bets_won: count_bets_by_status(betslips, :won),
+    bets_lost: count_bets_by_status(betslips, :lost),
+    bets_pending: count_bets_by_status(betslips, :pending),
+    total_bets: length(betslips)
+  }
+end
+
   def update_odds(outcome_id, new_odds, new_probability) do
     outcome = Repo.get!(Outcome, outcome_id)
 
@@ -84,6 +101,7 @@ defmodule WaziBet.Bets do
     end
   end
 
+  @spec settle_outcomes_for_game(integer(), String.t()) :: {:ok, map()} | {:error, any()}
   def settle_outcomes_for_game(game_id, winning_label) do
     IO.puts("DEBUG: settle_outcomes_for_game called for game #{game_id} with #{winning_label}")
 

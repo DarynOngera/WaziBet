@@ -70,7 +70,8 @@ defmodule WaziBet.MixProject do
       {:bandit, "~> 1.5"},
       {:oban, "~> 2.18"},
       {:slugify, "~>1.3"},
-      {:bcrypt_elixir, "~> 3.0"}
+      {:bcrypt_elixir, "~> 3.0"},
+      {:canada, "~> 1.0.1"}
     ]
   end
 

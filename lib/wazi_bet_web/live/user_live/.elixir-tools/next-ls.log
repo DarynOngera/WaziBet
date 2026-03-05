@@ -1,0 +1,288 @@
+
+09:56:16.453 [info] Loading 150 CA(s) from :otp store
+
+09:56:16.664 id=1 [debug] handled request client -> server initialize in 89ms
+
+09:56:16.671 [debug] sent notification server -> client window/logMessage
+
+09:56:16.675 [debug] NextLS v0.23.4 has initialized!
+
+09:56:16.675 [debug] sent notification server -> client window/logMessage
+
+09:56:16.675 [debug] Log file located at /home/ongera/projects/wazi_bet/lib/wazi_bet_web/live/user_live/.elixir-tools/next-ls.log
+
+09:56:16.675 [debug] handled notification client -> server textDocument/didOpen in 6ms
+
+09:56:16.679 [debug] sent notification server -> client window/logMessage
+
+09:56:16.679 [info] [extension] Credo initializing with options %NextLS.InitOpts.Extensions.Credo{enable: true, cli_options: []}
+
+09:56:26.123 [debug] sent notification server -> client window/logMessage
+
+09:56:26.123 [debug] Booting runtimes...
+
+09:56:26.132 id=1634 [debug] sent request server -> client window/workDoneProgress/create
+
+09:56:26.156 [debug] sent notification server -> client $/progress
+
+09:56:26.180 [debug] sent notification server -> client window/logMessage
+
+09:56:26.180 [info] Beginning DB migration...
+
+09:56:26.200 [debug] sent notification server -> client window/logMessage
+
+09:56:26.200 [info] Database is on the latest version: 7
+
+09:56:26.201 [debug] sent notification server -> client window/logMessage
+
+09:56:26.201 [info] Finished DB migration...
+
+09:56:26.201 [debug] sent notification server -> client window/logMessage
+
+09:56:26.201 [info] Booting runtime for wazi_bet.
+
+- elixir: /home/ongera/.asdf/shims/elixir
+- zombie wrapper script: /home/ongera/.local/share/.burrito/next_ls_erts-15.2_0.23.4/lib/next_ls-0.23.4/priv/cmd
+- working_dir: /home/ongera/projects/wazi_bet
+- command: /home/ongera/.asdf/shims/elixir --no-halt --sname nextls-runtime-1772520986200899133 --cookie HHYKTHK2JHVUZI3HDBMAF64GPJFPN4AV4Y7CQDE27SSFQKZPVAFQ==== -S mix loadpaths --no-compile
+
+Environment: 
+
+LSP=nextls
+NEXTLS_PARENT_PID=g1h3Im5leHQtbHMtMTc3MjUyMDk3NjQ2Mzg1MTUxM0BwYXJyb3QAAADnAAAAAGmmhhE=
+MIX_ENV=dev
+MIX_TARGET=host
+MIX_BUILD_ROOT=.elixir-tools/_build
+ROOTDIR=false
+BINDIR=false
+RELEASE_ROOT=false
+RELEASE_SYS_CONFIG=false
+PATH=/home/ongera/.asdf/shims:/home/ongera/.local/share/.burrito/next_ls_erts-15.2_0.23.4/bin:/home/ongera/.local/share/nvim/mason/bin:/home/ongera/.local/bin:/snap/bin:/home/ongera/.local/bin:/snap/bin:/home/ongera/.local/bin:/snap/bin:/home/ongera/.local/bin:/snap/bin:/home/ongera/.asdf/shims:/home/ongera/Downloads/asdf-0.17.0/bin:/home/ongera/.local/bin:/snap/bin:/home/ongera/.local/bin:/snap/bin:/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games:/snap/bin
+
+
+09:56:26.201 [debug] handled notification client -> server initialized in 9535ms
+
+09:56:27.211 [debug] sent notification server -> client window/logMessage
+
+09:56:27.211 [info] Connected to node nextls-runtime-1772520986200899133@parrot
+
+09:56:27.576 [debug] sent notification server -> client window/logMessage
+
+09:56:27.576 [info] ** (ArgumentError) The module Phoenix.CodeReloader was given as a child to a supervisor but it does not exist
+    (elixir 1.19.5) lib/supervisor.ex:814: Supervisor.init_child/1
+    (elixir 1.19.5) lib/supervisor.ex:922: Supervisor.child_spec/2
+    (elixir 1.19.5) lib/enum.ex:1688: Enum."-map/2-lists^map/1-1-"/2
+    (mix 1.19.5) lib/mix/pubsub.ex:80: Mix.PubSub.listener_supervisor/0
+    (mix 1.19.5) lib/mix/pubsub.ex:62: Mix.PubSub.start_listeners/0
+    (mix 1.19.5) lib/mix/tasks/deps.loadpaths.ex:83: Mix.Tasks.Deps.Loadpaths.run/1
+    (mix 1.19.5) lib/mix/task.ex:499: anonymous fn/3 in Mix.Task.run_task/5
+    (mix 1.19.5) lib/mix/tasks/loadpaths.ex:43: Mix.Tasks.Loadpaths.run/1
+
+
+09:56:27.576 [debug] sent notification server -> client window/logMessage
+
+09:56:27.576 [debug] sent notification server -> client $/progress
+
+09:56:27.576 [error] Bad RPC call to node nextls-runtime-1772520986200899133@parrot: :nodedown
+
+09:56:27.578 [debug] sent notification server -> client window/logMessage
+
+09:56:27.578 [error] Runtime for folder wazi_bet failed to initialize
+
+09:56:27.581 [debug] sent notification server -> client window/logMessage
+
+09:56:27.581 [info] The runtime for wazi_bet has successfully shut down.
+
+09:56:35.542 id=2 [debug] handled request client -> server shutdown in 1ms
+
+09:58:43.341 [info] Loading 150 CA(s) from :otp store
+
+09:58:43.553 id=1 [debug] handled request client -> server initialize in 90ms
+
+09:58:43.559 [debug] sent notification server -> client window/logMessage
+
+09:58:43.562 [debug] handled notification client -> server textDocument/didOpen in 5ms
+
+09:58:43.564 [debug] NextLS v0.23.4 has initialized!
+
+09:58:43.564 [debug] sent notification server -> client window/logMessage
+
+09:58:43.564 [debug] Log file located at /home/ongera/projects/wazi_bet/lib/wazi_bet_web/live/user_live/.elixir-tools/next-ls.log
+
+09:58:43.568 [debug] sent notification server -> client window/logMessage
+
+09:58:43.568 [info] [extension] Credo initializing with options %NextLS.InitOpts.Extensions.Credo{enable: true, cli_options: []}
+
+09:58:49.308 [debug] sent notification server -> client window/logMessage
+
+09:58:49.308 [debug] Booting runtimes...
+
+09:58:49.315 id=1666 [debug] sent request server -> client window/workDoneProgress/create
+
+09:58:49.324 [debug] sent notification server -> client $/progress
+
+09:58:49.347 [debug] sent notification server -> client window/logMessage
+
+09:58:49.347 [info] Beginning DB migration...
+
+09:58:49.357 [debug] sent notification server -> client window/logMessage
+
+09:58:49.357 [info] Database is on the latest version: 7
+
+09:58:49.357 [debug] sent notification server -> client window/logMessage
+
+09:58:49.358 [info] Finished DB migration...
+
+09:58:49.358 [debug] sent notification server -> client window/logMessage
+
+09:58:49.358 [info] Booting runtime for wazi_bet.
+
+- elixir: /home/ongera/.asdf/shims/elixir
+- zombie wrapper script: /home/ongera/.local/share/.burrito/next_ls_erts-15.2_0.23.4/lib/next_ls-0.23.4/priv/cmd
+- working_dir: /home/ongera/projects/wazi_bet
+- command: /home/ongera/.asdf/shims/elixir --no-halt --sname nextls-runtime-1772521129358192204 --cookie HHYKTHK2JHVUZI3HDBMAF64GPJFPN4AV4Y7CQDE27SSFQKZPVAFQ==== -S mix loadpaths --no-compile
+
+Environment: 
+
+LSP=nextls
+NEXTLS_PARENT_PID=g1h3Im5leHQtbHMtMTc3MjUyMTEyMzM0OTg4Nzg5NkBwYXJyb3QAAADnAAAAAGmmhqQ=
+MIX_ENV=dev
+MIX_TARGET=host
+MIX_BUILD_ROOT=.elixir-tools/_build
+ROOTDIR=false
+BINDIR=false
+RELEASE_ROOT=false
+RELEASE_SYS_CONFIG=false
+PATH=/home/ongera/.asdf/shims:/home/ongera/.local/share/.burrito/next_ls_erts-15.2_0.23.4/bin:/home/ongera/.local/share/nvim/mason/bin:/home/ongera/.local/bin:/snap/bin:/home/ongera/.local/bin:/snap/bin:/home/ongera/.local/bin:/snap/bin:/home/ongera/.local/bin:/snap/bin:/home/ongera/.asdf/shims:/home/ongera/Downloads/asdf-0.17.0/bin:/home/ongera/.local/bin:/snap/bin:/home/ongera/.local/bin:/snap/bin:/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games:/snap/bin
+
+
+09:58:49.360 [debug] handled notification client -> server initialized in 5805ms
+
+09:58:50.373 [debug] sent notification server -> client window/logMessage
+
+09:58:50.373 [info] Connected to node nextls-runtime-1772521129358192204@parrot
+
+09:58:50.518 [debug] sent notification server -> client window/logMessage
+
+09:58:50.518 [info] ** (ArgumentError) The module Phoenix.CodeReloader was given as a child to a supervisor but it does not exist
+    (elixir 1.19.5) lib/supervisor.ex:814: Supervisor.init_child/1
+    (elixir 1.19.5) lib/supervisor.ex:922: Supervisor.child_spec/2
+    (elixir 1.19.5) lib/enum.ex:1688: Enum."-map/2-lists^map/1-1-"/2
+    (mix 1.19.5) lib/mix/pubsub.ex:80: Mix.PubSub.listener_supervisor/0
+    (mix 1.19.5) lib/mix/pubsub.ex:62: Mix.PubSub.start_listeners/0
+    (mix 1.19.5) lib/mix/tasks/deps.loadpaths.ex:83: Mix.Tasks.Deps.Loadpaths.run/1
+    (mix 1.19.5) lib/mix/task.ex:499: anonymous fn/3 in Mix.Task.run_task/5
+    (mix 1.19.5) lib/mix/tasks/loadpaths.ex:43: Mix.Tasks.Loadpaths.run/1
+
+
+09:58:50.519 [debug] sent notification server -> client window/logMessage
+
+09:58:50.519 [error] Bad RPC call to node nextls-runtime-1772521129358192204@parrot: :nodedown
+
+09:58:50.519 [debug] sent notification server -> client $/progress
+
+09:58:50.521 [debug] sent notification server -> client window/logMessage
+
+09:58:50.521 [error] Runtime for folder wazi_bet failed to initialize
+
+09:58:50.524 [debug] sent notification server -> client window/logMessage
+
+09:58:50.524 [info] The runtime for wazi_bet has successfully shut down.
+
+09:58:52.494 id=2 [debug] handled request client -> server shutdown in 1ms
+
+09:59:25.572 [info] Loading 150 CA(s) from :otp store
+
+09:59:25.790 id=1 [debug] handled request client -> server initialize in 90ms
+
+09:59:25.797 [debug] sent notification server -> client window/logMessage
+
+09:59:25.801 [debug] handled notification client -> server textDocument/didOpen in 6ms
+
+09:59:25.801 [debug] NextLS v0.23.4 has initialized!
+
+09:59:25.801 [debug] sent notification server -> client window/logMessage
+
+09:59:25.801 [debug] Log file located at /home/ongera/projects/wazi_bet/lib/wazi_bet_web/live/user_live/.elixir-tools/next-ls.log
+
+09:59:25.805 [debug] sent notification server -> client window/logMessage
+
+09:59:25.805 [info] [extension] Credo initializing with options %NextLS.InitOpts.Extensions.Credo{enable: true, cli_options: []}
+
+09:59:30.377 [debug] sent notification server -> client window/logMessage
+
+09:59:30.378 [debug] Booting runtimes...
+
+09:59:30.385 id=34 [debug] sent request server -> client window/workDoneProgress/create
+
+09:59:30.392 [debug] sent notification server -> client $/progress
+
+09:59:30.417 [debug] sent notification server -> client window/logMessage
+
+09:59:30.418 [info] Beginning DB migration...
+
+09:59:30.436 [debug] sent notification server -> client window/logMessage
+
+09:59:30.436 [info] Database is on the latest version: 7
+
+09:59:30.436 [debug] sent notification server -> client window/logMessage
+
+09:59:30.436 [info] Finished DB migration...
+
+09:59:30.437 [debug] sent notification server -> client window/logMessage
+
+09:59:30.437 [info] Booting runtime for wazi_bet.
+
+- elixir: /home/ongera/.asdf/shims/elixir
+- zombie wrapper script: /home/ongera/.local/share/.burrito/next_ls_erts-15.2_0.23.4/lib/next_ls-0.23.4/priv/cmd
+- working_dir: /home/ongera/projects/wazi_bet
+- command: /home/ongera/.asdf/shims/elixir --no-halt --sname nextls-runtime-1772521170436730138 --cookie HHYKTHK2JHVUZI3HDBMAF64GPJFPN4AV4Y7CQDE27SSFQKZPVAFQ==== -S mix loadpaths --no-compile
+
+Environment: 
+
+LSP=nextls
+NEXTLS_PARENT_PID=g1h3Im5leHQtbHMtMTc3MjUyMTE2NTU4MTk2ODE5NUBwYXJyb3QAAADnAAAAAGmmhs4=
+MIX_ENV=dev
+MIX_TARGET=host
+MIX_BUILD_ROOT=.elixir-tools/_build
+ROOTDIR=false
+BINDIR=false
+RELEASE_ROOT=false
+RELEASE_SYS_CONFIG=false
+PATH=/home/ongera/.asdf/shims:/home/ongera/.local/share/.burrito/next_ls_erts-15.2_0.23.4/bin:/home/ongera/.local/share/nvim/mason/bin:/home/ongera/.local/bin:/snap/bin:/home/ongera/.local/bin:/snap/bin:/home/ongera/.local/bin:/snap/bin:/home/ongera/.local/bin:/snap/bin:/home/ongera/.asdf/shims:/home/ongera/Downloads/asdf-0.17.0/bin:/home/ongera/.local/bin:/snap/bin:/home/ongera/.local/bin:/snap/bin:/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games:/snap/bin
+
+
+09:59:30.437 [debug] handled notification client -> server initialized in 4644ms
+
+09:59:31.458 [debug] sent notification server -> client window/logMessage
+
+09:59:31.459 [info] Connected to node nextls-runtime-1772521170436730138@parrot
+
+09:59:31.963 [debug] sent notification server -> client window/logMessage
+
+09:59:31.963 [info] ** (ArgumentError) The module Phoenix.CodeReloader was given as a child to a supervisor but it does not exist
+    (elixir 1.19.5) lib/supervisor.ex:814: Supervisor.init_child/1
+    (elixir 1.19.5) lib/supervisor.ex:922: Supervisor.child_spec/2
+    (elixir 1.19.5) lib/enum.ex:1688: Enum."-map/2-lists^map/1-1-"/2
+    (mix 1.19.5) lib/mix/pubsub.ex:80: Mix.PubSub.listener_supervisor/0
+    (mix 1.19.5) lib/mix/pubsub.ex:62: Mix.PubSub.start_listeners/0
+    (mix 1.19.5) lib/mix/tasks/deps.loadpaths.ex:83: Mix.Tasks.Deps.Loadpaths.run/1
+    (mix 1.19.5) lib/mix/task.ex:499: anonymous fn/3 in Mix.Task.run_task/5
+    (mix 1.19.5) lib/mix/tasks/loadpaths.ex:43: Mix.Tasks.Loadpaths.run/1
+
+
+09:59:31.964 [debug] sent notification server -> client window/logMessage
+
+09:59:31.964 [debug] sent notification server -> client $/progress
+
+09:59:31.965 [error] Bad RPC call to node nextls-runtime-1772521170436730138@parrot: :nodedown
+
+09:59:31.966 [debug] sent notification server -> client window/logMessage
+
+09:59:31.966 [error] Runtime for folder wazi_bet failed to initialize
+
+09:59:31.969 [debug] sent notification server -> client window/logMessage
+
+09:59:31.969 [info] The runtime for wazi_bet has successfully shut down.
+
+09:59:33.660 id=2 [debug] handled request client -> server shutdown in 1ms
