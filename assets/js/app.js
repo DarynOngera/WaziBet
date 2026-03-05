@@ -168,46 +168,70 @@ const Hooks = {
   },
  AdminSidebar: {
   mounted() {
-    // Sync chevron rotation with collapsed state
+    const root = document.documentElement;
+    const overlay = document.getElementById("sidebar-overlay");
+    const chevron = this.el.querySelector("#sidebar-chevron");
+
     const syncChevron = () => {
-      const chevron = this.el.querySelector("#sidebar-chevron");
       if (!chevron) return;
-      const isCollapsed = document.documentElement.hasAttribute("data-sidebar-collapsed");
+      const isCollapsed = root.hasAttribute("data-sidebar-collapsed");
       chevron.classList.toggle("rotate-180", !isCollapsed);
       chevron.classList.toggle("rotate-0", isCollapsed);
     };
 
+    // Restore persisted collapsed state on each mount
+    if (localStorage.getItem("sidebar-collapsed") === "true") {
+      root.setAttribute("data-sidebar-collapsed", "true");
+    } else {
+      root.removeAttribute("data-sidebar-collapsed");
+    }
     syncChevron();
 
-    window.addEventListener("admin:toggle-sidebar", () => {
-      const isCollapsed = document.documentElement.hasAttribute("data-sidebar-collapsed");
+    this._onToggleSidebar = () => {
+      const isCollapsed = root.hasAttribute("data-sidebar-collapsed");
       if (isCollapsed) {
-        document.documentElement.removeAttribute("data-sidebar-collapsed");
+        root.removeAttribute("data-sidebar-collapsed");
         localStorage.setItem("sidebar-collapsed", "false");
       } else {
-        document.documentElement.setAttribute("data-sidebar-collapsed", "true");
+        root.setAttribute("data-sidebar-collapsed", "true");
         localStorage.setItem("sidebar-collapsed", "true");
       }
       syncChevron();
-    });
+    };
 
-    document.getElementById("sidebar-overlay")?.addEventListener("click", () => {
-      window.dispatchEvent(new Event("admin:close-mobile-sidebar"));
-    });
-
-    window.addEventListener("admin:close-mobile-sidebar", () => {
+    this._onCloseMobileSidebar = () => {
       this.el.classList.add("-translate-x-full");
       this.el.classList.remove("translate-x-0");
-      document.getElementById("sidebar-overlay")?.classList.add("hidden");
-    });
+      overlay?.classList.add("hidden");
+    };
 
-    window.addEventListener("admin:open-mobile-sidebar", () => {
+    this._onOpenMobileSidebar = () => {
       this.el.classList.remove("-translate-x-full");
       this.el.classList.add("translate-x-0");
-      document.getElementById("sidebar-overlay")?.classList.remove("hidden");
-    });
+      overlay?.classList.remove("hidden");
+    };
+
+    this._onOverlayClick = () => {
+      window.dispatchEvent(new Event("admin:close-mobile-sidebar"));
+    };
+
+    window.addEventListener("admin:toggle-sidebar", this._onToggleSidebar);
+    window.addEventListener("admin:close-mobile-sidebar", this._onCloseMobileSidebar);
+    window.addEventListener("admin:open-mobile-sidebar", this._onOpenMobileSidebar);
+    overlay?.addEventListener("click", this._onOverlayClick);
+  },
+
+  destroyed() {
+    const overlay = document.getElementById("sidebar-overlay");
+
+    window.removeEventListener("admin:toggle-sidebar", this._onToggleSidebar);
+    window.removeEventListener("admin:close-mobile-sidebar", this._onCloseMobileSidebar);
+    window.removeEventListener("admin:open-mobile-sidebar", this._onOpenMobileSidebar);
+    overlay?.removeEventListener("click", this._onOverlayClick);
   }
 },
+
+
 }
   // ---- LiveSocket ----
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")

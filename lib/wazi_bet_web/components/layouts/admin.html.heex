@@ -36,7 +36,6 @@
         <button
           id="admin-mobile-menu-btn"
           class="lg:hidden btn btn-ghost btn-square"
-          phx-click={JS.toggle(to: "#admin-sidebar")}
         >
           <.icon name="hero-bars-3" class="w-6 h-6" />
         </button>
@@ -63,7 +62,6 @@
       <div
         id="sidebar-overlay"
         class="fixed inset-0 bg-black/50 z-30 lg:hidden hidden"
-        phx-click={JS.toggle(to: "#admin-sidebar")}
       >
       </div>
 
@@ -86,7 +84,7 @@
       onclick="window.dispatchEvent(new Event('admin:toggle-sidebar'))"
       title="Toggle sidebar"
     >
-      <.icon name="hero-chevron-left" class="h-5 w-5 transition-transform duration-200 rotate-180" />
+      <.icon id="sidebar-chevron" name="hero-chevron-left" class="h-5 w-5 transition-transform duration-200 rotate-180" />
     </button>
   </div>
 
@@ -142,7 +140,7 @@
       data-show-collapsed
       navigate={~p"/admin/games"}
       class={[
-        "flex items-center justify-center px-3 py-2.5 rounded-lg transition-all relative",
+        "hidden items-center justify-center px-3 py-2.5 rounded-lg transition-all relative",
         (String.starts_with?(@current_path, "/admin/games") or
            String.starts_with?(@current_path, "/admin/categories") or
            String.starts_with?(@current_path, "/admin/teams")) &&

@@ -171,3 +171,22 @@
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
+
+/* Admin sidebar collapsed/expanded behavior (desktop) */
+@media (min-width: 1024px) {
+  html[data-sidebar-collapsed] #admin-sidebar {
+    width: 5rem;
+  }
+
+  html[data-sidebar-collapsed] #admin-sidebar [data-hide-collapsed] {
+    display: none !important;
+  }
+
+  html[data-sidebar-collapsed] #admin-sidebar [data-show-collapsed] {
+    display: flex !important;
+  }
+
+  html:not([data-sidebar-collapsed]) #admin-sidebar [data-show-collapsed] {
+    display: none !important;
+  }
+}
