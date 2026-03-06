@@ -24,7 +24,7 @@
   </div>
 
   <%= if Enum.empty?(@games) do %>
-    <div class="card bg-base-100 shadow-xs border-2 border-base-300">
+    <div class="card bg-base-100 shadow-xs border border-base-300">
       <div class="card-body text-center py-16">
         <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-base-200 flex items-center justify-center">
           <.icon name="hero-trophy" class="w-10 h-10 text-base-content/30" />
@@ -37,7 +37,7 @@
       </div>
     </div>
   <% else %>
-    <div class="card bg-base-100 shadow-xs border-2 border-base-300 overflow-hidden">
+    <div class="card bg-base-100 shadow-xs border border-base-300 overflow-hidden">
       <div class="overflow-x-auto">
         <table class="table table-zebra">
           <thead>
@@ -64,12 +64,12 @@
                   </div>
                 </td>
                 <td>
-                  <span class="badge badge-outline badge-sm">
+                  <span class="badge rounded-full badge-outline badge-sm">
                     {game.category.name}
                   </span>
                 </td>
                 <td>
-                  <span class={["badge badge-sm", status_color(game.status)]}>
+                  <span class={["badge rounded-full badge-sm", status_color(game.status)]}>
                     {String.capitalize(to_string(game.status))}
                     <%= if game.status == :live do %>
                       ({game.minute}')
@@ -111,7 +111,7 @@
                     <div class="flex gap-1">
                       <%= for outcome <- game.outcomes do %>
                         <span class={[
-                          "badge badge-xs",
+                          "badge rounded-full badge-xs",
                           outcome.status == :open && "badge-success",
                           outcome.status != :open && "badge-ghost"
                         ]}>

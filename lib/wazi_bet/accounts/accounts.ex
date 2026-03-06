@@ -185,7 +185,6 @@ defmodule WaziBet.Accounts do
     |> Repo.one()
   end
 
-
   def create_role(role, attrs) do
     role
     |> Role.changeset(attrs)
@@ -313,7 +312,10 @@ defmodule WaziBet.Accounts do
   def delete_permission(%Permission{} = permission) do
     # Check if permission is assigned to any roles
     role_count =
-      from(rp in "role_permissions", where: rp.permission_id == ^permission.id, select: count(rp.id))
+      from(rp in "role_permissions",
+        where: rp.permission_id == ^permission.id,
+        select: count(rp.id)
+      )
       |> Repo.one()
 
     if role_count > 0 do

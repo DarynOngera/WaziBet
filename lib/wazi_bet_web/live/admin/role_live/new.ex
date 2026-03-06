@@ -17,6 +17,7 @@ defmodule WaziBetWeb.Admin.RoleLive.New do
     is_superuser = Accounts.user_has_permission?(user.id, "grant-revoke-admin-access")
 
     permissions = Accounts.list_permissions()
+    permission_groups = grouped_permissions(permissions)
     changeset = Accounts.Role.changeset(%Accounts.Role{}, %{})
 
     {:ok,
@@ -26,6 +27,7 @@ defmodule WaziBetWeb.Admin.RoleLive.New do
      |> assign(:current_path, current_path)
      |> assign(:changeset, changeset)
      |> assign(:permissions, permissions)
+     |> assign(:permission_groups, permission_groups)
      |> assign(:selected_permissions, [])
      |> assign(:page_title, "New Role")}
   end
@@ -84,4 +86,48 @@ defmodule WaziBetWeb.Admin.RoleLive.New do
   def permission_badge_color("view-profits-from-losses"), do: "badge-error"
   def permission_badge_color("configure-games"), do: "badge-error"
   def permission_badge_color(_), do: "badge-ghost"
+
+  def group_title(:game_related), do: "Game Related"
+  def group_title(:user_related), do: "User Related"
+  def group_title(:other), do: "Other Permissions"
+  def group_title(_), do: "Permissions"
+
+  def grouped_permissions(permissions) do
+    grouped =
+      Enum.reduce(permissions, %{game_related: [], user_related: [], other: []}, fn permission,
+                                                                                    acc ->
+        key = permission_group(permission.slug)
+        Map.update!(acc, key, &[permission | &1])
+      end)
+
+    %{
+      game_related: Enum.reverse(grouped.game_related),
+      user_related: Enum.reverse(grouped.user_related),
+      other: Enum.reverse(grouped.other)
+    }
+  end
+
+  defp permission_group(slug)
+       when slug in [
+              "place-bets",
+              "cancel-bets",
+              "view-bet-history",
+              "view-winnings-losses",
+              "configure-games",
+              "view-user-games"
+            ],
+       do: :game_related
+
+  defp permission_group(slug)
+       when slug in [
+              "create-users",
+              "view-users",
+              "soft-delete-users",
+              "assign-roles",
+              "grant-revoke-admin-access",
+              "view-profits-from-losses"
+            ],
+       do: :user_related
+
+  defp permission_group(_slug), do: :other
 end

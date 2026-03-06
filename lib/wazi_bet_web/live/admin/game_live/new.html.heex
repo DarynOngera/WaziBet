@@ -14,7 +14,7 @@
   <div class="max-w-4xl mx-auto">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <%!-- Game Creation Form --%>
-      <div class="card bg-base-100 shadow-xs border-2 border-base-300">
+      <div class="card bg-base-100 shadow-xs border border-base-300">
         <div class="card-body">
           <h1 class="text-2xl font-bold mb-6 flex items-center gap-2">
             <.icon name="hero-plus-circle" class="w-6 h-6 text-primary" /> Create New Game
@@ -157,7 +157,7 @@
 
       <%!-- Preview Panel --%>
       <%= if @home_team || @away_team do %>
-        <div class="card bg-base-100 shadow-xs border-2 border-base-300">
+        <div class="card bg-base-100 shadow-xs border border-base-300">
           <div class="card-body">
             <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
               <.icon name="hero-eye" class="w-5 h-5 text-primary" /> Preview

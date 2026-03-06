@@ -39,7 +39,7 @@ defmodule WaziBet.Accounts.User do
       :first_name,
       :last_name,
       :msisdn,
-      :confirmed_at, 
+      :confirmed_at
     ])
     |> validate_email(opts)
     |> validate_password(opts)

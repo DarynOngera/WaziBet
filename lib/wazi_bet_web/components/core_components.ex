@@ -412,6 +412,7 @@ defmodule WaziBetWeb.CoreComponents do
   """
   attr :name, :string, required: true
   attr :class, :string, default: "size-4"
+  attr :id, :any
 
   def icon(%{name: "hero-" <> _} = assigns) do
     ~H"""

@@ -57,7 +57,7 @@
   --radius-box: 0.75rem;
   --size-selector: 0.25rem;
   --size-field: 0.25rem;
-  --border: 2px;
+  --border: 1px;
   --depth: 1;
   --noise: 0;
 }
@@ -74,7 +74,7 @@
   --color-base-300: oklch(86% 0.03 95);
   --color-base-content: oklch(25% 0.04 30);
   /* Deep casino red primary */
-  --color-primary: oklch(50% 0.22 25);
+  --color-primary: oklch(0.513 0.17 26);
   --color-primary-content: oklch(97% 0.02 25);
   /* Rich gold secondary */
   --color-secondary: oklch(70% 0.15 85);
@@ -102,9 +102,137 @@
   --radius-box: 0.75rem;
   --size-selector: 0.25rem;
   --size-field: 0.25rem;
-  --border: 2px;
+  --border: 1px;
   --depth: 1;
   --noise: 0;
+}
+
+/* Typography system */
+@font-face {
+  font-family: "JetBrains Mono";
+  src:
+    local("JetBrains Mono"),
+    url("/assets/fonts/jetbrains-mono/JetBrainsMono-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  src:
+    local("JetBrains Mono Medium"),
+    local("JetBrains Mono"),
+    url("/assets/fonts/jetbrains-mono/JetBrainsMono-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  src:
+    local("JetBrains Mono Bold"),
+    local("JetBrains Mono"),
+    url("/assets/fonts/jetbrains-mono/JetBrainsMono-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --font-sans: "Manrope", "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono",
+    monospace;
+  --type-h1: clamp(1.45rem, 1.25rem + 0.8vw, 1.85rem);
+  --type-h2: clamp(1.15rem, 1.05rem + 0.4vw, 1.35rem);
+  --type-title: 0.95rem;
+  --type-body: 0.88rem;
+  --type-body-sm: 0.8rem;
+  --type-caption: 0.68rem;
+  --type-metric: clamp(1.1rem, 1rem + 0.6vw, 1.5rem);
+}
+
+html,
+body {
+  font-family: var(--font-sans);
+}
+
+body {
+  font-size: var(--type-body);
+  line-height: 1.4;
+  text-rendering: optimizeLegibility;
+}
+
+.type-h1 {
+  font-family: var(--font-sans);
+  font-size: var(--type-h1);
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  font-weight: 800;
+}
+
+.type-h2 {
+  font-family: var(--font-sans);
+  font-size: var(--type-h2);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  font-weight: 700;
+}
+
+.type-title {
+  font-family: var(--font-sans);
+  font-size: var(--type-title);
+  line-height: 1.35;
+  font-weight: 700;
+}
+
+.type-body {
+  font-family: var(--font-sans);
+  font-size: var(--type-body);
+  line-height: 1.45;
+}
+
+.type-body-sm {
+  font-family: var(--font-sans);
+  font-size: var(--type-body-sm);
+  line-height: 1.4;
+}
+
+.type-caption {
+  font-family: var(--font-sans);
+  font-size: var(--type-caption);
+  line-height: 1.25;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.type-metric {
+  font-family: var(--font-mono);
+  font-size: var(--type-metric);
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.type-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* daisyUI sets .avatar > div to display:block; force centering for initial placeholders */
+.avatar.placeholder > .avatar-initial {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar.placeholder > .avatar-initial > span {
+  width: 100%;
+  text-align: center;
+  line-height: 1;
 }
 
 /* Add variants based on LiveView classes */
@@ -170,4 +298,95 @@
   transition-property: background-color, border-color, color, fill, stroke;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
+}
+
+/* Admin sidebar collapsed/expanded behavior (desktop) */
+@media (min-width: 1024px) {
+  #admin-sidebar {
+    width: 18rem;
+    transition-property: width;
+    transition-duration: 450ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  #admin-sidebar .sidebar-item {
+    transition-property: background-color, color, border-color;
+    transition-duration: 280ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  html[data-sidebar-collapsed] #admin-sidebar {
+    width: 4rem;
+  }
+
+  #admin-sidebar .sidebar-label {
+    display: inline-block;
+    overflow: hidden;
+    white-space: nowrap;
+    max-width: 10rem;
+    opacity: 1;
+    transform: translateX(0);
+    transition:
+      max-width 450ms cubic-bezier(0.4, 0, 0.2, 1),
+      opacity 450ms cubic-bezier(0.4, 0, 0.2, 1),
+      transform 450ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  html:not([data-sidebar-collapsed]) #admin-sidebar .sidebar-label {
+    transition-delay: 0ms, 0ms, 0ms;
+  }
+
+  html[data-sidebar-collapsed] #admin-sidebar .sidebar-label {
+    max-width: 0;
+    opacity: 0;
+    transform: translateX(-4px);
+    transition-delay: 0ms, 0ms, 0ms;
+  }
+
+  html[data-sidebar-collapsed] #admin-sidebar [data-hide-collapsed]:not(.sidebar-label) {
+    display: none !important;
+  }
+
+  /* Keep text/content hidden while width is expanding to prevent overflow flash */
+  #admin-sidebar.sidebar-expanding [data-hide-collapsed]:not(.sidebar-label) {
+    display: none !important;
+  }
+
+  #admin-sidebar.sidebar-expanding .sidebar-label {
+    max-width: 0;
+    opacity: 0;
+    transform: translateX(-4px);
+    transition-delay: 0ms, 0ms, 0ms;
+  }
+
+  html[data-sidebar-collapsed] #admin-sidebar [data-show-collapsed] {
+    display: flex !important;
+  }
+
+  html:not([data-sidebar-collapsed]) #admin-sidebar [data-show-collapsed] {
+    display: none !important;
+  }
+
+  #admin-sidebar .sidebar-tooltip {
+    display: block;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-4px);
+    transition: opacity 180ms ease, transform 220ms ease, visibility 0s linear 220ms;
+  }
+
+  html[data-sidebar-collapsed] #admin-sidebar .group:hover .sidebar-tooltip {
+    visibility: visible;
+    opacity: 1;
+    transform: translateX(0);
+    transition: opacity 180ms ease, transform 220ms ease, visibility 0s;
+  }
+}
+
+/* Game Live categories sidebar behavior */
+#games-index-sidebar .game-sidebar-item {
+  transition-property: background-color, color, border-color;
+  transition-duration: 280ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
