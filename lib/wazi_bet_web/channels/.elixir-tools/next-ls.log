@@ -1,0 +1,20 @@
+
+09:27:45.450 [info] Loading 150 CA(s) from :otp store
+
+09:27:45.652 id=1 [debug] handled request client -> server initialize in 89ms
+
+09:27:45.659 [debug] sent notification server -> client window/logMessage
+
+09:27:45.660 [debug] handled notification client -> server textDocument/didOpen in 5ms
+
+09:27:45.663 [debug] NextLS v0.23.4 has initialized!
+
+09:27:45.663 [debug] sent notification server -> client window/logMessage
+
+09:27:45.663 [debug] Log file located at /home/ongera/projects/wazi_bet/lib/wazi_bet_web/channels/.elixir-tools/next-ls.log
+
+09:27:45.668 [debug] sent notification server -> client window/logMessage
+
+09:27:45.668 [info] [extension] Credo initializing with options %NextLS.InitOpts.Extensions.Credo{enable: true, cli_options: []}
+
+09:27:51.500 id=2 [debug] handled request client -> server shutdown in 1ms

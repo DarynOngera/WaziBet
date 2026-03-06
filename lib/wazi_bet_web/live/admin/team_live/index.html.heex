@@ -15,7 +15,7 @@
   </div>
 
   <%!-- Create Team Form --%>
-  <div class=" bg-base-100 shadow-xs mb-8 border-2 border-base-300">
+  <div class="card se-100 shadow-xs mb-8 border border-base-300">
     <div class="card-body">
       <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
         <.icon name="hero-plus-circle" class="w-5 h-5 text-secondary" /> Add New Team
@@ -29,7 +29,7 @@
             type="text"
             name="team[name]"
             placeholder="e.g., Manchester United"
-            class="input input-bordered w-full border-2"
+            class="input input-bordered w-full border"
             required
             minlength="2"
           />
@@ -40,7 +40,7 @@
           </label>
           <select
             name="team[category_id]"
-            class="select select-bordered w-full border-2"
+            class="select select-bordered w-full border"
             required
           >
             <option value="">Select Category</option>
@@ -59,7 +59,7 @@
             value="50"
             min="0"
             max="100"
-            class="input input-bordered w-full border-2"
+            class="input input-bordered w-full border"
           />
         </div>
         <div class="form-control">
@@ -72,10 +72,10 @@
             value="50"
             min="0"
             max="100"
-            class="input input-bordered w-full border-2"
+            class="input input-bordered w-full border"
           />
         </div>
-        <button type="submit" class="btn btn-primary border-2 md:col-span-4">
+        <button type="submit" class="btn btn-primary border md:col-span-4">
           <.icon name="hero-plus" class="w-5 h-5 mr-2" /> Create Team
         </button>
       </form>
@@ -84,7 +84,7 @@
 
   <%!-- Teams List --%>
   <%= if Enum.empty?(@teams) do %>
-    <div class="card bg-base-100 shadow-xs border-2 border-base-300">
+    <div class="card bg-base-100 shadow-xs border border-base-300">
       <div class="card-body text-center py-16">
         <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-base-200 flex items-center justify-center">
           <.icon name="hero-user-group" class="w-10 h-10 text-base-content/30" />
@@ -94,7 +94,7 @@
       </div>
     </div>
   <% else %>
-    <div class="card bg-base-100 shadow-xs border-2 border-base-300 overflow-hidden">
+    <div class="card bg-base-100 shadow-xs border border-base-300 overflow-hidden">
       <div class="overflow-x-auto">
         <table class="table table-zebra">
           <thead>

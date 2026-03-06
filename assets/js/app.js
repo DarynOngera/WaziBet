@@ -13,6 +13,7 @@ function applyTheme(theme) {
     ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
     : theme;
   document.documentElement.setAttribute("data-theme", resolved);
+  window.dispatchEvent(new Event("theme:changed"));
 }
 
 applyTheme(localStorage.getItem("theme") || "system");
@@ -27,15 +28,36 @@ window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () 
   if ((localStorage.getItem("theme") || "system") === "system") applyTheme("system");
 });
 
-// ---- Chart Colors (theme-safe rgba) ----
-const C = {
-  won:     "rgba(34, 197, 94,  0.85)",
-  lost:    "rgba(248, 113, 113, 0.85)",
-  pending: "rgba(100, 116, 139, 0.4)",
-  neutral: "rgba(100, 116, 139, 0.4)",
-  tick:    "rgba(128, 128, 128, 0.8)",
-  grid:    "rgba(128, 128, 128, 0.1)",
-};
+// ---- Chart Colors (theme-derived) ----
+function readThemeColor(className, property = "color") {
+  const probe = document.createElement("span");
+  probe.className = className;
+  probe.style.position = "absolute";
+  probe.style.visibility = "hidden";
+  probe.style.pointerEvents = "none";
+  document.body.appendChild(probe);
+  const value = getComputedStyle(probe)[property];
+  probe.remove();
+  return value;
+}
+
+function chartColors() {
+  return {
+    won: readThemeColor("bg-primary", "backgroundColor"),
+    lost: readThemeColor("bg-primary/75", "backgroundColor"),
+    pending: readThemeColor("bg-primary/50", "backgroundColor"),
+    neutral: readThemeColor("bg-primary/30", "backgroundColor"),
+    tick: readThemeColor("text-base-content/80"),
+    grid: readThemeColor("text-base-content/12"),
+  };
+}
+
+function chartFontFamilies() {
+  const rootStyles = getComputedStyle(document.documentElement);
+  const sans = rootStyles.getPropertyValue("--font-sans").trim() || "system-ui, sans-serif";
+  const mono = rootStyles.getPropertyValue("--font-mono").trim() || "ui-monospace, monospace";
+  return {sans, mono};
+}
 
 // ---- Hooks ----
 const Hooks = {
@@ -69,108 +91,177 @@ const Hooks = {
     mounted() {
       const el = this.el;
       const canvas = el.querySelector("#bet-status-canvas");
-      this._chart = new Chart(canvas, {
-        type: "doughnut",
-        data: {
-          labels: ["Won", "Lost", "Pending"],
-          datasets: [{
-            data: [
-              parseInt(el.dataset.won),
-              parseInt(el.dataset.lost),
-              parseInt(el.dataset.pending),
-            ],
-            backgroundColor: [C.won, C.lost, C.pending],
-            borderWidth: 0,
-            hoverOffset: 6,
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          cutout: "70%",
-          plugins: {
-            legend: {
-              position: "bottom",
-              labels: { color: C.tick, font: { size: 11 }, padding: 16 }
+      const render = () => {
+        const C = chartColors();
+        const F = chartFontFamilies();
+        this._chart?.destroy();
+        this._chart = new Chart(canvas, {
+          type: "doughnut",
+          data: {
+            labels: ["Won", "Lost", "Pending"],
+            datasets: [{
+              data: [
+                parseInt(el.dataset.won),
+                parseInt(el.dataset.lost),
+                parseInt(el.dataset.pending),
+              ],
+              backgroundColor: [C.won, C.lost, C.pending],
+              borderWidth: 0,
+              hoverOffset: 6,
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: "70%",
+            plugins: {
+              legend: {
+                position: "bottom",
+                labels: {
+                  color: C.tick,
+                  font: { family: F.sans, size: 11, weight: 600 },
+                  padding: 16
+                }
+              }
             }
           }
-        }
-      });
+        });
+      };
+
+      render();
+      this._onThemeChanged = () => render();
+      window.addEventListener("theme:changed", this._onThemeChanged);
     },
-    destroyed() { this._chart?.destroy(); }
+    destroyed() {
+      window.removeEventListener("theme:changed", this._onThemeChanged);
+      this._chart?.destroy();
+    }
   },
 
   MoneyFlowChart: {
     mounted() {
       const el = this.el;
       const canvas = el.querySelector("#money-flow-canvas");
-      this._chart = new Chart(canvas, {
-        type: "bar",
-        data: {
-          labels: ["Wagered", "Won", "Lost"],
-          datasets: [{
-            label: "Amount (Ksh)",
-            data: [
-              parseFloat(el.dataset.wagered),
-              parseFloat(el.dataset.won),
-              parseFloat(el.dataset.lost),
-            ],
-            backgroundColor: [C.neutral, C.won, C.lost],
-            borderRadius: 6,
-            borderSkipped: false,
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            x: { grid: { display: false }, ticks: { color: C.tick } },
-            y: { grid: { color: C.grid }, ticks: { color: C.tick, callback: v => "Ksh" + v } }
+      const render = () => {
+        const C = chartColors();
+        const F = chartFontFamilies();
+        this._chart?.destroy();
+        this._chart = new Chart(canvas, {
+          type: "bar",
+          data: {
+            labels: ["Wagered", "Won", "Lost"],
+            datasets: [{
+              label: "Amount (Ksh)",
+              data: [
+                parseFloat(el.dataset.wagered),
+                parseFloat(el.dataset.won),
+                parseFloat(el.dataset.lost),
+              ],
+              backgroundColor: [C.neutral, C.won, C.lost],
+              borderRadius: 6,
+              borderSkipped: false,
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: {
+                grid: { display: false },
+                ticks: { color: C.tick, font: { family: F.sans, size: 11, weight: 500 } }
+              },
+              y: {
+                grid: { color: C.grid },
+                ticks: {
+                  color: C.tick,
+                  font: { family: F.mono, size: 11, weight: 500 },
+                  callback: v => "Ksh" + v
+                }
+              }
+            }
           }
-        }
-      });
+        });
+      };
+
+      render();
+      this._onThemeChanged = () => render();
+      window.addEventListener("theme:changed", this._onThemeChanged);
     },
-    destroyed() { this._chart?.destroy(); }
+    destroyed() {
+      window.removeEventListener("theme:changed", this._onThemeChanged);
+      this._chart?.destroy();
+    }
   },
 
   ProfitBarChart: {
     mounted() {
       const el = this.el;
       const canvas = el.querySelector("#profit-bar-canvas");
-      this._chart = new Chart(canvas, {
-        type: "bar",
-        data: {
-          labels: ["Stakes Collected", "Payouts Made"],
-          datasets: [{
-            data: [
-              parseFloat(el.dataset.collected),
-              parseFloat(el.dataset.payouts),
-            ],
-            backgroundColor: [C.won, C.lost],
-            borderRadius: 4,
-            borderSkipped: false,
-          }]
-        },
-        options: {
-          indexAxis: "y",
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            x: { grid: { color: C.grid }, ticks: { color: C.tick, callback: v => "Ksh" + v } },
-            y: { grid: { display: false }, ticks: { color: C.tick } }
+      const render = () => {
+        const C = chartColors();
+        const F = chartFontFamilies();
+        this._chart?.destroy();
+        this._chart = new Chart(canvas, {
+          type: "bar",
+          data: {
+            labels: ["Stakes Collected", "Payouts Made"],
+            datasets: [{
+              data: [
+                parseFloat(el.dataset.collected),
+                parseFloat(el.dataset.payouts),
+              ],
+              backgroundColor: [C.won, C.lost],
+              borderRadius: 4,
+              borderSkipped: false,
+            }]
+          },
+          options: {
+            indexAxis: "y",
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: {
+                grid: { color: C.grid },
+                ticks: {
+                  color: C.tick,
+                  font: { family: F.mono, size: 11, weight: 500 },
+                  callback: v => "Ksh" + v
+                }
+              },
+              y: {
+                grid: { display: false },
+                ticks: { color: C.tick, font: { family: F.sans, size: 11, weight: 500 } }
+              }
+            }
           }
-        }
-      });
+        });
+      };
+
+      render();
+      this._onThemeChanged = () => render();
+      window.addEventListener("theme:changed", this._onThemeChanged);
     },
-    destroyed() { this._chart?.destroy(); }
+    destroyed() {
+      window.removeEventListener("theme:changed", this._onThemeChanged);
+      this._chart?.destroy();
+    }
   },
  AdminSidebar: {
   mounted() {
     const root = document.documentElement;
     const overlay = document.getElementById("sidebar-overlay");
-    const chevron = this.el.querySelector("#sidebar-chevron");
+    const chevron = this.el.querySelector(".hero-chevron-right");
+    const transitionMs = () => {
+      const raw = getComputedStyle(this.el).transitionDuration || "0s";
+      return raw
+        .split(",")
+        .map((part) => part.trim())
+        .map((part) => (part.endsWith("ms") ? parseFloat(part) : parseFloat(part) * 1000))
+        .filter((n) => !Number.isNaN(n))
+        .reduce((max, n) => Math.max(max, n), 0);
+    };
 
     const syncChevron = () => {
       if (!chevron) return;
@@ -185,14 +276,30 @@ const Hooks = {
     } else {
       root.removeAttribute("data-sidebar-collapsed");
     }
-    syncChevron();
+    // Set initial direction without animation to avoid a rotate flash on page load
+    if (chevron) {
+      const originalTransition = chevron.style.transition;
+      chevron.style.transition = "none";
+      syncChevron();
+      requestAnimationFrame(() => {
+        chevron.style.transition = originalTransition;
+      });
+    } else {
+      syncChevron();
+    }
 
     this._onToggleSidebar = () => {
       const isCollapsed = root.hasAttribute("data-sidebar-collapsed");
       if (isCollapsed) {
+        this.el.classList.add("sidebar-expanding");
+        clearTimeout(this._expandDoneTimer);
         root.removeAttribute("data-sidebar-collapsed");
         localStorage.setItem("sidebar-collapsed", "false");
+        this._expandDoneTimer = setTimeout(() => {
+          this.el.classList.remove("sidebar-expanding");
+        }, Math.min(180, transitionMs() * 0.4));
       } else {
+        this.el.classList.remove("sidebar-expanding");
         root.setAttribute("data-sidebar-collapsed", "true");
         localStorage.setItem("sidebar-collapsed", "true");
       }
@@ -223,6 +330,7 @@ const Hooks = {
 
   destroyed() {
     const overlay = document.getElementById("sidebar-overlay");
+    clearTimeout(this._expandDoneTimer);
 
     window.removeEventListener("admin:toggle-sidebar", this._onToggleSidebar);
     window.removeEventListener("admin:close-mobile-sidebar", this._onCloseMobileSidebar);

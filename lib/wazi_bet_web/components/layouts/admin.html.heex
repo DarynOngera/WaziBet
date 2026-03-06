@@ -41,7 +41,7 @@
         </button>
         <.link
           href={~p"/admin/dashboard"}
-          class="btn btn-ghost text-xl font-bold tracking-wider ml-2"
+          class="btn btn-ghost type-title font-bold tracking-wider ml-2"
         >
           <span class="text-primary">WAZI</span><span class="text-secondary">BET</span>
           <span class="text-base-content/50 ml-1 text-sm font-normal">Admin</span>
@@ -57,7 +57,7 @@
       </div>
     </header>
 
-    <div class="flex min-h-[calc(100vh-4rem)]">
+    <div class="flex h-[calc(100vh-4rem)] overflow-hidden">
       <%!-- Sidebar Overlay (mobile) --%>
       <div
         id="sidebar-overlay"
@@ -71,10 +71,10 @@
         phx-hook="AdminSidebar"
         class="
     fixed lg:sticky top-16 inset-y-16 left-0 z-40
-    w-72 transition-all duration-300
+    w-72 transition-transform duration-300
     transform -translate-x-full lg:translate-x-0
     bg-base-200 border-r border-base-300
-    flex flex-col overflow-hidden
+    flex flex-col overflow-visible lg:h-[calc(100vh-4rem)]
   "
       >
         <%!-- Collapse toggle (desktop only) --%>
@@ -86,37 +86,31 @@
           >
             <.icon
               id="sidebar-chevron"
-              name="hero-chevron-left"
-              class="h-5 w-5 transition-transform duration-200 rotate-180"
+              name="hero-chevron-right"
+              class="h-5 w-5 transition-transform duration-[500ms] ease-in-out rotate-0"
             />
           </button>
         </div>
 
-        <nav class="flex-1 p-2 space-y-1 overflow-y-auto overflow-x-hidden">
+        <nav class="flex-1 p-2 space-y-1 overflow-y-auto overflow-x-visible lg:overflow-visible">
           <%!-- Dashboard --%>
           <.link
             navigate={~p"/admin/dashboard"}
             class={[
-              "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group relative",
+              "sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group relative",
               @current_path == "/admin/dashboard" && "bg-primary text-primary-content font-medium",
-              @current_path != "/admin/dashboard" && "hover:bg-base-300 text-base-content"
+              @current_path != "/admin/dashboard" && "hover:bg-primary/15 text-base-content"
             ]}
           >
             <.icon name="hero-home" class="w-5 h-5 shrink-0" />
-            <span data-hide-collapsed class="truncate">Dashboard</span>
-            <div
-              data-show-collapsed
-              class="absolute left-full ml-2 px-2 py-1 bg-base-300 text-base-content text-xs rounded hidden group-hover:block whitespace-nowrap z-50"
-            >
+            <span data-hide-collapsed class="sidebar-label truncate">Dashboard</span>
+            <div class="sidebar-tooltip absolute left-full ml-2 px-2 py-1 bg-base-300 text-base-content text-xs rounded whitespace-nowrap z-50">
               Dashboard
             </div>
           </.link>
 
           <%!-- Management section label --%>
-          <div
-            data-hide-collapsed
-            class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mt-4 mb-2 px-3"
-          >
+          <div data-hide-collapsed class="type-caption text-base-content/50 mt-4 mb-2 px-3">
             Management
           </div>
           <div data-show-collapsed class="border-t border-base-300 my-2"></div>
@@ -126,19 +120,16 @@
             <.link
               navigate={~p"/admin/users"}
               class={[
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group relative",
+                "sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group relative",
                 String.starts_with?(@current_path, "/admin/users") &&
                   "bg-primary text-primary-content font-medium",
                 !String.starts_with?(@current_path, "/admin/users") &&
-                  "hover:bg-base-300 text-base-content"
+                  "hover:bg-primary/15 text-base-content"
               ]}
             >
               <.icon name="hero-users" class="w-5 h-5 shrink-0" />
-              <span data-hide-collapsed class="truncate">Users</span>
-              <div
-                data-show-collapsed
-                class="absolute left-full ml-2 px-2 py-1 bg-base-300 text-base-content text-xs rounded hidden group-hover:block whitespace-nowrap z-50"
-              >
+              <span data-hide-collapsed class="sidebar-label truncate">Users</span>
+              <div class="sidebar-tooltip absolute left-full ml-2 px-2 py-1 bg-base-300 text-base-content text-xs rounded whitespace-nowrap z-50">
                 Users
               </div>
             </.link>
@@ -153,7 +144,7 @@
                 data-show-collapsed
                 navigate={~p"/admin/games"}
                 class={[
-                  "hidden items-center justify-center px-3 py-2.5 rounded-lg transition-all relative",
+                  "sidebar-item hidden items-center gap-3 px-3 py-2.5 rounded-lg transition-all group relative",
                   (String.starts_with?(@current_path, "/admin/games") or
                      String.starts_with?(@current_path, "/admin/categories") or
                      String.starts_with?(@current_path, "/admin/teams")) &&
@@ -161,11 +152,11 @@
                   !(String.starts_with?(@current_path, "/admin/games") or
                       String.starts_with?(@current_path, "/admin/categories") or
                       String.starts_with?(@current_path, "/admin/teams")) &&
-                    "hover:bg-base-300 text-base-content"
+                    "hover:bg-primary/15 text-base-content"
                 ]}
               >
                 <.icon name="hero-trophy" class="w-5 h-5 shrink-0" />
-                <div class="absolute left-full ml-2 px-2 py-1 bg-base-300 text-base-content text-xs rounded hidden group-hover:block whitespace-nowrap z-50">
+                <div class="sidebar-tooltip absolute left-full ml-2 px-2 py-1 bg-base-300 text-base-content text-xs rounded whitespace-nowrap z-50">
                   Games
                 </div>
               </.link>
@@ -173,9 +164,19 @@
               <%!-- Expanded state: dropdown button --%>
               <button
                 data-hide-collapsed
-                phx-click={JS.toggle(to: "#games-menu", in: "hidden", out: "hidden")}
+                phx-click={
+                  JS.toggle(
+                    to: "#games-menu",
+                    in:
+                      {"transition-all duration-[450ms] ease-in-out", "opacity-0 -translate-y-1",
+                       "opacity-100 translate-y-0"},
+                    out:
+                      {"transition-all duration-[450ms] ease-in-out", "opacity-100 translate-y-0",
+                       "opacity-0 -translate-y-1"}
+                  )
+                }
                 class={[
-                  "flex items-center justify-between w-full gap-3 px-3 py-2.5 rounded-lg transition-all",
+                  "sidebar-item flex items-center justify-between w-full gap-3 px-3 py-2.5 rounded-lg transition-all",
                   (String.starts_with?(@current_path, "/admin/games") or
                      String.starts_with?(@current_path, "/admin/categories") or
                      String.starts_with?(@current_path, "/admin/teams")) &&
@@ -183,12 +184,12 @@
                   !(String.starts_with?(@current_path, "/admin/games") or
                       String.starts_with?(@current_path, "/admin/categories") or
                       String.starts_with?(@current_path, "/admin/teams")) &&
-                    "hover:bg-base-300 text-base-content"
+                    "hover:bg-primary/15 text-base-content"
                 ]}
               >
                 <div class="flex items-center gap-3">
                   <.icon name="hero-trophy" class="w-5 h-5 shrink-0" />
-                  <span class="truncate">Games</span>
+                  <span class="sidebar-label truncate">Games</span>
                 </div>
                 <.icon name="hero-chevron-down" class="w-4 h-4 shrink-0" />
               </button>
@@ -197,28 +198,28 @@
               <div data-hide-collapsed id="games-menu" class="hidden pl-8 mt-1 space-y-1">
                 <.link
                   navigate={~p"/admin/categories"}
-                  class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-base-300 transition-all"
+                  class="sidebar-item flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-primary/15 transition-all"
                 >
                   <.icon name="hero-squares-2x2" class="w-4 h-4" />
                   <span>Categories</span>
                 </.link>
                 <.link
                   navigate={~p"/admin/teams"}
-                  class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-base-300 transition-all"
+                  class="sidebar-item flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-primary/15 transition-all"
                 >
                   <.icon name="hero-user-group" class="w-4 h-4" />
                   <span>Teams</span>
                 </.link>
                 <.link
                   navigate={~p"/admin/games"}
-                  class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-base-300 transition-all"
+                  class="sidebar-item flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-primary/15 transition-all"
                 >
                   <.icon name="hero-list-bullet" class="w-4 h-4" />
                   <span>All Games</span>
                 </.link>
                 <.link
                   navigate={~p"/admin/games/new"}
-                  class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-base-300 transition-all"
+                  class="sidebar-item flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-primary/15 transition-all"
                 >
                   <.icon name="hero-plus-circle" class="w-4 h-4" />
                   <span>New Game</span>
@@ -231,19 +232,16 @@
             <.link
               navigate={~p"/admin/roles"}
               class={[
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group relative",
+                "sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group relative",
                 String.starts_with?(@current_path, "/admin/roles") &&
                   "bg-primary text-primary-content font-medium",
                 !String.starts_with?(@current_path, "/admin/roles") &&
-                  "hover:bg-base-300 text-base-content"
+                  "hover:bg-primary/15 text-base-content"
               ]}
             >
               <.icon name="hero-key" class="w-5 h-5 shrink-0" />
-              <span data-hide-collapsed class="truncate">Roles</span>
-              <div
-                data-show-collapsed
-                class="absolute left-full ml-2 px-2 py-1 bg-base-300 text-base-content text-xs rounded hidden group-hover:block whitespace-nowrap z-50"
-              >
+              <span data-hide-collapsed class="sidebar-label truncate">Roles</span>
+              <div class="sidebar-tooltip absolute left-full ml-2 px-2 py-1 bg-base-300 text-base-content text-xs rounded whitespace-nowrap z-50">
                 Roles
               </div>
             </.link>
@@ -254,41 +252,32 @@
             <.link
               navigate={~p"/admin/profits"}
               class={[
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group relative",
+                "sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group relative",
                 @current_path == "/admin/profits" && "bg-primary text-primary-content font-medium",
-                @current_path != "/admin/profits" && "hover:bg-base-300 text-base-content"
+                @current_path != "/admin/profits" && "hover:bg-primary/15 text-base-content"
               ]}
             >
               <.icon name="hero-chart-pie" class="w-5 h-5 shrink-0" />
-              <span data-hide-collapsed class="truncate">Profits</span>
-              <div
-                data-show-collapsed
-                class="absolute left-full ml-2 px-2 py-1 bg-base-300 text-base-content text-xs rounded hidden group-hover:block whitespace-nowrap z-50"
-              >
+              <span data-hide-collapsed class="sidebar-label truncate">Profits</span>
+              <div class="sidebar-tooltip absolute left-full ml-2 px-2 py-1 bg-base-300 text-base-content text-xs rounded whitespace-nowrap z-50">
                 Profits
               </div>
             </.link>
           <% end %>
 
           <%!-- Account section label --%>
-          <div
-            data-hide-collapsed
-            class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mt-4 mb-2 px-3"
-          >
+          <div data-hide-collapsed class="type-caption text-base-content/50 mt-4 mb-2 px-3">
             Account
           </div>
           <div data-show-collapsed class="border-t border-base-300 my-2"></div>
 
           <.link
             navigate={~p"/users/settings"}
-            class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-base-300 text-base-content transition-all group relative"
+            class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-primary/15 text-base-content transition-all group relative"
           >
             <.icon name="hero-cog-6-tooth" class="w-5 h-5 shrink-0" />
-            <span data-hide-collapsed class="truncate">Settings</span>
-            <div
-              data-show-collapsed
-              class="absolute left-full ml-2 px-2 py-1 bg-base-300 text-base-content text-xs rounded hidden group-hover:block whitespace-nowrap z-50"
-            >
+            <span data-hide-collapsed class="sidebar-label truncate">Settings</span>
+            <div class="sidebar-tooltip type-body-sm absolute left-full ml-2 px-2 py-1 bg-base-300 text-base-content rounded whitespace-nowrap z-50">
               Settings
             </div>
           </.link>
@@ -298,8 +287,8 @@
         <div class="p-4 border-t border-base-300">
           <div class="flex items-center gap-3">
             <div class="avatar placeholder shrink-0">
-              <div class="bg-primary text-primary-content rounded-full w-10">
-                <span class="text-sm">
+              <div class="bg-primary text-primary-content rounded-full avatar-initial w-10 h-10 flex items-center justify-center">
+                <span class="type-body-sm">
                   {String.first(@current_scope.user.first_name || "U")}{String.first(
                     @current_scope.user.last_name || ""
                   )}
@@ -307,10 +296,12 @@
               </div>
             </div>
             <div data-hide-collapsed class="flex-1 min-w-0">
-              <p class="text-sm font-medium truncate">
+              <p class="type-body-sm font-medium truncate">
                 {@current_scope.user.first_name} {@current_scope.user.last_name}
               </p>
-              <p class="text-xs text-base-content/60 truncate">{@current_scope.user.email}</p>
+              <p class="type-body-sm text-base-content/60 truncate">
+                {@current_scope.user.email}
+              </p>
             </div>
             <%= if @is_superuser do %>
               <div data-hide-collapsed class="badge rounded-full badge-error badge-sm">Admin</div>
@@ -318,7 +309,7 @@
           </div>
         </div>
       </aside>
-      <main class="flex-1 min-h-[calc(100vh-4rem)] bg-base-100 p-4 lg:p-8">
+      <main class="flex-1 bg-base-100 p-4 lg:p-8 overflow-y-auto">
         {render_slot(@inner_block)}
       </main>
     </div>
