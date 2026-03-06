@@ -53,7 +53,7 @@
             <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
               <.icon name="hero-home" class="w-10 h-10 text-primary" />
             </div>
-            <h2 class="text-xl lg:text-2xl font-bold mb-2">{@game.home_team.name}</h2>
+            <h2 class="type-h2 mb-2">{@game.home_team.name}</h2>
             <div class="flex justify-center gap-4 text-sm text-base-content/60">
               <span class="flex items-center gap-1">
                 <.icon name="hero-bolt" class="w-4 h-4 text-warning" />
@@ -81,7 +81,7 @@
             <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-secondary/10 flex items-center justify-center">
               <.icon name="hero-paper-airplane" class="w-10 h-10 text-secondary" />
             </div>
-            <h2 class="text-xl lg:text-2xl font-bold mb-2">{@game.away_team.name}</h2>
+            <h2 class="type-h2 mb-2">{@game.away_team.name}</h2>
             <div class="flex justify-center gap-4 text-sm text-base-content/60">
               <span class="flex items-center gap-1">
                 <.icon name="hero-bolt" class="w-4 h-4 text-warning" />
@@ -101,7 +101,7 @@
     <%= if @game.status == :live and @events != [] do %>
       <div class="card bg-base-100 shadow-xl mb-8 border border-base-300">
         <div class="card-body">
-          <h3 class="text-xl font-bold flex items-center gap-2">
+          <h3 class="type-h2 flex items-center gap-2">
             <.icon name="hero-sparkles" class="w-5 h-5 text-warning" /> Match Events
           </h3>
           <div class="space-y-2 mt-4">
@@ -126,7 +126,7 @@
     <div class="card bg-base-100 shadow-xl mb-8 border border-base-300">
       <div class="card-body">
         <div class="flex justify-between items-center mb-6">
-          <h3 class="text-2xl font-bold flex items-center gap-2">
+          <h3 class="type-h2 flex items-center gap-2">
             <.icon name="hero-currency-dollar" class="w-6 h-6 text-accent" /> Match Odds
           </h3>
           <button
@@ -210,7 +210,7 @@
     <%!-- Game Statistics --%>
     <div class="card bg-base-100 shadow-xl border border-base-300">
       <div class="card-body">
-        <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+        <h3 class="type-h2 mb-4 flex items-center gap-2">
           <.icon name="hero-chart-bar" class="w-5 h-5 text-info" /> Match Information
         </h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">

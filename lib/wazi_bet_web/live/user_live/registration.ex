@@ -15,7 +15,7 @@ defmodule WaziBetWeb.UserLive.Registration do
               <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-secondary/10 flex items-center justify-center">
                 <.icon name="hero-user-plus" class="w-8 h-8 text-secondary" />
               </div>
-              <h1 class="text-2xl font-bold">Create Account</h1>
+              <h1 class="type-h2">Create Account</h1>
               <p class="text-base-content/60 mt-2">
                 Already registered?
                 <.link navigate={~p"/users/log-in"} class="font-semibold text-primary hover:underline">

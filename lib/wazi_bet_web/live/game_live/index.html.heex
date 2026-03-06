@@ -186,7 +186,7 @@
         </div>
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div>
-            <h1 class="text-2xl lg:text-3xl font-bold text-base-content flex items-center gap-3">
+            <h1 class="type-h1 text-base-content flex items-center gap-3">
               <%= if @selected_category do %>
                 <% category =
                   Enum.find(@categories, &(&1.id == String.to_integer(@selected_category))) %>
@@ -253,7 +253,7 @@
               <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-base-200 flex items-center justify-center">
                 <.icon name="hero-inbox" class="w-10 h-10 text-base-content/30" />
               </div>
-              <h2 class="text-xl font-semibold mb-2">No games available</h2>
+              <h2 class="type-h2 font-semibold mb-2">No games available</h2>
               <p class="text-base-content/60">Check back later for upcoming matches</p>
             </div>
           </div>
@@ -264,7 +264,7 @@
                 <%!-- Category Header --%>
                 <div class="flex items-center gap-3 pb-2 border-b-2 border-base-300">
                   <.category_icon icon={category.icon} class="w-6 h-6 text-primary" />
-                  <h2 class="text-xl font-bold">{category.name}</h2>
+                  <h2 class="type-h2">{category.name}</h2>
                   <%= if length(live) > 0 do %>
                     <span class="badge badge-success badge-sm animate-pulse border-2">
                       LIVE
@@ -316,7 +316,7 @@
       <div class="flex flex-col h-full">
         <%!-- Header --%>
         <div class="p-3 border-b-2 border-base-300 bg-base-200">
-          <h2 class="text-xl font-bold flex items-center gap-2">
+          <h2 class="type-h2 flex items-center gap-2">
             <.icon name="hero-ticket" class="w-5 h-5 text-primary" /> Betslip
           </h2>
         </div>

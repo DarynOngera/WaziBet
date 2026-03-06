@@ -13,7 +13,7 @@
       <%!-- Left Column: Balance & Deposit --%>
       <div class="lg:col-span-1 space-y-6">
         <%!-- Current Balance Card --%>
-        <div class="card bg-base-100 shadow-xl border border-base-300">
+        <div class="card bg-base-100 shadow-xs border border-base-300">
           <div class="card-body">
             <h2 class="type-title font-medium text-base-content/60">Current Balance</h2>
             <div class="type-metric text-success">
@@ -23,7 +23,7 @@
         </div>
 
         <%!-- Deposit Form --%>
-        <div class="card bg-base-100 shadow-xl border border-base-300">
+        <div class="card bg-base-100 shadow-xs border border-base-300">
           <div class="card-body">
             <h2 class="type-h2 flex items-center gap-2">
               <.icon name="hero-plus-circle" class="w-5 h-5 text-success" /> Deposit Funds
@@ -59,7 +59,7 @@
         </div>
 
         <%!-- Quick Links --%>
-        <div class="card bg-base-100 shadow-xl border border-base-300">
+        <div class="card bg-base-100 shadow-xs border border-base-300">
           <div class="card-body">
             <h2 class="type-h2 mb-4">Quick Links</h2>
             <div class="space-y-2">
@@ -90,25 +90,25 @@
       <div class="lg:col-span-2 space-y-6">
         <%!-- Stats Overview --%>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div class="card bg-base-100 shadow-xl border border-base-300">
+          <div class="card bg-base-100 shadow-xs border border-base-300">
             <div class="card-body p-4 text-center">
               <div class="type-metric text-warning">{@summary.bets_pending}</div>
               <div class="type-caption text-base-content/60">Pending</div>
             </div>
           </div>
-          <div class="card bg-base-100 shadow-xl border border-base-300">
+          <div class="card bg-base-100 shadow-xs border border-base-300">
             <div class="card-body p-4 text-center">
               <div class="type-metric text-success">{@summary.bets_won}</div>
               <div class="type-caption text-base-content/60">Won</div>
             </div>
           </div>
-          <div class="card bg-base-100 shadow-xl border border-base-300">
+          <div class="card bg-base-100 shadow-xs border border-base-300">
             <div class="card-body p-4 text-center">
               <div class="type-metric text-error">{@summary.bets_lost}</div>
               <div class="type-caption text-base-content/60">Lost</div>
             </div>
           </div>
-          <div class="card bg-base-100 shadow-xl border border-base-300">
+          <div class="card bg-base-100 shadow-xs border border-base-300">
             <div class="card-body p-4 text-center">
               <div class="type-metric">{@summary.total_bets}</div>
               <div class="type-caption text-base-content/60">Total</div>
@@ -117,7 +117,7 @@
         </div>
 
         <%!-- Recent Bets --%>
-        <div class="card bg-base-100 shadow-xl border border-base-300">
+        <div class="card bg-base-100 shadow-xs border border-base-300">
           <div class="card-body">
             <div class="flex justify-between items-center mb-4">
               <h2 class="type-h2 flex items-center gap-2">
@@ -154,13 +154,13 @@
                         <td class="type-body-sm type-mono">
                           {Calendar.strftime(bet.inserted_at, "%d %b %H:%M")}
                         </td>
-                        <td class="type-mono">${Decimal.round(bet.stake, 2)}</td>
+                        <td class="type-mono">{Decimal.round(bet.stake, 2)}Kes</td>
                         <td class="type-mono">{Decimal.round(bet.total_odds, 2)}</td>
                         <td class="type-mono text-success">
                           {Decimal.round(bet.potential_payout, 2)}Kes
                         </td>
                         <td>
-                          <span class={["badge badge-sm", status_color(bet.status)]}>
+                          <span class={["badge badge-sm rounded-full", status_color(bet.status)]}>
                             {String.capitalize(to_string(bet.status))}
                           </span>
                         </td>
@@ -174,7 +174,7 @@
         </div>
 
         <%!-- Bet Now CTA --%>
-        <div class="card bg-base-100 shadow-xl border border-base-300">
+        <div class="card bg-base-100 shadow-xs border border-base-300">
           <div class="card-body flex flex-row items-center justify-between">
             <div>
               <h2 class="type-h2">Ready to Bet?</h2>

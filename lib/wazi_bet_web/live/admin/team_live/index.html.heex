@@ -7,7 +7,7 @@
 >
   <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
     <div>
-      <h1 class="text-3xl lg:text-4xl font-bold text-base-content flex items-center gap-3">
+      <h1 class="type-h1 text-base-content flex items-center gap-3">
         <.icon name="hero-user-group" class="w-8 h-8 text-primary" /> Teams
       </h1>
       <p class="text-base-content/60 mt-2">Manage teams with attack and defense ratings</p>
@@ -17,7 +17,7 @@
   <%!-- Create Team Form --%>
   <div class="card se-100 shadow-xs mb-8 border border-base-300">
     <div class="card-body">
-      <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+      <h2 class="type-h2 mb-4 flex items-center gap-2">
         <.icon name="hero-plus-circle" class="w-5 h-5 text-secondary" /> Add New Team
       </h2>
       <form phx-submit="create_team" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
@@ -89,7 +89,7 @@
         <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-base-200 flex items-center justify-center">
           <.icon name="hero-user-group" class="w-10 h-10 text-base-content/30" />
         </div>
-        <h2 class="text-xl font-semibold mb-2">No teams found</h2>
+        <h2 class="type-h2 font-semibold mb-2">No teams found</h2>
         <p class="text-base-content/60 mb-6">Create your first team above</p>
       </div>
     </div>

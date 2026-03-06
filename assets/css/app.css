@@ -144,13 +144,18 @@
   --font-sans: "Manrope", "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   --font-mono: "JetBrains Mono", "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono",
     monospace;
-  --type-h1: clamp(1.45rem, 1.25rem + 0.8vw, 1.85rem);
-  --type-h2: clamp(1.15rem, 1.05rem + 0.4vw, 1.35rem);
-  --type-title: 0.95rem;
-  --type-body: 0.88rem;
-  --type-body-sm: 0.8rem;
-  --type-caption: 0.68rem;
-  --type-metric: clamp(1.1rem, 1rem + 0.6vw, 1.5rem);
+  --type-h1: 20px;
+  --type-h2: 20px;
+  --type-title: 20px;
+  --type-body: 12px;
+  --type-body-sm: 10px;
+  --type-caption: 10px;
+  --type-metric: 20px;
+  --icon-xs: 0.875rem;
+  --icon-sm: 1rem;
+  --icon-md: 1.125rem;
+  --icon-lg: 1.25rem;
+  --icon-xl: 1.5rem;
 }
 
 html,
@@ -220,6 +225,31 @@ body {
 .type-mono {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
+}
+
+.icon-xs {
+  width: var(--icon-xs);
+  height: var(--icon-xs);
+}
+
+.icon-sm {
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+}
+
+.icon-md {
+  width: var(--icon-md);
+  height: var(--icon-md);
+}
+
+.icon-lg {
+  width: var(--icon-lg);
+  height: var(--icon-lg);
+}
+
+.icon-xl {
+  width: var(--icon-xl);
+  height: var(--icon-xl);
 }
 
 /* daisyUI sets .avatar > div to display:block; force centering for initial placeholders */
@@ -303,7 +333,7 @@ body {
 /* Admin sidebar collapsed/expanded behavior (desktop) */
 @media (min-width: 1024px) {
   #admin-sidebar {
-    width: 18rem;
+    width: 16rem;
     transition-property: width;
     transition-duration: 450ms;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
@@ -316,7 +346,7 @@ body {
   }
 
   html[data-sidebar-collapsed] #admin-sidebar {
-    width: 4rem;
+    width: 3.75rem;
   }
 
   #admin-sidebar .sidebar-label {
@@ -366,22 +396,6 @@ body {
   html:not([data-sidebar-collapsed]) #admin-sidebar [data-show-collapsed] {
     display: none !important;
   }
-
-  #admin-sidebar .sidebar-tooltip {
-    display: block;
-    visibility: hidden;
-    opacity: 0;
-    pointer-events: none;
-    transform: translateX(-4px);
-    transition: opacity 180ms ease, transform 220ms ease, visibility 0s linear 220ms;
-  }
-
-  html[data-sidebar-collapsed] #admin-sidebar .group:hover .sidebar-tooltip {
-    visibility: visible;
-    opacity: 1;
-    transform: translateX(0);
-    transition: opacity 180ms ease, transform 220ms ease, visibility 0s;
-  }
 }
 
 /* Game Live categories sidebar behavior */
@@ -389,4 +403,25 @@ body {
   transition-property: background-color, color, border-color;
   transition-duration: 280ms;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Floating collapsed-sidebar tooltip (positioned by JS) */
+.sidebar-tooltip-floating {
+  position: fixed;
+  z-index: 70;
+  pointer-events: none;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  background: color-mix(in oklab, var(--color-base-300) 88%, black);
+  color: var(--color-base-content);
+  font-size: var(--type-body-sm);
+  white-space: nowrap;
+  opacity: 0;
+  transform: translate(0, -50%);
+  transition: opacity 140ms ease;
+  box-shadow: 0 8px 18px oklch(0% 0 0 / 0.22);
+}
+
+.sidebar-tooltip-floating.visible {
+  opacity: 1;
 }

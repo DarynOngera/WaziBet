@@ -8,13 +8,13 @@
     </div>
 
     <%!-- Current Balance Card --%>
-    <div class="card bg-gradient-to-br from-primary to-primary-focus text-primary-content shadow-xl mb-8">
+    <div class="card bg-gradient-to-br from-primary to-primary-focus text-primary-content shadow-xs mb-8">
       <div class="card-body">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h2 class="type-title opacity-80">Current Balance</h2>
             <div class="type-metric">
-              ${Decimal.round(@user.balance, 2)}
+              {Decimal.round(@user.balance, 2)}Kes
             </div>
           </div>
 
@@ -32,7 +32,7 @@
 
     <%!-- Stats Grid --%>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-      <div class="card bg-base-100 shadow-xl border border-base-300">
+      <div class="card bg-base-100 shadow-xs border border-base-300">
         <div class="card-body p-4">
           <div class="flex items-center gap-3">
             <div class="w-12 h-12 rounded-full bg-info/10 flex items-center justify-center">
@@ -41,14 +41,14 @@
             <div>
               <p class="type-caption text-base-content/60">Total Wagered</p>
               <p class="type-metric">
-                ${Decimal.round(@summary.total_wagered, 2)}
+                {Decimal.round(@summary.total_wagered, 2)}Kes
               </p>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="card bg-base-100 shadow-xl border border-base-300">
+      <div class="card bg-base-100 shadow-xs border border-base-300">
         <div class="card-body p-4">
           <div class="flex items-center gap-3">
             <div class="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center">
@@ -57,14 +57,14 @@
             <div>
               <p class="type-caption text-base-content/60">Total Won</p>
               <p class="type-metric text-success">
-                ${Decimal.round(@summary.total_won, 2)}
+                {Decimal.round(@summary.total_won, 2)}Kes
               </p>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="card bg-base-100 shadow-xl border border-base-300">
+      <div class="card bg-base-100 shadow-xs border border-base-300">
         <div class="card-body p-4">
           <div class="flex items-center gap-3">
             <div class="w-12 h-12 rounded-full bg-error/10 flex items-center justify-center">
@@ -73,14 +73,14 @@
             <div>
               <p class="type-caption text-base-content/60">Total Lost</p>
               <p class="type-metric text-error">
-                ${Decimal.round(@summary.total_lost, 2)}
+                {Decimal.round(@summary.total_lost, 2)}Kes
               </p>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="card bg-base-100 shadow-xl border border-base-300">
+      <div class="card bg-base-100 shadow-xs border border-base-300">
         <div class="card-body p-4">
           <div class="flex items-center gap-3">
             <div class={[
@@ -95,7 +95,7 @@
             <div>
               <p class="type-caption text-base-content/60">Net Profit/Loss</p>
               <p class={["type-metric", profit_color(@summary)]}>
-                ${Decimal.round(Decimal.abs(net_profit(@summary)), 2)}
+                {Decimal.round(Decimal.abs(net_profit(@summary)), 2)}Kes
               </p>
             </div>
           </div>
@@ -104,7 +104,7 @@
     </div>
 
     <%!-- Betting Summary --%>
-    <div class="card bg-base-100 shadow-xl border border-base-300">
+    <div class="card bg-base-100 shadow-xs border border-base-300">
       <div class="card-body">
         <h2 class="type-h2 mb-4 flex items-center gap-2">
           <.icon name="hero-chart-bar" class="w-5 h-5 text-primary" /> Betting Summary

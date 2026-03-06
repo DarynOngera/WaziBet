@@ -253,6 +253,8 @@ const Hooks = {
     const root = document.documentElement;
     const overlay = document.getElementById("sidebar-overlay");
     const chevron = this.el.querySelector(".hero-chevron-right");
+    this._sidebarTooltipEl = null;
+    this._tooltipTargets = [];
     const transitionMs = () => {
       const raw = getComputedStyle(this.el).transitionDuration || "0s";
       return raw
@@ -268,6 +270,35 @@ const Hooks = {
       const isCollapsed = root.hasAttribute("data-sidebar-collapsed");
       chevron.classList.toggle("rotate-180", !isCollapsed);
       chevron.classList.toggle("rotate-0", isCollapsed);
+    };
+
+    const ensureFloatingTooltip = () => {
+      if (this._sidebarTooltipEl) return this._sidebarTooltipEl;
+      const tip = document.createElement("div");
+      tip.className = "sidebar-tooltip-floating";
+      document.body.appendChild(tip);
+      this._sidebarTooltipEl = tip;
+      return tip;
+    };
+
+    const hideFloatingTooltip = () => {
+      if (!this._sidebarTooltipEl) return;
+      this._sidebarTooltipEl.classList.remove("visible");
+    };
+
+    const showFloatingTooltip = (event) => {
+      const target = event.currentTarget;
+      const label = target?.dataset?.tooltip;
+      if (!label) return;
+      if (!root.hasAttribute("data-sidebar-collapsed")) return;
+      if (window.innerWidth < 1024) return;
+
+      const tooltip = ensureFloatingTooltip();
+      const rect = target.getBoundingClientRect();
+      tooltip.textContent = label;
+      tooltip.style.left = `${rect.right + 8}px`;
+      tooltip.style.top = `${rect.top + rect.height / 2}px`;
+      tooltip.classList.add("visible");
     };
 
     // Restore persisted collapsed state on each mount
@@ -304,6 +335,7 @@ const Hooks = {
         localStorage.setItem("sidebar-collapsed", "true");
       }
       syncChevron();
+      this._hideFloatingTooltip?.();
     };
 
     this._onCloseMobileSidebar = () => {
@@ -326,6 +358,16 @@ const Hooks = {
     window.addEventListener("admin:close-mobile-sidebar", this._onCloseMobileSidebar);
     window.addEventListener("admin:open-mobile-sidebar", this._onOpenMobileSidebar);
     overlay?.addEventListener("click", this._onOverlayClick);
+
+    this._showFloatingTooltip = showFloatingTooltip;
+    this._hideFloatingTooltip = hideFloatingTooltip;
+    this._tooltipTargets = Array.from(this.el.querySelectorAll("[data-tooltip]"));
+    this._tooltipTargets.forEach((node) => {
+      node.addEventListener("mouseenter", this._showFloatingTooltip);
+      node.addEventListener("mouseleave", this._hideFloatingTooltip);
+      node.addEventListener("blur", this._hideFloatingTooltip, true);
+    });
+    window.addEventListener("scroll", this._hideFloatingTooltip, true);
   },
 
   destroyed() {
@@ -336,6 +378,15 @@ const Hooks = {
     window.removeEventListener("admin:close-mobile-sidebar", this._onCloseMobileSidebar);
     window.removeEventListener("admin:open-mobile-sidebar", this._onOpenMobileSidebar);
     overlay?.removeEventListener("click", this._onOverlayClick);
+
+    this._tooltipTargets?.forEach((node) => {
+      node.removeEventListener("mouseenter", this._showFloatingTooltip);
+      node.removeEventListener("mouseleave", this._hideFloatingTooltip);
+      node.removeEventListener("blur", this._hideFloatingTooltip, true);
+    });
+    window.removeEventListener("scroll", this._hideFloatingTooltip, true);
+    this._sidebarTooltipEl?.remove();
+    this._sidebarTooltipEl = null;
   }
 },
 
