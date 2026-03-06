@@ -70,11 +70,11 @@
         id="admin-sidebar"
         phx-hook="AdminSidebar"
         class="
-    fixed lg:sticky top-16 inset-y-16 left-0 z-40
-    w-72 transition-transform duration-300
+    fixed lg:sticky top-16 lg:top-0 inset-y-16 lg:inset-y-0 left-0 z-40
+    w-64 transition-transform duration-300
     transform -translate-x-full lg:translate-x-0
     bg-base-200 border-r border-base-300
-    flex flex-col overflow-visible lg:h-[calc(100vh-4rem)]
+    flex flex-col overflow-x-visible overflow-y-hidden lg:h-full
   "
       >
         <%!-- Collapse toggle (desktop only) --%>
@@ -82,7 +82,7 @@
           <button
             class="btn btn-ghost btn-xs btn-circle"
             onclick="window.dispatchEvent(new Event('admin:toggle-sidebar'))"
-            title="Toggle sidebar"
+            data-tooltip="Toggle sidebar"
           >
             <.icon
               id="sidebar-chevron"
@@ -92,10 +92,11 @@
           </button>
         </div>
 
-        <nav class="flex-1 p-2 space-y-1 overflow-y-auto overflow-x-visible lg:overflow-visible">
+        <nav class="flex-1 p-2 space-y-1 overflow-y-auto overflow-x-hidden">
           <%!-- Dashboard --%>
           <.link
             navigate={~p"/admin/dashboard"}
+            data-tooltip="Dashboard"
             class={[
               "sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group relative",
               @current_path == "/admin/dashboard" && "bg-primary text-primary-content font-medium",
@@ -119,6 +120,7 @@
           <%= if has_permission?(@user_permissions, "view-users") do %>
             <.link
               navigate={~p"/admin/users"}
+              data-tooltip="Users"
               class={[
                 "sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group relative",
                 String.starts_with?(@current_path, "/admin/users") &&
@@ -143,6 +145,7 @@
               <.link
                 data-show-collapsed
                 navigate={~p"/admin/games"}
+                data-tooltip="Games"
                 class={[
                   "sidebar-item hidden items-center gap-3 px-3 py-2.5 rounded-lg transition-all group relative",
                   (String.starts_with?(@current_path, "/admin/games") or
@@ -231,6 +234,7 @@
           <%= if has_permission?(@user_permissions, "assign-roles") do %>
             <.link
               navigate={~p"/admin/roles"}
+              data-tooltip="Roles"
               class={[
                 "sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group relative",
                 String.starts_with?(@current_path, "/admin/roles") &&
@@ -251,6 +255,7 @@
           <%= if has_permission?(@user_permissions, "view-profits-from-losses") do %>
             <.link
               navigate={~p"/admin/profits"}
+              data-tooltip="Profits"
               class={[
                 "sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group relative",
                 @current_path == "/admin/profits" && "bg-primary text-primary-content font-medium",
@@ -273,6 +278,7 @@
 
           <.link
             navigate={~p"/users/settings"}
+            data-tooltip="Settings"
             class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-primary/15 text-base-content transition-all group relative"
           >
             <.icon name="hero-cog-6-tooth" class="w-5 h-5 shrink-0" />

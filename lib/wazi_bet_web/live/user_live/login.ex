@@ -14,7 +14,7 @@ defmodule WaziBetWeb.UserLive.Login do
               <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
                 <.icon name="hero-arrow-right-on-rectangle" class="w-8 h-8 text-primary" />
               </div>
-              <h1 class="text-2xl font-bold">Log in</h1>
+              <h1 class="type-h2">Log in</h1>
               <p class="text-base-content/60 mt-2">
                 <%= if @current_scope do %>
                   You need to reauthenticate to perform sensitive actions on your account.

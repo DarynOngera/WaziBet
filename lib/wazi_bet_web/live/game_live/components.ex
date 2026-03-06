@@ -31,7 +31,7 @@ defmodule WaziBetWeb.GameLive.Components do
       <div class="flex flex-col h-full">
         <%!-- Header --%>
         <div class="p-4 border-b-2 border-base-200 flex justify-between items-center bg-base-200">
-          <h2 class="text-xl font-bold flex items-center gap-2">
+          <h2 class="type-h2 flex items-center gap-2">
             <.icon name="hero-ticket" class="w-5 h-5 text-primary" /> Betslip
           </h2>
           <button phx-click="close_sidebar" class="btn btn-ghost btn-sm btn-circle">
@@ -156,7 +156,7 @@ defmodule WaziBetWeb.GameLive.Components do
 
         <%!-- Header --%>
         <div class="px-4 py-3 border-b-2 border-base-200 flex justify-between items-center bg-base-200">
-          <h2 class="text-xl font-bold flex items-center gap-2">
+          <h2 class="type-h2 flex items-center gap-2">
             <.icon name="hero-ticket" class="w-5 h-5 text-primary" /> Betslip
           </h2>
           <button phx-click="close_sidebar" class="btn btn-ghost btn-sm btn-circle">

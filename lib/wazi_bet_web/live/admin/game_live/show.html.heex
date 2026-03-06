@@ -33,7 +33,7 @@
       <%!-- Team Ratings --%>
       <div class="card bg-base-100 shadow-xs border border-base-300 mb-6">
         <div class="card-body">
-          <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+          <h3 class="type-title mb-4 flex items-center gap-2">
             <.icon name="hero-chart-bar" class="w-5 h-5 text-primary" /> Team Ratings
             <span class="text-sm font-normal text-base-content/60">
               (Used to calculate odds)
@@ -161,7 +161,7 @@
       <%= if @game.status == :live and @events != [] do %>
         <div class="card bg-base-100 shadow-xs border border-warning/30 mb-6">
           <div class="card-body">
-            <h3 class="text-lg font-bold flex items-center gap-2">
+            <h3 class="type-title flex items-center gap-2">
               <.icon name="hero-sparkles" class="w-5 h-5 text-warning" /> Match Events
             </h3>
             <div class="space-y-2 mt-4">
@@ -185,7 +185,7 @@
       <%!-- Outcomes --%>
       <div class="card bg-base-100 shadow-xs border border-base-300">
         <div class="card-body">
-          <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+          <h2 class="type-h2 mb-4 flex items-center gap-2">
             <.icon name="hero-currency-dollar" class="w-5 h-5 text-primary" /> Betting Odds
           </h2>
 
@@ -240,7 +240,7 @@
     <div class="lg:col-span-1">
       <div class="card bg-base-100 shadow-xs border border-base-300 sticky top-4">
         <div class="card-body">
-          <h2 class="text-lg font-bold mb-4">Game Details</h2>
+          <h2 class="type-title mb-4">Game Details</h2>
 
           <div class="space-y-3">
             <div class="flex justify-between">
