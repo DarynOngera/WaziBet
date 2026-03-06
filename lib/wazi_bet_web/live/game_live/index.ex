@@ -394,7 +394,7 @@ defmodule WaziBetWeb.GameLive.Index do
 
   def game_card(assigns) do
     ~H"""
-    <div class="card bg-base-100 shadow-2xs border-2 border-base-300 hover:border-primary transition-colors">
+    <div class="card bg-base-100 shadow-2xs border border-base-300 hover:border-primary transition-colors">
       <div class="card-body p-2">
         <div class="flex flex-col lg:flex-row gap-4">
           <%!-- Match Info --%>

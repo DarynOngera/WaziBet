@@ -9,7 +9,7 @@ defmodule WaziBetWeb.UserLive.Registration do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <div class="mx-auto max-w-md">
-        <div class="card bg-base-100 shadow-xl border-2 border-base-300">
+        <div class="card bg-base-100 shadow-xl border border-base-300">
           <div class="card-body p-8">
             <div class="text-center mb-8">
               <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-secondary/10 flex items-center justify-center">

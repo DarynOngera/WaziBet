@@ -50,9 +50,12 @@ defmodule WaziBetWeb.Layouts do
 
   def app(assigns) do
     ~H"""
-    <header class="navbar bg-base-200 border-b border-base-300 sticky top-0 z-50">
-      <div class="navbar-start gap-2">
-        <.link href={~p"/"} class="btn btn-ghost text-xl font-bold tracking-wider">
+    <header class="navbar h-12 min-h-12 md:h-14 md:min-h-14 bg-base-200 border-b border-base-300 sticky top-0 z-50 px-1.5 sm:px-2.5">
+      <div class="navbar-start gap-1.5 sm:gap-2">
+        <.link
+          href={~p"/"}
+          class="btn btn-ghost text-base md:type-title font-bold tracking-wider px-1.5 sm:px-2.5"
+        >
           <span class="text-primary">WAZI</span><span class="text-secondary">BET</span>
         </.link>
       </div>
@@ -79,7 +82,7 @@ defmodule WaziBetWeb.Layouts do
         </ul>
       </div>
       <div class="navbar-end">
-        <ul class="menu menu-horizontal items-center gap-2">
+        <ul class="menu menu-horizontal items-center gap-0.5 sm:gap-1">
           <%= if @current_scope do %>
             <%!-- Balance Display --%>
             <li>
@@ -118,7 +121,7 @@ defmodule WaziBetWeb.Layouts do
       </div>
     </header>
 
-    <main class="px-0 py-0 min-h-[calc(100vh-4rem)]">
+    <main class="px-0 py-0 min-h-[calc(100vh-3rem)] md:min-h-[calc(100vh-3.5rem)]">
       {render_slot(@inner_block)}
     </main>
 
@@ -177,7 +180,7 @@ defmodule WaziBetWeb.Layouts do
   def theme_toggle(assigns) do
     ~H"""
     <button
-      class="btn btn-ghost btn-circle"
+      class="btn btn-ghost btn-circle btn-sm"
       phx-click={JS.dispatch("phx:cycle-theme")}
       title="Toggle theme"
     >

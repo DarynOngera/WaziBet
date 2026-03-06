@@ -7,10 +7,10 @@
 >
   <%!-- Header --%>
   <div class="mb-8">
-    <h1 class="text-3xl lg:text-4xl font-bold text-base-content flex items-center gap-3">
+    <h1 class="type-h1 text-base-content flex items-center gap-3">
       <.icon name="hero-shield-check" class="w-8 h-8 text-primary" /> Admin Dashboard
     </h1>
-    <p class="text-base-content/60 mt-2">
+    <p class="type-body text-base-content/60 mt-2">
       Welcome back! Here's an overview of your platform.
     </p>
   </div>
@@ -18,15 +18,15 @@
   <%!-- Stats Overview --%>
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
     <%= if has_permission?(@user_permissions, "view-users") do %>
-      <div class="card bg-base-100 shadow-xs border-2 border-base-300">
+      <div class="card bg-base-100 shadow-xs border border-base-300">
         <div class="card-body p-4">
           <div class="flex items-center gap-3">
             <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
               <.icon name="hero-users" class="w-6 h-6 text-primary" />
             </div>
             <div>
-              <p class="text-sm text-base-content/60">Total Users</p>
-              <p class="text-2xl font-bold font-mono">{@total_users}</p>
+              <p class="type-caption text-base-content/60">Total Users</p>
+              <p class="type-metric">{@total_users}</p>
             </div>
           </div>
         </div>
@@ -34,15 +34,15 @@
     <% end %>
 
     <%= if has_permission?(@user_permissions, "view-profits-from-losses") do %>
-      <div class="card bg-base-100 shadow-xs border-2 border-base-300">
+      <div class="card bg-base-100 shadow-xs border border-base-300">
         <div class="card-body p-4">
           <div class="flex items-center gap-3">
-            <div class="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center">
-              <.icon name="hero-currency-dollar" class="w-6 h-6 text-success" />
+            <div class="w-12 h-12 rounded-full bg-primary/12 flex items-center justify-center">
+              <.icon name="hero-currency-dollar" class="w-6 h-6 text-primary" />
             </div>
             <div>
-              <p class="text-sm text-base-content/60">Net Profit</p>
-              <p class="text-2xl font-bold font-mono text-success">
+              <p class="type-caption text-base-content/60">Net Profit</p>
+              <p class="type-metric text-primary">
                 {Decimal.round(Decimal.abs(@stats.net_profit), 0)}Kes
               </p>
             </div>
@@ -52,15 +52,15 @@
     <% end %>
 
     <%= if has_permission?(@user_permissions, "configure-games") do %>
-      <div class="card bg-base-100 shadow-xs border-2 border-base-300">
+      <div class="card bg-base-100 shadow-xs border border-base-300">
         <div class="card-body p-4">
           <div class="flex items-center gap-3">
-            <div class="w-12 h-12 rounded-full bg-info/10 flex items-center justify-center">
-              <.icon name="hero-trophy" class="w-6 h-6 text-info" />
+            <div class="w-12 h-12 rounded-full bg-primary/12 flex items-center justify-center">
+              <.icon name="hero-trophy" class="w-6 h-6 text-primary/90" />
             </div>
             <div>
-              <p class="text-sm text-base-content/60">Active Games</p>
-              <p class="text-2xl font-bold font-mono text-info">
+              <p class="type-caption text-base-content/60">Active Games</p>
+              <p class="type-metric text-primary/90">
                 {@game_counts.scheduled + @game_counts.live}
               </p>
             </div>
@@ -69,15 +69,15 @@
       </div>
     <% end %>
 
-    <div class="card bg-base-100 shadow-xs border-2 border-base-300">
+    <div class="card bg-base-100 shadow-xs border border-base-300">
       <div class="card-body p-4">
         <div class="flex items-center gap-3">
-          <div class="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center">
-            <.icon name="hero-ticket" class="w-6 h-6 text-secondary" />
+          <div class="w-12 h-12 rounded-full bg-primary/12 flex items-center justify-center">
+            <.icon name="hero-ticket" class="w-6 h-6 text-primary/80" />
           </div>
           <div>
-            <p class="text-sm text-base-content/60">Total Bets</p>
-            <p class="text-2xl font-bold font-mono text-secondary">
+            <p class="type-caption text-base-content/60">Total Bets</p>
+            <p class="type-metric text-primary/80">
               {@bet_counts.total}
             </p>
           </div>
@@ -88,15 +88,15 @@
 
   <%!-- Win/Loss Stats --%>
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-    <div class="card bg-base-100 shadow-xs border-2 border-base-300">
+    <div class="card bg-base-100 shadow-xs border border-base-300">
       <div class="card-body p-4">
         <div class="flex items-center gap-3">
-          <div class="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center">
-            <.icon name="hero-check-circle" class="w-6 h-6 text-success" />
+          <div class="w-12 h-12 rounded-full bg-primary/12 flex items-center justify-center">
+            <.icon name="hero-check-circle" class="w-6 h-6 text-primary" />
           </div>
           <div>
-            <p class="text-sm text-base-content/60">Bets Won</p>
-            <p class="text-2xl font-bold font-mono text-success">
+            <p class="type-caption text-base-content/60">Bets Won</p>
+            <p class="type-metric text-primary">
               {@stats.total_bets_won}
             </p>
           </div>
@@ -104,15 +104,15 @@
       </div>
     </div>
 
-    <div class="card bg-base-100 shadow-xs border-2 border-base-300">
+    <div class="card bg-base-100 shadow-xs border border-base-300">
       <div class="card-body p-4">
         <div class="flex items-center gap-3">
-          <div class="w-12 h-12 rounded-full bg-warning/10 flex items-center justify-center">
-            <.icon name="hero-clock" class="w-6 h-6 text-warning" />
+          <div class="w-12 h-12 rounded-full bg-primary/12 flex items-center justify-center">
+            <.icon name="hero-clock" class="w-6 h-6 text-primary/75" />
           </div>
           <div>
-            <p class="text-sm text-base-content/60">Pending Bets</p>
-            <p class="text-2xl font-bold font-mono text-warning">
+            <p class="type-caption text-base-content/60">Pending Bets</p>
+            <p class="type-metric text-primary/75">
               {@bet_counts.pending}
             </p>
           </div>
@@ -120,15 +120,15 @@
       </div>
     </div>
 
-    <div class="card bg-base-100 shadow-xs border-2 border-base-300">
+    <div class="card bg-base-100 shadow-xs border border-base-300">
       <div class="card-body p-4">
         <div class="flex items-center gap-3">
-          <div class="w-12 h-12 rounded-full bg-info/10 flex items-center justify-center">
-            <.icon name="hero-chart-bar" class="w-6 h-6 text-info" />
+          <div class="w-12 h-12 rounded-full bg-primary/12 flex items-center justify-center">
+            <.icon name="hero-chart-bar" class="w-6 h-6 text-primary/85" />
           </div>
           <div>
-            <p class="text-sm text-base-content/60">Games Completed</p>
-            <p class="text-2xl font-bold font-mono text-info">
+            <p class="type-caption text-base-content/60">Games Completed</p>
+            <p class="type-metric text-primary/85">
               {@game_counts.completed}
             </p>
           </div>
@@ -140,32 +140,32 @@
   <%!-- Financial Overview & Quick Actions --%>
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <%= if has_permission?(@user_permissions, "view-profits-from-losses") do %>
-      <div class="card bg-base-100 shadow-xs border-2 border-base-300">
+      <div class="card bg-base-100 shadow-xs border border-base-300">
         <div class="card-body">
           <div class="flex items-center gap-2 mb-4">
-            <div class="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center">
-              <.icon name="hero-currency-dollar" class="w-5 h-5 text-success" />
+            <div class="w-10 h-10 rounded-full bg-primary/12 flex items-center justify-center">
+              <.icon name="hero-currency-dollar" class="w-5 h-5 text-primary" />
             </div>
-            <h2 class="text-xl font-bold">Financial Overview</h2>
+            <h2 class="type-h2">Financial Overview</h2>
           </div>
 
           <div class="space-y-3">
             <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
-              <span class="text-base-content/70">Total Stakes Lost</span>
-              <span class="font-mono font-bold text-success">
+              <span class="type-body text-base-content/70">Total Stakes Lost</span>
+              <span class="type-mono font-bold text-primary">
                 {Decimal.round(@stats.total_stakes_lost, 2)}Kes
               </span>
             </div>
             <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
-              <span class="text-base-content/70">Total Payouts</span>
-              <span class="font-mono font-bold text-error">
+              <span class="type-body text-base-content/70">Total Payouts</span>
+              <span class="type-mono font-bold text-primary/75">
                 {Decimal.round(@stats.total_payouts, 2)}Kes
               </span>
             </div>
             <div class="divider my-2"></div>
             <div class="flex justify-between items-center p-3 bg-primary/10 rounded-lg">
-              <span class="font-medium">Net Profit</span>
-              <span class="font-mono font-bold text-xl text-success">
+              <span class="type-body font-medium">Net Profit</span>
+              <span class="type-metric text-primary">
                 {Decimal.round(Decimal.abs(@stats.net_profit), 2)}Kes
               </span>
             </div>
@@ -184,37 +184,37 @@
     <% end %>
 
     <%= if has_permission?(@user_permissions, "configure-games") do %>
-      <div class="card bg-base-100 shadow-xs border-2 border-base-300">
+      <div class="card bg-base-100 shadow-xs border border-base-300">
         <div class="card-body">
           <div class="flex items-center gap-2 mb-4">
-            <div class="w-10 h-10 rounded-full bg-info/10 flex items-center justify-center">
-              <.icon name="hero-trophy" class="w-5 h-5 text-info" />
+            <div class="w-10 h-10 rounded-full bg-primary/12 flex items-center justify-center">
+              <.icon name="hero-trophy" class="w-5 h-5 text-primary/90" />
             </div>
-            <h2 class="text-xl font-bold">Games Overview</h2>
+            <h2 class="type-h2">Games Overview</h2>
           </div>
 
           <div class="space-y-3">
             <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
-              <span class="text-base-content/70 flex items-center gap-2">
-                <.icon name="hero-play" class="w-4 h-4 text-success" /> Live Games
+              <span class="type-body text-base-content/70 flex items-center gap-2">
+                <.icon name="hero-play" class="w-4 h-4 text-primary" /> Live Games
               </span>
-              <span class="font-mono font-bold text-success">
+              <span class="type-mono font-bold text-primary">
                 {@game_counts.live}
               </span>
             </div>
             <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
-              <span class="text-base-content/70 flex items-center gap-2">
-                <.icon name="hero-clock" class="w-4 h-4 text-warning" /> Scheduled
+              <span class="type-body text-base-content/70 flex items-center gap-2">
+                <.icon name="hero-clock" class="w-4 h-4 text-primary/75" /> Scheduled
               </span>
-              <span class="font-mono font-bold text-warning">
+              <span class="type-mono font-bold text-primary/75">
                 {@game_counts.scheduled}
               </span>
             </div>
             <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg">
-              <span class="text-base-content/70 flex items-center gap-2">
-                <.icon name="hero-check" class="w-4 h-4 text-info" /> Completed
+              <span class="type-body text-base-content/70 flex items-center gap-2">
+                <.icon name="hero-check" class="w-4 h-4 text-primary/85" /> Completed
               </span>
-              <span class="font-mono font-bold text-info">
+              <span class="type-mono font-bold text-primary/85">
                 {@game_counts.completed}
               </span>
             </div>
@@ -223,7 +223,7 @@
           <div class="mt-4">
             <.link
               navigate={~p"/admin/games"}
-              class="btn btn-info w-full border-2"
+              class="btn btn-primary w-full border-2"
             >
               <.icon name="hero-list-bullet" class="w-5 h-5 mr-2" /> Manage Games
             </.link>
@@ -231,6 +231,5 @@
         </div>
       </div>
     <% end %>
-
-     </div>
+  </div>
 </Layouts.admin>
