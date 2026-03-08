@@ -325,6 +325,32 @@ defmodule WaziBet.Accounts do
     end
   end
 
+  def delete_role(%Role{} = role) do
+    if role.slug in ["admin", "user"] do
+      {:error, :protected_role}
+    else
+      user_count =
+        from(ur in "user_roles",
+          where: ur.role_id == ^role.id,
+          select: count(ur.role_id)
+        )
+        |> Repo.one()
+
+      if user_count > 0 do
+        {:error, :role_in_use}
+      else
+        case Repo.transact(fn ->
+               from(rp in "role_permissions", where: rp.role_id == ^role.id) |> Repo.delete_all()
+               Repo.delete(role)
+             end) do
+          {:ok, {:ok, deleted_role}} -> {:ok, deleted_role}
+          {:ok, {:error, _changeset}} -> {:error, :delete_failed}
+          {:error, _reason} -> {:error, :delete_failed}
+        end
+      end
+    end
+  end
+
   ## Role Permission Management
 
   def get_role_with_permissions!(id) do

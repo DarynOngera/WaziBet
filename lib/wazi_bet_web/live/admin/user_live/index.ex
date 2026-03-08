@@ -23,10 +23,15 @@ defmodule WaziBetWeb.Admin.UserLive.Index do
 
     {users, total_count} = list_paginated_users(page, query)
     total_pages = ceil(total_count / @page_size)
+    roles = Accounts.list_roles()
+    changeset = Accounts.User.registration_changeset(%Accounts.User{}, %{}, validate_email: false)
 
     {:ok,
      socket
      |> assign(:users, users)
+     |> assign(:roles, roles)
+     |> assign(:show_create_user_modal, false)
+     |> assign(:create_user_form, to_form(changeset, as: :user))
      |> assign(:user_permissions, user_permissions)
      |> assign(:is_superuser, is_superuser)
      |> assign(:current_path, current_path)
@@ -67,6 +72,64 @@ defmodule WaziBetWeb.Admin.UserLive.Index do
      |> assign(:total_count, total_count)
      |> assign(:search_query, query)
      |> push_patch(to: "/admin/users?page=1&query=#{URI.encode(query)}")}
+  end
+
+  @impl true
+  def handle_event("open_create_user_modal", _params, socket) do
+    changeset = Accounts.User.registration_changeset(%Accounts.User{}, %{}, validate_email: false)
+
+    {:noreply,
+     socket
+     |> assign(:show_create_user_modal, true)
+     |> assign(:create_user_form, to_form(changeset, as: :user))}
+  end
+
+  @impl true
+  def handle_event("close_create_user_modal", _params, socket) do
+    {:noreply, assign(socket, :show_create_user_modal, false)}
+  end
+
+  @impl true
+  def handle_event("validate_create_user", %{"user" => user_params}, socket) do
+    changeset =
+      %Accounts.User{}
+      |> Accounts.User.registration_changeset(user_params, validate_email: false)
+      |> Map.put(:action, :validate)
+
+    {:noreply, assign(socket, :create_user_form, to_form(changeset, as: :user))}
+  end
+
+  @impl true
+  def handle_event("save_create_user", %{"user" => user_params}, socket) do
+    role_id = user_params["role_id"]
+    user_params_clean = Map.drop(user_params, ["role_id"])
+
+    case Accounts.create_user(user_params_clean) do
+      {:ok, user} ->
+        if role_id && role_id != "" do
+          Accounts.assign_role_to_user(user.id, String.to_integer(role_id))
+        end
+
+        {users, total_count} =
+          list_paginated_users(socket.assigns.current_page, socket.assigns.search_query)
+
+        total_pages = ceil(total_count / @page_size)
+
+        changeset =
+          Accounts.User.registration_changeset(%Accounts.User{}, %{}, validate_email: false)
+
+        {:noreply,
+         socket
+         |> assign(:users, users)
+         |> assign(:total_pages, total_pages)
+         |> assign(:total_count, total_count)
+         |> assign(:show_create_user_modal, false)
+         |> assign(:create_user_form, to_form(changeset, as: :user))
+         |> put_flash(:info, "User created successfully")}
+
+      {:error, changeset} ->
+        {:noreply, assign(socket, :create_user_form, to_form(changeset, as: :user))}
+    end
   end
 
   defp list_paginated_users(page, query) when query == "" or is_nil(query) do

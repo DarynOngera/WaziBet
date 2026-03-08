@@ -6,8 +6,8 @@
   current_path={@current_path}
 >
   <div class="mb-6">
-    <.link navigate={~p"/admin/games"} class="btn btn-ghost btn-sm">
-      <.icon name="hero-arrow-left" class="w-4 h-4 mr-2" /> Back to Games
+    <.link navigate={~p"/admin/games"} class="btn btn-ghost btn-xs">
+      <.icon name="hero-arrow-left" class="icon-sm mr-2" /> Back to Games
     </.link>
   </div>
 
@@ -15,10 +15,10 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <%!-- Game Creation Form --%>
       <div class="card bg-base-100 shadow-xs border border-base-300">
-        <div class="card-body">
-          <h1 class="type-h2 mb-6 flex items-center gap-2">
-            <.icon name="hero-plus-circle" class="w-6 h-6 text-primary" /> Create New Game
-          </h1>
+        <div class="card-body p-4">
+          <h2 class="type-h2 mb-4 flex items-center gap-2">
+            <.icon name="hero-plus-circle" class="icon-sm text-primary" /> Create New Game
+          </h2>
 
           <% form = to_form(@changeset, as: :game) %>
           <.form
@@ -33,7 +33,7 @@
               </label>
               <select
                 name="game[category_id]"
-                class="select select-bordered w-full border-2"
+                class="select select-bordered select-sm w-full border"
                 phx-change="category_changed"
               >
                 <option value="">Select category...</option>
@@ -56,7 +56,7 @@
                   </label>
                   <select
                     name="game[home_team_id]"
-                    class="select select-bordered w-full border-2"
+                    class="select select-bordered select-sm w-full border"
                     phx-change="team_selected"
                   >
                     <option value="">Select home team...</option>
@@ -77,7 +77,7 @@
                   </label>
                   <select
                     name="game[away_team_id]"
-                    class="select select-bordered w-full border-2"
+                    class="select select-bordered select-sm w-full border"
                     phx-change="team_selected"
                   >
                     <option value="">Select away team...</option>
@@ -100,14 +100,14 @@
                   <input
                     type="checkbox"
                     name="game[start_immediately]"
-                    class="checkbox checkbox-primary"
+                    class="checkbox checkbox-primary checkbox-sm"
                     phx-click="toggle_immediate_start"
                     checked={@start_immediately}
                   />
-                  <span class="label-text font-medium">Start Game Immediately</span>
+                  <span class="label-text type-body-sm font-medium">Start Game Immediately</span>
                 </label>
                 <label class="label">
-                  <span class="label-text-alt text-base-content/60">
+                  <span class="label-text-alt type-body-sm text-base-content/60">
                     If checked, the game will start right after creation. Otherwise, set a schedule time.
                   </span>
                 </label>
@@ -124,11 +124,11 @@
             <% end %>
 
             <%= if @calculated_odds do %>
-              <div class="alert alert-success mt-6 border-2 border-success">
-                <.icon name="hero-check-circle" class="w-5 h-5" />
+              <div class="alert alert-success mt-4 border border-success/60">
+                <.icon name="hero-check-circle" class="icon-sm" />
                 <div>
-                  <p class="font-medium">Odds Calculated from Team Ratings</p>
-                  <p class="text-sm">
+                  <p class="type-body-sm font-medium">Odds Calculated from Team Ratings</p>
+                  <p class="type-body-sm">
                     Home: {@calculated_odds.home} | Draw: {@calculated_odds.draw} | Away: {@calculated_odds.away}
                   </p>
                 </div>
@@ -136,17 +136,17 @@
             <% end %>
 
             <%= if @home_team && @away_team do %>
-              <div class="flex gap-3 mt-6">
-                <.link navigate={~p"/admin/games"} class="btn btn-outline flex-1 border-2">
+              <div class="flex gap-2 mt-4">
+                <.link navigate={~p"/admin/games"} class="btn btn-xs btn-outline flex-1 border">
                   Cancel
                 </.link>
                 <%= if @start_immediately do %>
-                  <button type="submit" class="btn btn-success flex-1 border-2">
-                    <.icon name="hero-play" class="w-5 h-5 mr-2" /> Create & Start Now
+                  <button type="submit" class="btn btn-xs btn-success flex-1 border">
+                    <.icon name="hero-play" class="icon-sm mr-2" /> Create & Start Now
                   </button>
                 <% else %>
-                  <button type="submit" class="btn btn-primary flex-1 border-2">
-                    <.icon name="hero-calendar" class="w-5 h-5 mr-2" /> Schedule Game
+                  <button type="submit" class="btn btn-xs btn-primary flex-1 border">
+                    <.icon name="hero-calendar" class="icon-sm mr-2" /> Schedule Game
                   </button>
                 <% end %>
               </div>
@@ -156,106 +156,148 @@
       </div>
 
       <%!-- Preview Panel --%>
-      <%= if @home_team || @away_team do %>
-        <div class="card bg-base-100 shadow-xs border border-base-300">
-          <div class="card-body">
-            <h2 class="type-h2 mb-4 flex items-center gap-2">
-              <.icon name="hero-eye" class="w-5 h-5 text-primary" /> Preview
-            </h2>
+      <div class="card bg-base-100 shadow-xs border border-base-300">
+        <div class="card-body p-4">
+          <h2 class="type-h2 mb-3 flex items-center gap-2">
+            <.icon name="hero-eye" class="icon-sm text-primary" /> Preview
+          </h2>
 
-            <%= if @home_team do %>
-              <div class="p-4 bg-primary/5 rounded-lg border border-primary/20 mb-4">
-                <div class="text-lg font-bold text-primary mb-2">{@home_team.name} (Home)</div>
-                <div class="space-y-2">
-                  <div class="flex justify-between text-sm">
-                    <span class="text-base-content/60">Attack Rating</span>
-                    <div class="flex items-center gap-2">
-                      <progress
-                        class="progress progress-warning w-20"
-                        value={@home_team.attack_rating}
-                        max="100"
-                      >
-                      </progress>
-                      <span class="font-mono">{@home_team.attack_rating}</span>
-                    </div>
+          <%= if @home_team do %>
+            <div class="p-3 bg-primary/5 rounded-lg border border-primary/20 mb-3">
+              <div class="type-body font-semibold text-primary mb-2">
+                {@home_team.name} (Home)
+              </div>
+              <div class="space-y-2">
+                <div class="flex justify-between type-body-sm">
+                  <span class="text-base-content/60 type-body-sm">Attack Rating</span>
+                  <div class="flex items-center gap-2">
+                    <progress
+                      class="progress progress-warning w-20"
+                      value={@home_team.attack_rating}
+                      max="100"
+                    >
+                    </progress>
+                    <span class="type-mono">{@home_team.attack_rating}</span>
                   </div>
-                  <div class="flex justify-between text-sm">
-                    <span class="text-base-content/60">Defense Rating</span>
-                    <div class="flex items-center gap-2">
-                      <progress
-                        class="progress progress-info w-20"
-                        value={@home_team.defense_rating}
-                        max="100"
-                      >
-                      </progress>
-                      <span class="font-mono">{@home_team.defense_rating}</span>
-                    </div>
+                </div>
+                <div class="flex justify-between type-body-sm">
+                  <span class="text-base-content/60 type-body-sm">Defense Rating</span>
+                  <div class="flex items-center gap-2">
+                    <progress
+                      class="progress progress-info w-20"
+                      value={@home_team.defense_rating}
+                      max="100"
+                    >
+                    </progress>
+                    <span class="type-mono">{@home_team.defense_rating}</span>
                   </div>
                 </div>
               </div>
-            <% end %>
+            </div>
+          <% else %>
+            <div class="p-3 rounded-lg border border-base-300/80 bg-base-200/30 mb-3">
+              <div class="skeleton h-4 w-40 mb-2"></div>
+              <div class="space-y-2">
+                <div class="flex justify-between items-center">
+                  <div class="skeleton h-3 w-24"></div>
+                  <div class="skeleton h-3 w-28"></div>
+                </div>
+                <div class="flex justify-between items-center">
+                  <div class="skeleton h-3 w-24"></div>
+                  <div class="skeleton h-3 w-28"></div>
+                </div>
+              </div>
+              <p class="type-body-sm text-base-content/55 mt-2">Select home team.</p>
+            </div>
+          <% end %>
 
-            <%= if @away_team do %>
-              <div class="p-4 bg-info/5 rounded-lg border border-info/20 mb-4">
-                <div class="text-lg font-bold text-info mb-2">{@away_team.name} (Away)</div>
-                <div class="space-y-2">
-                  <div class="flex justify-between text-sm">
-                    <span class="text-base-content/60">Attack Rating</span>
-                    <div class="flex items-center gap-2">
-                      <progress
-                        class="progress progress-warning w-20"
-                        value={@away_team.attack_rating}
-                        max="100"
-                      >
-                      </progress>
-                      <span class="font-mono">{@away_team.attack_rating}</span>
-                    </div>
+          <%= if @away_team do %>
+            <div class="p-3 bg-info/5 rounded-lg border border-info/20 mb-3">
+              <div class="type-body font-semibold text-info mb-2">{@away_team.name} (Away)</div>
+              <div class="space-y-2">
+                <div class="flex justify-between type-body-sm">
+                  <span class="text-base-content/60 type-body-sm">Attack Rating</span>
+                  <div class="flex items-center gap-2">
+                    <progress
+                      class="progress progress-warning w-20"
+                      value={@away_team.attack_rating}
+                      max="100"
+                    >
+                    </progress>
+                    <span class="type-mono">{@away_team.attack_rating}</span>
                   </div>
-                  <div class="flex justify-between text-sm">
-                    <span class="text-base-content/60">Defense Rating</span>
-                    <div class="flex items-center gap-2">
-                      <progress
-                        class="progress progress-info w-20"
-                        value={@away_team.defense_rating}
-                        max="100"
-                      >
-                      </progress>
-                      <span class="font-mono">{@away_team.defense_rating}</span>
-                    </div>
+                </div>
+                <div class="flex justify-between type-body-sm">
+                  <span class="text-base-content/60 type-body-sm">Defense Rating</span>
+                  <div class="flex items-center gap-2">
+                    <progress
+                      class="progress progress-info w-20"
+                      value={@away_team.defense_rating}
+                      max="100"
+                    >
+                    </progress>
+                    <span class="type-mono">{@away_team.defense_rating}</span>
                   </div>
                 </div>
               </div>
-            <% end %>
-
-            <%= if @calculated_odds do %>
-              <div class="divider">Calculated Odds</div>
-              <div class="grid grid-cols-3 gap-2">
-                <div class="text-center p-3 bg-success/10 rounded-lg">
-                  <div class="text-xs text-base-content/60">Home Win</div>
-                  <div class="text-xl font-bold font-mono text-success">
-                    {@calculated_odds.home}
-                  </div>
+            </div>
+          <% else %>
+            <div class="p-3 rounded-lg border border-base-300/80 bg-base-200/30 mb-3">
+              <div class="skeleton h-4 w-40 mb-2"></div>
+              <div class="space-y-2">
+                <div class="flex justify-between items-center">
+                  <div class="skeleton h-3 w-24"></div>
+                  <div class="skeleton h-3 w-28"></div>
                 </div>
-                <div class="text-center p-3 bg-warning/10 rounded-lg">
-                  <div class="text-xs text-base-content/60">Draw</div>
-                  <div class="text-xl font-bold font-mono text-warning">
-                    {@calculated_odds.draw}
-                  </div>
-                </div>
-                <div class="text-center p-3 bg-info/10 rounded-lg">
-                  <div class="text-xs text-base-content/60">Away Win</div>
-                  <div class="text-xl font-bold font-mono text-info">
-                    {@calculated_odds.away}
-                  </div>
+                <div class="flex justify-between items-center">
+                  <div class="skeleton h-3 w-24"></div>
+                  <div class="skeleton h-3 w-28"></div>
                 </div>
               </div>
-              <p class="text-xs text-base-content/60 mt-2 text-center">
-                Odds calculated using team ratings with 5% bookmaker margin
-              </p>
-            <% end %>
-          </div>
+              <p class="type-body-sm text-base-content/55 mt-2">Select away team.</p>
+            </div>
+          <% end %>
+
+          <div class="divider">Calculated Odds</div>
+          <%= if @calculated_odds do %>
+            <div class="grid grid-cols-3 gap-2">
+              <div class="text-center p-2 bg-success/10 rounded-lg">
+                <div class="type-caption text-base-content/60">Home Win</div>
+                <div class="type-metric text-success">{@calculated_odds.home}</div>
+              </div>
+              <div class="text-center p-2 bg-warning/10 rounded-lg">
+                <div class="type-caption text-base-content/60">Draw</div>
+                <div class="type-metric text-warning">{@calculated_odds.draw}</div>
+              </div>
+              <div class="text-center p-2 bg-info/10 rounded-lg">
+                <div class="type-caption text-base-content/60">Away Win</div>
+                <div class="type-metric text-info">{@calculated_odds.away}</div>
+              </div>
+            </div>
+            <p class="type-body-sm text-base-content/60 mt-2 text-center">
+              Odds calculated using team ratings with 5% bookmaker margin
+            </p>
+          <% else %>
+            <div class="grid grid-cols-3 gap-2">
+              <div class="p-2 rounded-lg bg-base-200/30">
+                <div class="skeleton h-3 w-12 mx-auto mb-2"></div>
+                <div class="skeleton h-6 w-14 mx-auto"></div>
+              </div>
+              <div class="p-2 rounded-lg bg-base-200/30">
+                <div class="skeleton h-3 w-10 mx-auto mb-2"></div>
+                <div class="skeleton h-6 w-14 mx-auto"></div>
+              </div>
+              <div class="p-2 rounded-lg bg-base-200/30">
+                <div class="skeleton h-3 w-14 mx-auto mb-2"></div>
+                <div class="skeleton h-6 w-14 mx-auto"></div>
+              </div>
+            </div>
+            <p class="type-body-sm text-base-content/55 mt-2 text-center">
+              Odds preview appears after selecting both teams.
+            </p>
+          <% end %>
         </div>
-      <% end %>
+      </div>
     </div>
   </div>
 </Layouts.admin>
