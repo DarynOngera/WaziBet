@@ -5,101 +5,202 @@
   is_superuser={@is_superuser}
   current_path={@current_path}
 >
-  <div class="flex justify-between items-center mb-8">
-    <div>
-      <h1 class="type-h1 text-base-content flex items-center gap-3">
-        <.icon name="hero-key" class="w-8 h-8 text-primary" /> Roles
-      </h1>
-      <p class="text-base-content/60 mt-2">Manage roles and permissions</p>
+  <div class={[
+    "transition-[filter,opacity] duration-200",
+    @show_create_role_modal && "pointer-events-none blur-[2px] opacity-80"
+  ]}>
+    <div class="flex justify-between items-center mb-4">
+      <div>
+        <h2 class="type-h2 text-base-content flex items-center gap-2">
+          <.icon name="hero-key" class="icon-md text-primary" /> Roles
+        </h2>
+        <p class="type-body-sm text-base-content/60 mt-1">Manage roles and permissions</p>
+      </div>
+
+      <div class="flex gap-2">
+        <.link navigate={~p"/admin/permissions"} class="btn btn-xs btn-ghost border">
+          <.icon name="hero-shield-check" class="icon-sm mr-2" /> Permissions
+        </.link>
+        <button phx-click="open_create_role_modal" class="btn btn-xs btn-secondary border">
+          <.icon name="hero-plus" class="icon-sm mr-2" /> New Role
+        </button>
+        <.link navigate={~p"/admin/roles/assign"} class="btn btn-xs btn-primary border">
+          <.icon name="hero-user-plus" class="icon-sm mr-2" /> Assign Roles
+        </.link>
+      </div>
     </div>
 
-    <div class="flex gap-2">
-      <.link navigate={~p"/admin/permissions"} class="btn btn-ghost border-2">
-        <.icon name="hero-shield-check" class="w-5 h-5 mr-2" /> Permissions
-      </.link>
-      <.link navigate={~p"/admin/roles/new"} class="btn btn-secondary border-2">
-        <.icon name="hero-plus" class="w-5 h-5 mr-2" /> New Role
-      </.link>
-      <.link navigate={~p"/admin/roles/assign"} class="btn btn-primary border-2">
-        <.icon name="hero-user-plus" class="w-5 h-5 mr-2" /> Assign Roles
-      </.link>
-    </div>
-  </div>
-
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <%= for role <- @roles do %>
-      <div class="card bg-base-100 shadow-xs border border-base-300">
-        <div class="card-body">
-          <div class="flex items-center gap-3 mb-4">
-            <div class={[
-              "w-12 h-12 rounded-full flex items-center justify-center",
-              role.slug == "admin" && "bg-error/10",
-              role.slug != "admin" && "bg-primary/10"
-            ]}>
-              <.icon
-                name={if role.slug == "admin", do: "hero-shield-check", else: "hero-user"}
-                class={
-                  (role.slug == "admin" && "w-6 h-6 text-error") ||
-                    (role.slug != "admin" && "w-6 h-6 text-primary")
-                }
-              />
-            </div>
-            <div>
-              <h2 class="type-h2">{String.capitalize(role.role)}</h2>
-              <span class="text-sm text-base-content/60 font-mono">/{role.slug}</span>
-            </div>
-          </div>
-
-          <div class="divider my-2"></div>
-
-          <h3 class="text-sm font-medium text-base-content/60 mb-3">Permissions</h3>
-          <div class="flex flex-wrap gap-2">
-            <%= for permission <- role.permissions do %>
-              <span class={["badge badge-sm", permission_badge_color(permission.slug)]}>
-                {String.replace(permission.permission, "_", " ") |> String.capitalize()}
-              </span>
+    <div class="card bg-base-100 shadow-xs border border-base-300 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="table table-xs">
+          <thead>
+            <tr class="bg-base-200/70 type-caption text-base-content/65">
+              <th>Role</th>
+              <th>Slug</th>
+              <th>Permissions</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <%= for role <- @roles do %>
+              <tr class="hover:bg-base-200/40 text-sm">
+                <td>
+                  <div class="flex items-center gap-1.5">
+                    <div class="w-6 h-6 rounded-full bg-base-200 text-base-content/80 flex items-center justify-center">
+                      <.icon
+                        name={if role.slug == "admin", do: "hero-shield-check", else: "hero-user"}
+                        class="icon-xs"
+                      />
+                    </div>
+                    <span class="font-medium">{String.capitalize(role.role)}</span>
+                  </div>
+                </td>
+                <td class="type-mono text-base-content/60">/{role.slug}</td>
+                <td>
+                  <div class="flex flex-wrap gap-1">
+                    <%= for permission <- role.permissions do %>
+                      <span class="badge badge-outline badge-xs text-base-content/70">
+                        {String.replace(permission.permission, "_", " ") |> String.capitalize()}
+                      </span>
+                    <% end %>
+                  </div>
+                </td>
+                <td>
+                  <%= if role.slug in ["admin", "user"] do %>
+                    <span class="type-body-sm text-base-content/50">Protected</span>
+                  <% else %>
+                    <button
+                      phx-click="delete_role"
+                      phx-value-id={role.id}
+                      class="btn btn-ghost btn-xs text-error"
+                      data-confirm="Delete this role? This cannot be undone."
+                    >
+                      <.icon name="hero-trash" class="icon-sm" />
+                    </button>
+                  <% end %>
+                </td>
+              </tr>
             <% end %>
-          </div>
-        </div>
-      </div>
-    <% end %>
-  </div>
-
-  <div class="mt-8 card bg-base-200 border border-base-300">
-    <div class="card-body">
-      <h2 class="type-title flex items-center gap-2">
-        <.icon name="hero-information-circle" class="w-5 h-5 text-info" /> Role Permissions Guide
-      </h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-        <div>
-          <h3 class="font-medium mb-2">User Permissions</h3>
-          <ul class="space-y-1 text-base-content/60">
-            <li><span class="badge badge-success badge-xs mr-2"></span> Place bets on games</li>
-            <li><span class="badge badge-warning badge-xs mr-2"></span> Cancel pending bets</li>
-            <li><span class="badge badge-info badge-xs mr-2"></span> View betting history</li>
-            <li><span class="badge badge-info badge-xs mr-2"></span> View winnings & losses</li>
-          </ul>
-        </div>
-        <div>
-          <h3 class="font-medium mb-2">Admin Permissions</h3>
-          <ul class="space-y-1 text-base-content/60">
-            <li>
-              <span class="badge badge-error badge-xs mr-2"></span> Create and manage users
-            </li>
-            <li><span class="badge badge-error badge-xs mr-2"></span> Assign roles to users</li>
-            <li>
-              <span class="badge badge-error badge-xs mr-2"></span> Grant/revoke admin access
-            </li>
-            <li>
-              <span class="badge badge-error badge-xs mr-2"></span> View user details & bets
-            </li>
-            <li><span class="badge badge-error badge-xs mr-2"></span> Soft delete users</li>
-            <li>
-              <span class="badge badge-error badge-xs mr-2"></span> View profits dashboard
-            </li>
-          </ul>
-        </div>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
+
+  <%= if @show_create_role_modal do %>
+    <div
+      class="fixed inset-0 z-40 bg-base-content/20 backdrop-blur-sm"
+      phx-click="close_create_role_modal"
+    >
+    </div>
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div class="w-full max-w-4xl card bg-base-100 shadow-xl border border-base-300 max-h-[90vh] overflow-y-auto">
+        <div class="card-body p-4">
+          <div class="flex items-center justify-between mb-2">
+            <h2 class="type-h2 flex items-center gap-2">
+              <.icon name="hero-plus-circle" class="icon-sm text-primary" /> New Role
+            </h2>
+            <button phx-click="close_create_role_modal" class="btn btn-ghost btn-xs btn-circle">
+              <.icon name="hero-x-mark" class="icon-sm" />
+            </button>
+          </div>
+
+          <.form
+            for={@create_role_form}
+            id="create-role-modal-form"
+            phx-change="validate_create_role"
+            phx-submit="save_create_role"
+            class="space-y-4"
+          >
+            <div class="card bg-base-200/30 border border-base-300">
+              <div class="card-body p-3">
+                <.input
+                  field={@create_role_form[:role]}
+                  type="text"
+                  label="Role Name"
+                  placeholder="e.g., Moderator"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="card bg-base-200/30 border border-base-300">
+              <div class="card-body p-3 space-y-2">
+                <p class="type-body-sm text-base-content/70">Select permissions for this role.</p>
+
+                <%= for group <- [:game_related, :user_related, :other] do %>
+                  <% group_permissions = Map.get(@permission_groups, group, []) %>
+
+                  <%= if group_permissions != [] do %>
+                    <div class="collapse collapse-arrow bg-base-100 border border-base-300">
+                      <input type="checkbox" checked />
+                      <div class="collapse-title font-medium type-body flex items-center gap-2">
+                        <.icon name="hero-folder" class="icon-sm text-primary" />
+                        {group_title(group)}
+                        <span class="badge badge-xs badge-outline">
+                          {length(group_permissions)}
+                        </span>
+                      </div>
+                      <div class="collapse-content">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 pt-1">
+                          <%= for permission <- group_permissions do %>
+                            <% is_selected = permission.id in @selected_permissions %>
+
+                            <button
+                              type="button"
+                              phx-click="toggle_permission"
+                              phx-value-permission_id={permission.id}
+                              class={[
+                                "p-2 rounded-md border text-left transition-colors",
+                                (is_selected && "bg-success/10 border-success") ||
+                                  (!is_selected && "border-base-300 hover:border-primary/40")
+                              ]}
+                            >
+                              <div class="flex items-center justify-between gap-2">
+                                <div>
+                                  <p class="font-medium type-body-sm">
+                                    {String.replace(permission.permission, "_", " ")
+                                    |> String.capitalize()}
+                                  </p>
+                                  <p class="type-body-sm text-base-content/60">
+                                    /{permission.slug}
+                                  </p>
+                                </div>
+                                <div class={[
+                                  "w-4 h-4 rounded-full border flex items-center justify-center",
+                                  is_selected && "bg-success border-success",
+                                  !is_selected && "border-base-300"
+                                ]}>
+                                  <%= if is_selected do %>
+                                    <.icon name="hero-check" class="w-3 h-3 text-success-content" />
+                                  <% end %>
+                                </div>
+                              </div>
+                            </button>
+                          <% end %>
+                        </div>
+                      </div>
+                    </div>
+                  <% end %>
+                <% end %>
+              </div>
+            </div>
+
+            <div class="flex justify-end gap-2">
+              <button
+                type="button"
+                phx-click="close_create_role_modal"
+                class="btn btn-xs btn-ghost"
+              >
+                Cancel
+              </button>
+              <button type="submit" class="btn btn-xs btn-primary border">
+                <.icon name="hero-check" class="icon-sm mr-1" /> Create Role
+              </button>
+            </div>
+          </.form>
+        </div>
+      </div>
+    </div>
+  <% end %>
 </Layouts.admin>

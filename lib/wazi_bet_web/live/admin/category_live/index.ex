@@ -23,8 +23,19 @@ defmodule WaziBetWeb.Admin.CategoryLive.Index do
      |> assign(:user_permissions, user_permissions)
      |> assign(:is_superuser, is_superuser)
      |> assign(:current_path, current_path)
+     |> assign(:show_create_category_modal, false)
      |> assign(:categories, categories)
      |> assign(:page_title, "Sports Categories")}
+  end
+
+  @impl true
+  def handle_event("open_create_category_modal", _params, socket) do
+    {:noreply, assign(socket, :show_create_category_modal, true)}
+  end
+
+  @impl true
+  def handle_event("close_create_category_modal", _params, socket) do
+    {:noreply, assign(socket, :show_create_category_modal, false)}
   end
 
   @impl true
@@ -35,6 +46,7 @@ defmodule WaziBetWeb.Admin.CategoryLive.Index do
 
         {:noreply,
          socket
+         |> assign(:show_create_category_modal, false)
          |> assign(:categories, categories)
          |> put_flash(:info, "Category created successfully!")}
 
