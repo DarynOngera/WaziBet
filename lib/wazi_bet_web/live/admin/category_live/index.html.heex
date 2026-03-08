@@ -5,79 +5,125 @@
   is_superuser={@is_superuser}
   current_path={@current_path}
 >
-  <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-    <div>
-      <h1 class="type-h1 text-base-content flex items-center gap-3">
-        <.icon name="hero-sport-court" class="w-8 h-8 text-primary" /> Sports Categories
-      </h1>
-      <p class="text-base-content/60 mt-2">
-        Manage sports categories for your betting platform
-      </p>
-    </div>
-  </div>
-
-  <%!-- Create Category Form --%>
-  <div class="card bg-base-100 shadow-xs mb-8 border border-base-300">
-    <div class="card-body">
-      <h2 class="type-h2 mb-4 flex items-center gap-2">
-        <.icon name="hero-plus-circle" class="w-5 h-5 text-secondary" /> Add New Category
-      </h2>
-      <form phx-submit="create_category" class="flex gap-4 items-end">
-        <div class="form-control flex-1">
-          <label class="label">
-            <span class="label-text font-medium">Category Name</span>
-          </label>
-          <input
-            type="text"
-            name="name"
-            placeholder="e.g., Football, Basketball, Tennis"
-            class="input input-bordered w-full border"
-            required
-            minlength="2" 
-          />
-        </div>
-        <button type="submit" class="btn btn-primary border">
-          <.icon name="hero-plus" class="w-5 h-5 mr-2" /> Create Category
-        </button>
-      </form>
-    </div>
-  </div>
-
-  <%!-- Categories List --%>
-  <%= if Enum.empty?(@categories) do %>
-    <div class="card bg-base-100 shadow-xs border border-base-300">
-      <div class="card-body text-center py-16">
-        <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-base-200 flex items-center justify-center">
-          <.icon name="hero-sport-court" class="w-10 h-10 text-base-content/30" />
-        </div>
-        <h2 class="type-h2 font-semibold mb-2">No categories found</h2>
-        <p class="text-base-content/60 mb-6">Create your first sports category above</p>
+  <div class={[
+    "transition-[filter,opacity] duration-200",
+    @show_create_category_modal && "pointer-events-none blur-[2px] opacity-80"
+  ]}>
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+      <div>
+        <h2 class="type-h2 text-base-content flex items-center gap-2">
+          <.icon name="hero-sport-court" class="icon-md text-primary" /> Sports Categories
+        </h2>
+        <p class="type-body-sm text-base-content/60 mt-1">
+          Manage sports categories for your betting platform
+        </p>
       </div>
+      <button phx-click="open_create_category_modal" class="btn btn-xs btn-primary border">
+        <.icon name="hero-plus" class="icon-sm mr-2" /> Add Category
+      </button>
     </div>
-  <% else %>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <%= for category <- @categories do %>
-        <div class="card bg-base-100 shadow-xs border border-base-300 hover:border-primary transition-colors">
-          <div class="card-body">
-            <div class="flex justify-between items-start">
-              <div>
-                <h3 class="type-h2">{category.name}</h3>
-                <p class="text-sm text-base-content/60 mt-1">
-                  {length(category.teams || [])} teams
-                </p>
-              </div>
+
+    <%!-- Categories List --%>
+    <%= if Enum.empty?(@categories) do %>
+      <div class="card bg-base-100 shadow-xs border border-base-300">
+        <div class="card-body text-center py-12">
+          <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-base-200 flex items-center justify-center">
+            <.icon name="hero-sport-court" class="icon-xl text-base-content/30" />
+          </div>
+          <h2 class="type-h2 font-semibold mb-2">No categories found</h2>
+          <p class="text-base-content/60 mb-6">Create your first sports category above</p>
+        </div>
+      </div>
+    <% else %>
+      <div class="card bg-base-100 shadow-xs border border-base-300 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="table table-zebra table-xs">
+            <thead>
+              <tr class="bg-base-200 type-caption text-base-content/65">
+                <th>Category</th>
+                <th>Teams</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <%= for category <- @categories do %>
+                <tr class="hover type-body-sm">
+                  <td class="font-medium">{category.name}</td>
+                  <td>
+                    <span class="badge badge-outline badge-xs">
+                      {length(category.teams || [])} teams
+                    </span>
+                  </td>
+                  <td>
+                    <button
+                      phx-click="delete_category"
+                      phx-value-id={category.id}
+                      class="btn btn-ghost btn-xs text-error"
+                      data-confirm="Are you sure you want to delete this category?"
+                    >
+                      <.icon name="hero-trash" class="icon-sm" />
+                    </button>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <%= if @show_create_category_modal do %>
+    <div
+      class="fixed inset-0 z-40 bg-base-content/20 backdrop-blur-sm"
+      phx-click="close_create_category_modal"
+    >
+    </div>
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div class="w-full max-w-lg card bg-base-100 shadow-xl border border-base-300">
+        <div class="card-body p-4">
+          <div class="flex items-center justify-between mb-2">
+            <h2 class="type-h2 flex items-center gap-2">
+              <.icon name="hero-plus-circle" class="icon-sm text-secondary" /> Add New Category
+            </h2>
+            <button
+              phx-click="close_create_category_modal"
+              class="btn btn-ghost btn-xs btn-circle"
+            >
+              <.icon name="hero-x-mark" class="icon-sm" />
+            </button>
+          </div>
+
+          <form phx-submit="create_category" class="space-y-3">
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text font-medium">Category Name</span>
+              </label>
+              <input
+                type="text"
+                name="name"
+                placeholder="e.g., Football, Basketball, Tennis"
+                class="input input-bordered input-sm w-full border"
+                required
+                minlength="2"
+              />
+            </div>
+
+            <div class="flex justify-end gap-2">
               <button
-                phx-click="delete_category"
-                phx-value-id={category.id}
-                class="btn btn-ghost btn-xs text-error border"
-                data-confirm="Are you sure you want to delete this category?"
+                type="button"
+                phx-click="close_create_category_modal"
+                class="btn btn-xs btn-ghost"
               >
-                <.icon name="hero-trash" class="w-4 h-4" />
+                Cancel
+              </button>
+              <button type="submit" class="btn btn-xs btn-primary border">
+                <.icon name="hero-plus" class="icon-sm mr-1" /> Create Category
               </button>
             </div>
-          </div>
+          </form>
         </div>
-      <% end %>
+      </div>
     </div>
   <% end %>
 </Layouts.admin>

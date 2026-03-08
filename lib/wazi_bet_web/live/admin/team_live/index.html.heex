@@ -5,179 +5,213 @@
   is_superuser={@is_superuser}
   current_path={@current_path}
 >
-  <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-    <div>
-      <h1 class="type-h1 text-base-content flex items-center gap-3">
-        <.icon name="hero-user-group" class="w-8 h-8 text-primary" /> Teams
-      </h1>
-      <p class="text-base-content/60 mt-2">Manage teams with attack and defense ratings</p>
-    </div>
-  </div>
-
-  <%!-- Create Team Form --%>
-  <div class="card se-100 shadow-xs mb-8 border border-base-300">
-    <div class="card-body">
-      <h2 class="type-h2 mb-4 flex items-center gap-2">
-        <.icon name="hero-plus-circle" class="w-5 h-5 text-secondary" /> Add New Team
-      </h2>
-      <form phx-submit="create_team" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-        <div class="form-control">
-          <label class="label">
-            <span class="label-text font-medium">Team Name</span>
-          </label>
-          <input
-            type="text"
-            name="team[name]"
-            placeholder="e.g., Manchester United"
-            class="input input-bordered w-full border"
-            required
-            minlength="2"
-          />
-        </div>
-        <div class="form-control">
-          <label class="label">
-            <span class="label-text font-medium">Category</span>
-          </label>
-          <select
-            name="team[category_id]"
-            class="select select-bordered w-full border"
-            required
-          >
-            <option value="">Select Category</option>
-            <%= for category <- @categories do %>
-              <option value={category.id}>{category.name}</option>
-            <% end %>
-          </select>
-        </div>
-        <div class="form-control">
-          <label class="label">
-            <span class="label-text font-medium">Attack Rating (0-100)</span>
-          </label>
-          <input
-            type="number"
-            name="team[attack_rating]"
-            value="50"
-            min="0"
-            max="100"
-            class="input input-bordered w-full border"
-          />
-        </div>
-        <div class="form-control">
-          <label class="label">
-            <span class="label-text font-medium">Defense Rating (0-100)</span>
-          </label>
-          <input
-            type="number"
-            name="team[defense_rating]"
-            value="50"
-            min="0"
-            max="100"
-            class="input input-bordered w-full border"
-          />
-        </div>
-        <button type="submit" class="btn btn-primary border md:col-span-4">
-          <.icon name="hero-plus" class="w-5 h-5 mr-2" /> Create Team
-        </button>
-      </form>
-    </div>
-  </div>
-
-  <%!-- Teams List --%>
-  <%= if Enum.empty?(@teams) do %>
-    <div class="card bg-base-100 shadow-xs border border-base-300">
-      <div class="card-body text-center py-16">
-        <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-base-200 flex items-center justify-center">
-          <.icon name="hero-user-group" class="w-10 h-10 text-base-content/30" />
-        </div>
-        <h2 class="type-h2 font-semibold mb-2">No teams found</h2>
-        <p class="text-base-content/60 mb-6">Create your first team above</p>
+  <div class={[
+    "transition-[filter,opacity] duration-200",
+    @show_create_team_modal && "pointer-events-none blur-[2px] opacity-80"
+  ]}>
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+      <div>
+        <h1 class="type-h1 text-base-content flex items-center gap-3">
+          <.icon name="hero-user-group" class="icon-lg text-primary" /> Teams
+        </h1>
+        <p class="type-body text-base-content/60 mt-2">
+          Manage teams with attack and defense ratings
+        </p>
       </div>
+
+      <button phx-click="open_create_team_modal" class="btn btn-xs btn-primary border">
+        <.icon name="hero-plus" class="icon-sm mr-2" /> Add Team
+      </button>
     </div>
-  <% else %>
-    <div class="card bg-base-100 shadow-xs border border-base-300 overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="table table-zebra">
-          <thead>
-            <tr class="bg-base-200">
-              <th>Team Name</th>
-              <th>Category</th>
-              <th>Attack Rating</th>
-              <th>Defense Rating</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <%= for team <- @teams do %>
-              <tr class="hover">
-                <td class="font-medium">{team.name}</td>
-                <td>
-                  <span class="badge badge-outline badge-sm">
-                    {team.category.name}
-                  </span>
-                </td>
-                <td>
-                  <div class="flex items-center gap-2">
-                    <progress
-                      class="progress progress-warning w-20"
-                      value={team.attack_rating}
-                      max="100"
-                    >
-                    </progress>
-                    <span class="font-mono text-sm">{team.attack_rating}</span>
-                  </div>
-                </td>
-                <td>
-                  <div class="flex items-center gap-2">
-                    <progress
-                      class="progress progress-info w-20"
-                      value={team.defense_rating}
-                      max="100"
-                    >
-                    </progress>
-                    <span class="font-mono text-sm">{team.defense_rating}</span>
-                  </div>
-                </td>
-                <td>
-                  <button
-                    phx-click="delete_team"
-                    phx-value-id={team.id}
-                    class="btn btn-ghost btn-xs text-error"
-                    data-confirm="Are you sure you want to delete this team?"
-                  >
-                    <.icon name="hero-trash" class="w-4 h-4" />
-                  </button>
-                </td>
+
+    <%= if Enum.empty?(@teams) do %>
+      <div class="card bg-base-100 shadow-xs border border-base-300">
+        <div class="card-body text-center py-12">
+          <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-base-200 flex items-center justify-center">
+            <.icon name="hero-user-group" class="icon-xl text-base-content/30" />
+          </div>
+          <h2 class="type-h2 font-semibold mb-2">No teams found</h2>
+          <p class="text-base-content/60 mb-6">Create your first team above</p>
+        </div>
+      </div>
+    <% else %>
+      <div class="card bg-base-100 shadow-xs border border-base-300 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="table table-zebra table-sm">
+            <thead>
+              <tr class="bg-base-200 type-caption text-base-content/65">
+                <th>Team Name</th>
+                <th>Category</th>
+                <th>Attack Rating</th>
+                <th>Defense Rating</th>
+                <th>Actions</th>
               </tr>
-            <% end %>
-          </tbody>
-        </table>
-      </div>
-      <%= if @total_pages > 1 do %>
-        <div class="flex flex-col sm:flex-row justify-between items-center gap-4 p-4 border-t border-base-200 bg-base-200/30">
-          <div class="text-sm text-base-content/60">
-            Showing {pagination_start(%{current_page: @current_page, total_count: @total_count})} to {pagination_end(
-              %{current_page: @current_page, total_count: @total_count}
-            )} of {@total_count} teams
-          </div>
-          <div class="join">
-            <.link
-              patch={"/admin/teams?page=#{@current_page - 1}"}
-              class={"join-item btn btn-sm #{if @current_page <= 1, do: "btn-disabled pointer-events-none"}"}
-            >
-              <.icon name="hero-chevron-left" class="w-4 h-4" />
-            </.link>
-            <span class="join-item btn btn-sm btn-ghost">
-              Page {@current_page} of {@total_pages}
-            </span>
-            <.link
-              patch={"/admin/teams?page=#{@current_page + 1}"}
-              class={"join-item btn btn-sm #{if @current_page >= @total_pages, do: "btn-disabled pointer-events-none"}"}
-            >
-              <.icon name="hero-chevron-right" class="w-4 h-4" />
-            </.link>
-          </div>
+            </thead>
+            <tbody>
+              <%= for team <- @teams do %>
+                <tr class="hover type-body-sm">
+                  <td class="type-body-sm font-medium">{team.name}</td>
+                  <td>
+                    <span class="badge badge-outline badge-xs">
+                      {team.category.name}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="flex items-center gap-2">
+                      <progress
+                        class="progress progress-warning w-20"
+                        value={team.attack_rating}
+                        max="100"
+                      >
+                      </progress>
+                      <span class="type-mono">{team.attack_rating}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="flex items-center gap-2">
+                      <progress
+                        class="progress progress-info w-20"
+                        value={team.defense_rating}
+                        max="100"
+                      >
+                      </progress>
+                      <span class="type-mono">{team.defense_rating}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <button
+                      phx-click="delete_team"
+                      phx-value-id={team.id}
+                      class="btn btn-ghost btn-xs text-error"
+                      data-confirm="Are you sure you want to delete this team?"
+                    >
+                      <.icon name="hero-trash" class="icon-sm" />
+                    </button>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
         </div>
-      <% end %>
+        <%= if @total_pages > 1 do %>
+          <div class="flex flex-col sm:flex-row justify-between items-center gap-3 p-3 border-t border-base-200 bg-base-200/30">
+            <div class="type-body-sm text-base-content/60">
+              Showing {pagination_start(%{current_page: @current_page, total_count: @total_count})} to {pagination_end(
+                %{current_page: @current_page, total_count: @total_count}
+              )} of {@total_count} teams
+            </div>
+            <div class="join">
+              <.link
+                patch={"/admin/teams?page=#{@current_page - 1}"}
+                class={"join-item btn btn-xs #{if @current_page <= 1, do: "btn-disabled pointer-events-none"}"}
+              >
+                <.icon name="hero-chevron-left" class="icon-sm" />
+              </.link>
+              <span class="join-item btn btn-xs btn-ghost">
+                Page {@current_page} of {@total_pages}
+              </span>
+              <.link
+                patch={"/admin/teams?page=#{@current_page + 1}"}
+                class={"join-item btn btn-xs #{if @current_page >= @total_pages, do: "btn-disabled pointer-events-none"}"}
+              >
+                <.icon name="hero-chevron-right" class="icon-sm" />
+              </.link>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+  <%= if @show_create_team_modal do %>
+    <div
+      class="fixed inset-0 z-40 bg-base-content/20 backdrop-blur-sm"
+      phx-click="close_create_team_modal"
+    >
+    </div>
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div class="w-full max-w-3xl card bg-base-100 shadow-xl border border-base-300 max-h-[90vh] overflow-y-auto">
+        <div class="card-body p-4">
+          <div class="flex items-center justify-between mb-2">
+            <h2 class="type-h2 flex items-center gap-2">
+              <.icon name="hero-plus-circle" class="icon-sm text-secondary" /> Add New Team
+            </h2>
+            <button phx-click="close_create_team_modal" class="btn btn-ghost btn-xs btn-circle">
+              <.icon name="hero-x-mark" class="icon-sm" />
+            </button>
+          </div>
+
+          <form phx-submit="create_team" class="grid grid-cols-1 md:grid-cols-2 gap-3 items-end">
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text font-medium">Team Name</span>
+              </label>
+              <input
+                type="text"
+                name="team[name]"
+                placeholder="e.g., Manchester United"
+                class="input input-bordered input-sm w-full border"
+                required
+                minlength="2"
+              />
+            </div>
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text font-medium">Category</span>
+              </label>
+              <select
+                name="team[category_id]"
+                class="select select-bordered select-sm w-full border"
+                required
+              >
+                <option value="">Select Category</option>
+                <%= for category <- @categories do %>
+                  <option value={category.id}>{category.name}</option>
+                <% end %>
+              </select>
+            </div>
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text font-medium">Attack Rating (0-100)</span>
+              </label>
+              <input
+                type="number"
+                name="team[attack_rating]"
+                value="50"
+                min="0"
+                max="100"
+                class="input input-bordered input-sm w-full border"
+              />
+            </div>
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text font-medium">Defense Rating (0-100)</span>
+              </label>
+              <input
+                type="number"
+                name="team[defense_rating]"
+                value="50"
+                min="0"
+                max="100"
+                class="input input-bordered input-sm w-full border"
+              />
+            </div>
+
+            <div class="md:col-span-2 flex justify-end gap-2 mt-2">
+              <button
+                type="button"
+                phx-click="close_create_team_modal"
+                class="btn btn-xs btn-ghost"
+              >
+                Cancel
+              </button>
+              <button type="submit" class="btn btn-xs btn-primary border">
+                <.icon name="hero-plus" class="icon-sm mr-1" /> Create Team
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
   <% end %>
 </Layouts.admin>

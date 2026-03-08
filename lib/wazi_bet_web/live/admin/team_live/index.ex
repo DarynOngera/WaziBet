@@ -31,6 +31,7 @@ defmodule WaziBetWeb.Admin.TeamLive.Index do
      |> assign(:user_permissions, user_permissions)
      |> assign(:is_superuser, is_superuser)
      |> assign(:current_path, current_path)
+     |> assign(:show_create_team_modal, false)
      |> assign(:teams, teams)
      |> assign(:categories, categories)
      |> assign(:page_title, "Teams")
@@ -55,6 +56,16 @@ defmodule WaziBetWeb.Admin.TeamLive.Index do
   end
 
   @impl true
+  def handle_event("open_create_team_modal", _params, socket) do
+    {:noreply, assign(socket, :show_create_team_modal, true)}
+  end
+
+  @impl true
+  def handle_event("close_create_team_modal", _params, socket) do
+    {:noreply, assign(socket, :show_create_team_modal, false)}
+  end
+
+  @impl true
   def handle_event("create_team", %{"team" => team_params}, socket) do
     case Sport.create_team(team_params) do
       {:ok, _team} ->
@@ -65,6 +76,7 @@ defmodule WaziBetWeb.Admin.TeamLive.Index do
 
         {:noreply,
          socket
+         |> assign(:show_create_team_modal, false)
          |> assign(:teams, teams)
          |> assign(:total_pages, total_pages)
          |> assign(:total_count, total_teams)
@@ -102,7 +114,7 @@ defmodule WaziBetWeb.Admin.TeamLive.Index do
 
   def has_permission?(permissions, slug), do: slug in permissions
 
-  def pagination_start(%{current_page: page, total_count: total}) when total == 0, do: 0
+  def pagination_start(%{current_page: _page, total_count: total}) when total == 0, do: 0
 
   def pagination_start(%{current_page: page, total_count: _total}),
     do: (page - 1) * @page_size + 1

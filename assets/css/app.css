@@ -156,6 +156,9 @@
   --icon-md: 1.125rem;
   --icon-lg: 1.25rem;
   --icon-xl: 1.5rem;
+  --btn-uniform-height: 1.9rem;
+  --btn-uniform-px: 0.625rem;
+  --btn-uniform-font: 0.6875rem;
 }
 
 html,
@@ -250,6 +253,24 @@ body {
 .icon-xl {
   width: var(--icon-xl);
   height: var(--icon-xl);
+}
+
+/* Uniform compact button sizing across the app */
+.btn,
+.btn-xs,
+.btn-sm,
+.btn-md,
+.btn-lg {
+  min-height: var(--btn-uniform-height);
+  height: var(--btn-uniform-height);
+  padding-inline: var(--btn-uniform-px);
+  font-size: var(--btn-uniform-font);
+  font-weight: 600;
+}
+
+.btn.btn-circle {
+  width: var(--btn-uniform-height);
+  padding-inline: 0;
 }
 
 /* daisyUI sets .avatar > div to display:block; force centering for initial placeholders */
