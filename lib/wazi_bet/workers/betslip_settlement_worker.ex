@@ -12,6 +12,7 @@ defmodule WaziBet.Workers.BetslipSettlementWorker do
   alias WaziBet.Bets.Settlement
   alias WaziBet.Mail.BetslipEmail
   alias WaziBet.Mailer
+  alias WaziBet.Repo
   alias WaziBet.Sport
 
   @impl Oban.Worker
@@ -27,7 +28,7 @@ defmodule WaziBet.Workers.BetslipSettlementWorker do
 
       :ok
     else
-      # Check if all games are finished
+      # Check if all games are finished before settling game
       unless Settlement.all_games_finished?(betslip) do
         Logger.info(
           "BetslipSettlementWorker snoozing; betslip_id=#{betslip_id} not all games finished"
@@ -70,6 +71,7 @@ defmodule WaziBet.Workers.BetslipSettlementWorker do
             )
 
             send_result_email(betslip, result)
+            broadcast_settlement(betslip, result)
 
             :ok
 
@@ -82,6 +84,22 @@ defmodule WaziBet.Workers.BetslipSettlementWorker do
         end
       end
     end
+  end
+
+  defp broadcast_settlement(betslip, settlement_result) do
+    settled_betslip =
+      case settlement_result do
+        %{betslip: settled} -> settled
+        %{id: _id} = settled -> settled
+        _ -> Bets.get_betslip!(betslip.id)
+      end
+      |> Repo.preload(:selections)
+
+    Phoenix.PubSub.broadcast(
+      WaziBet.PubSub,
+      "user:#{betslip.user_id}:betslip_settled",
+      {:betslip_settled, settled_betslip.id, settled_betslip.status}
+    )
   end
 
   defp send_result_email(betslip, settlement_result) do
