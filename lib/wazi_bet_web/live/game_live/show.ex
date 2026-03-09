@@ -29,7 +29,7 @@ defmodule WaziBetWeb.GameLive.Show do
       end
 
     if connected?(socket) do
-      subscribe_to_game(game_id)
+      Phoenix.PubSub.subscribe(WaziBet.PubSub, "game:#{game_id}")
       # Track presence for this game
       Presence.track(self(), presence_topic(game_id), socket.id, %{
         user_email: socket.assigns[:current_scope] && socket.assigns.current_scope.user.email,
@@ -347,16 +347,11 @@ defmodule WaziBetWeb.GameLive.Show do
     {:noreply, assign(socket, :game, game)}
   end
 
-  defp subscribe_to_game(game_id) do
-    Phoenix.PubSub.subscribe(WaziBet.PubSub, "game:#{game_id}")
-  end
-
   defp presence_topic(game_id), do: "game:#{game_id}:presence"
 
-  # Track game events - simplified version
+  # Track game events
   defp track_game_event(_game_id, _event) do
     # Game events are now handled via PubSub broadcasts directly
-    # No need to store in Presence
     :ok
   end
 
@@ -394,7 +389,7 @@ defmodule WaziBetWeb.GameLive.Show do
   end
 
   defp get_stake_from_socket(socket) do
-    # Always return default - stake should only come from user input in the UI
+    # Always return default
     "100"
   end
 
