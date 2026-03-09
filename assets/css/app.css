@@ -446,3 +446,72 @@ body {
 .sidebar-tooltip-floating.visible {
   opacity: 1;
 }
+
+/* Themed flash toasts */
+.flash-toast-container {
+  pointer-events: auto;
+}
+
+.flash-toast {
+  border: 1px solid color-mix(in oklab, var(--color-base-content) 12%, transparent);
+  border-radius: 0.625rem;
+  background: color-mix(in oklab, var(--color-base-100) 92%, var(--color-base-200));
+  color: var(--color-base-content);
+  box-shadow: 0 12px 30px oklch(0% 0 0 / 0.2);
+  overflow: hidden;
+}
+
+.flash-toast-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.625rem 0.75rem 0.5rem;
+}
+
+.flash-toast-content {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.flash-toast-content p {
+  margin: 0;
+}
+
+.flash-toast-info {
+  border-color: color-mix(in oklab, var(--color-primary) 45%, var(--color-base-300));
+}
+
+.flash-toast-info .hero-information-circle {
+  color: var(--color-primary);
+}
+
+.flash-toast-error {
+  border-color: color-mix(in oklab, var(--color-error) 58%, var(--color-base-300));
+}
+
+.flash-toast-error .hero-exclamation-circle {
+  color: var(--color-error);
+}
+
+.flash-toast-progress-track {
+  width: 100%;
+  height: 3px;
+  background: color-mix(in oklab, var(--color-base-content) 14%, transparent);
+}
+
+.flash-toast-progress {
+  height: 100%;
+  width: 100%;
+  will-change: width;
+  transition: width 80ms linear;
+}
+
+.flash-toast-info .flash-toast-progress {
+  background: color-mix(in oklab, var(--color-primary) 78%, white);
+}
+
+.flash-toast-error .flash-toast-progress {
+  background: color-mix(in oklab, var(--color-error) 78%, white);
+}
