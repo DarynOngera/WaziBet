@@ -248,6 +248,95 @@ const Hooks = {
       this._chart?.destroy();
     }
   },
+  FlashToast: {
+    mounted() {
+      this._progressEl = this.el.querySelector("[data-flash-progress]");
+      this._autoclose = this.el.dataset.autoclose !== "false";
+      this._duration = parseInt(this.el.dataset.duration || "3500", 10);
+      this._duration = Number.isFinite(this._duration) && this._duration > 0 ? this._duration : 3500;
+
+      this._rafId = null;
+      this._timerId = null;
+      this._startTs = null;
+      this._elapsed = 0;
+      this._paused = false;
+
+      this._setProgress = (fraction) => {
+        if (!this._progressEl) return;
+        const clamped = Math.max(0, Math.min(1, fraction));
+        this._progressEl.style.width = `${clamped * 100}%`;
+      };
+
+      this._tick = (ts) => {
+        if (this._paused) return;
+        if (this._startTs == null) this._startTs = ts;
+        const elapsedInRun = ts - this._startTs;
+        const totalElapsed = this._elapsed + elapsedInRun;
+        const remaining = Math.max(0, this._duration - totalElapsed);
+        this._setProgress(remaining / this._duration);
+        if (remaining > 0) {
+          this._rafId = requestAnimationFrame(this._tick);
+        }
+      };
+
+      this._dismiss = () => {
+        this._clearTimers();
+        this.el.click();
+      };
+
+      this._start = () => {
+        if (!this._autoclose || this._paused) return;
+        this._startTs = null;
+        this._clearRaf();
+        this._rafId = requestAnimationFrame(this._tick);
+        const remaining = Math.max(0, this._duration - this._elapsed);
+        this._timerId = window.setTimeout(this._dismiss, remaining);
+      };
+
+      this._pause = () => {
+        if (!this._autoclose || this._paused) return;
+        this._paused = true;
+        if (this._startTs != null) {
+          this._elapsed += performance.now() - this._startTs;
+        }
+        this._clearTimers();
+      };
+
+      this._resume = () => {
+        if (!this._autoclose || !this._paused) return;
+        this._paused = false;
+        this._start();
+      };
+
+      this._clearRaf = () => {
+        if (this._rafId != null) {
+          cancelAnimationFrame(this._rafId);
+          this._rafId = null;
+        }
+      };
+
+      this._clearTimers = () => {
+        this._clearRaf();
+        if (this._timerId != null) {
+          clearTimeout(this._timerId);
+          this._timerId = null;
+        }
+      };
+
+      this._onMouseEnter = () => this._pause();
+      this._onMouseLeave = () => this._resume();
+      this.el.addEventListener("mouseenter", this._onMouseEnter);
+      this.el.addEventListener("mouseleave", this._onMouseLeave);
+
+      this._setProgress(1);
+      this._start();
+    },
+    destroyed() {
+      this.el.removeEventListener("mouseenter", this._onMouseEnter);
+      this.el.removeEventListener("mouseleave", this._onMouseLeave);
+      this._clearTimers?.();
+    }
+  },
  AdminSidebar: {
   mounted() {
     const root = document.documentElement;
