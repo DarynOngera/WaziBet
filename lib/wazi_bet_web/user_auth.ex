@@ -6,6 +6,7 @@ defmodule WaziBetWeb.UserAuth do
 
   alias WaziBet.Accounts
   alias WaziBet.Accounts.Scope
+  alias WaziBet.Can
   alias WaziBet.Sport
 
   # Make the remember me cookie valid for 14 days. This should match
@@ -274,7 +275,7 @@ defmodule WaziBetWeb.UserAuth do
     socket = mount_current_scope(socket, session)
 
     with %{user: %Accounts.User{} = user} <- socket.assigns.current_scope,
-         true <- Accounts.user_has_permission?(user.id, permission) do
+         true <- Can.can_slug?(user, permission) do
       {:cont, socket}
     else
       _ ->
@@ -292,7 +293,7 @@ defmodule WaziBetWeb.UserAuth do
     socket = mount_current_scope(socket, session)
 
     with %{user: %Accounts.User{} = user} <- socket.assigns.current_scope,
-         true <- has_any_permission?(user.id, permissions) do
+         true <- Can.can_any_slug?(user, permissions) do
       {:cont, socket}
     else
       _ ->
@@ -303,11 +304,6 @@ defmodule WaziBetWeb.UserAuth do
 
         {:halt, socket}
     end
-  end
-
-  defp has_any_permission?(user_id, permissions) do
-    user_permissions = Accounts.get_user_permission_slugs(user_id)
-    Enum.any?(permissions, &(&1 in user_permissions))
   end
 
   defp mount_current_scope(socket, session) do
@@ -348,9 +344,7 @@ defmodule WaziBetWeb.UserAuth do
     ]
 
     is_admin =
-      Enum.any?(admin_permissions, fn perm ->
-        Accounts.user_has_permission?(user.id, perm)
-      end)
+      Can.can_any_slug?(user, admin_permissions)
 
     if is_admin do
       ~p"/admin"
@@ -414,10 +408,10 @@ defmodule WaziBetWeb.UserAuth do
         |> redirect(to: ~p"/users/log-in")
         |> halt()
 
-      permission && Accounts.user_has_permission?(user.id, permission) ->
+      permission && Can.can_slug?(user, permission) ->
         conn
 
-      permissions && has_any_plug_permission?(user.id, permissions) ->
+      permissions && Can.can_any_slug?(user, permissions) ->
         conn
 
       true ->
@@ -426,11 +420,6 @@ defmodule WaziBetWeb.UserAuth do
         |> redirect(to: ~p"/")
         |> halt()
     end
-  end
-
-  defp has_any_plug_permission?(user_id, permissions) do
-    user_permissions = Accounts.get_user_permission_slugs(user_id)
-    Enum.any?(permissions, &(&1 in user_permissions))
   end
 
   defp maybe_store_return_to(%{method: "GET"} = conn) do

@@ -14,7 +14,7 @@ defmodule WaziBetWeb.Admin.UserLive.Delete do
     current_path = "/admin/users/#{id}/delete"
 
     user_permissions = Accounts.get_user_permission_slugs(user.id)
-    is_superuser = Accounts.user_has_permission?(user.id, "grant-revoke-admin-access")
+    is_superuser = WaziBet.Can.can_slug?(user, "grant-revoke-admin-access")
 
     user = Accounts.get_user_with_betslips!(id)
     pending_bets = count_pending_bets(user)
@@ -52,5 +52,8 @@ defmodule WaziBetWeb.Admin.UserLive.Delete do
     |> Enum.count(fn betslip -> betslip.status == :pending end)
   end
 
-  def has_permission?(permissions, slug), do: slug in permissions
+  def has_permission?(%WaziBet.Accounts.User{} = user, slug),
+    do: WaziBet.Can.can_slug?(user, slug)
+
+  def has_permission?(_user, _slug), do: false
 end

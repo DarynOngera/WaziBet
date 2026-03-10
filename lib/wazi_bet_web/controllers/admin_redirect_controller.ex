@@ -5,7 +5,7 @@ defmodule WaziBetWeb.AdminRedirectController do
 
   use WaziBetWeb, :controller
 
-  alias WaziBet.Accounts
+  alias WaziBet.Can
 
   def index(conn, _params) do
     user = conn.assigns.current_scope.user
@@ -19,9 +19,7 @@ defmodule WaziBetWeb.AdminRedirectController do
     ]
 
     has_admin_access =
-      Enum.any?(admin_permissions, fn perm ->
-        Accounts.user_has_permission?(user.id, perm)
-      end)
+      Can.can_any_slug?(user, admin_permissions)
 
     if has_admin_access do
       redirect(conn, to: ~p"/admin/dashboard")

@@ -40,31 +40,6 @@ defmodule WaziBetWeb.UserLive.Login do
               </div>
             </div>
 
-            <%!-- Magic Link Login --%>
-            <.form
-              :let={f}
-              for={@form}
-              id="login_form_magic"
-              action={~p"/users/log-in"}
-              phx-submit="submit_magic"
-            >
-              <.input
-                readonly={!!@current_scope}
-                field={f[:email]}
-                type="email"
-                label="Email"
-                autocomplete="email"
-                required
-                phx-mounted={JS.focus()}
-              />
-              <button type="submit" class="btn btn-primary w-full border-2 mt-4">
-                <.icon name="hero-envelope" class="w-5 h-5 mr-2" /> Log in with email
-                <.icon name="hero-arrow-right" class="w-4 h-4 ml-2" />
-              </button>
-            </.form>
-
-            <div class="divider my-6">or</div>
-
             <%!-- Password Login --%>
             <.form
               :let={f}
@@ -100,6 +75,48 @@ defmodule WaziBetWeb.UserLive.Login do
                 Log in only this time
               </button>
             </.form>
+
+            <div class="divider my-6">or use passwordless</div>
+
+            <%!-- Magic Link Login (hidden by default) --%>
+            <details class="group rounded-xl border border-base-300 bg-base-200/40 transition-all">
+              <summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3">
+                <div class="flex items-center gap-2">
+                  <.icon name="hero-envelope" class="h-5 w-5 text-primary" />
+                  <span class="font-medium">Log in with email link</span>
+                </div>
+                <.icon
+                  name="hero-chevron-down"
+                  class="h-4 w-4 text-base-content/60 transition-transform duration-200 group-open:rotate-180"
+                />
+              </summary>
+
+              <div class="border-t border-base-300 px-4 pb-4 pt-3">
+                <p class="mb-3 text-sm text-base-content/60">
+                  We will send a secure login link to your inbox.
+                </p>
+                <.form
+                  :let={f}
+                  for={@form}
+                  id="login_form_magic"
+                  action={~p"/users/log-in"}
+                  phx-submit="submit_magic"
+                >
+                  <.input
+                    readonly={!!@current_scope}
+                    field={f[:email]}
+                    type="email"
+                    label="Email"
+                    autocomplete="email"
+                    required
+                    phx-mounted={JS.focus()}
+                  />
+                  <button type="submit" class="btn btn-outline btn-primary w-full border-2 mt-4">
+                    <.icon name="hero-envelope" class="w-5 h-5 mr-2" /> Send login link
+                  </button>
+                </.form>
+              </div>
+            </details>
           </div>
         </div>
       </div>

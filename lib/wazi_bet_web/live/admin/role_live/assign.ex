@@ -17,13 +17,13 @@ defmodule WaziBetWeb.Admin.RoleLive.Assign do
     page = parse_page(params)
 
     user_permissions = Accounts.get_user_permission_slugs(user.id)
-    is_superuser = Accounts.user_has_permission?(user.id, "grant-revoke-admin-access")
+    is_superuser = WaziBet.Can.can_slug?(user, "grant-revoke-admin-access")
 
     users = Accounts.list_users(page: page, page_size: @page_size)
     total_count = Accounts.count_users()
     total_pages = ceil(total_count / @page_size)
     roles = Accounts.list_roles()
-    can_manage_admin = Accounts.user_has_permission?(user.id, "grant-revoke-admin-access")
+    can_manage_admin = WaziBet.Can.can_slug?(user, "grant-revoke-admin-access")
 
     {:ok,
      socket
@@ -116,5 +116,8 @@ defmodule WaziBetWeb.Admin.RoleLive.Assign do
     |> max(1)
   end
 
-  def has_permission?(permissions, slug), do: slug in permissions
+  def has_permission?(%WaziBet.Accounts.User{} = user, slug),
+    do: WaziBet.Can.can_slug?(user, slug)
+
+  def has_permission?(_user, _slug), do: false
 end

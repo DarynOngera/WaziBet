@@ -16,7 +16,7 @@ defmodule WaziBetWeb.Admin.TeamLive.Index do
     current_path = "/admin/teams"
 
     user_permissions = Accounts.get_user_permission_slugs(user.id)
-    is_superuser = Accounts.user_has_permission?(user.id, "grant-revoke-admin-access")
+    is_superuser = WaziBet.Can.can_slug?(user, "grant-revoke-admin-access")
 
     page = Map.get(params, "page", "1") |> String.to_integer() |> max(1)
 
@@ -112,7 +112,10 @@ defmodule WaziBetWeb.Admin.TeamLive.Index do
     end
   end
 
-  def has_permission?(permissions, slug), do: slug in permissions
+  def has_permission?(%WaziBet.Accounts.User{} = user, slug),
+    do: WaziBet.Can.can_slug?(user, slug)
+
+  def has_permission?(_user, _slug), do: false
 
   def pagination_start(%{current_page: _page, total_count: total}) when total == 0, do: 0
 
