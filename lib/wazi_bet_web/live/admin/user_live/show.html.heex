@@ -12,7 +12,7 @@
   </div>
 
   <%!-- User Info Card --%>
-  <div class="card bg-base-100 shadow-xl border border-base-300 mb-8">
+  <div class="card bg-base-100 shadow-xs border border-base-300 mb-8">
     <div class="card-body">
       <div class="flex flex-col lg:flex-row justify-between gap-6">
         <div class="flex items-center gap-4">
@@ -42,7 +42,7 @@
           <div class="text-right">
             <div class="text-sm text-base-content/60">Current Balance</div>
             <div class="text-3xl font-bold font-mono text-primary">
-              ${Decimal.round(@user.balance, 2)}
+              {Decimal.round(@user.balance, 2)}Kes
             </div>
           </div>
           <div class="flex gap-2 justify-end">
@@ -87,7 +87,7 @@
   </h2>
 
   <%= if Enum.empty?(@betslips) do %>
-    <div class="card bg-base-100 shadow-xl border border-base-300">
+    <div class="card bg-base-100 shadow-xs border border-base-300">
       <div class="card-body text-center py-12">
         <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-base-200 flex items-center justify-center">
           <.icon name="hero-ticket" class="w-8 h-8 text-base-content/30" />
@@ -98,7 +98,7 @@
   <% else %>
     <div class="space-y-4">
       <%= for betslip <- @betslips do %>
-        <div class="card bg-base-100 shadow-xl border border-base-300 overflow-hidden">
+        <div class="card bg-base-100 shadow-xs border border-base-300 overflow-hidden">
           <div class="card-body p-0">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 border-b-2 border-base-200 gap-2 bg-base-200">
               <div class="flex items-center gap-3">

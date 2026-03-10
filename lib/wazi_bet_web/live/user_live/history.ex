@@ -12,6 +12,10 @@ defmodule WaziBetWeb.UserLive.History do
   def mount(%{"id" => id}, _session, socket) do
     user = socket.assigns.current_scope.user
 
+    if connected?(socket) do
+      Phoenix.PubSub.subscribe(WaziBet.PubSub, "user:#{user.id}:betslip_settled")
+    end
+
     betslip =
       Bets.get_betslip_with_selections!(id)
       |> Repo.preload(selections: [:outcome, game: [:home_team, :away_team]])
@@ -33,6 +37,11 @@ defmodule WaziBetWeb.UserLive.History do
   @impl true
   def mount(_params, _session, socket) do
     user = socket.assigns.current_scope.user
+
+    if connected?(socket) do
+      Phoenix.PubSub.subscribe(WaziBet.PubSub, "user:#{user.id}:betslip_settled")
+    end
+
     betslips = Bets.list_user_betslips(user.id)
 
     betslips =
@@ -55,6 +64,42 @@ defmodule WaziBetWeb.UserLive.History do
   @impl true
   def handle_params(_params, _url, socket) do
     {:noreply, assign(socket, :view, :index)}
+  end
+
+  @impl true
+  def handle_info({:betslip_settled, betslip_id, status}, socket) do
+    user = socket.assigns.current_scope.user
+
+    message =
+      case status do
+        :won -> "Great news! Your betslip ##{betslip_id} was settled as WON."
+        :lost -> "Betslip ##{betslip_id} has been settled as LOST."
+        :void -> "Betslip ##{betslip_id} has been settled as VOID."
+        _ -> "Betslip ##{betslip_id} has been settled."
+      end
+
+    flash_kind = if status == :won, do: :info, else: :error
+
+    socket =
+      case socket.assigns.view do
+        :show ->
+          current_betslip = socket.assigns[:betslip]
+
+          if current_betslip && current_betslip.id == betslip_id do
+            assign(socket, :betslip, Bets.get_betslip_with_selections!(betslip_id))
+          else
+            socket
+          end
+
+        :index ->
+          betslips =
+            Bets.list_user_betslips(user.id)
+            |> Enum.map(&Bets.get_betslip_with_selections!(&1.id))
+
+          assign(socket, :betslips, betslips)
+      end
+
+    {:noreply, put_flash(socket, flash_kind, message)}
   end
 
   def status_color(:pending), do: "badge-warning border-warning"

@@ -11,6 +11,11 @@ defmodule WaziBetWeb.BetslipLive.Index do
   @impl true
   def mount(_params, _session, socket) do
     user = socket.assigns.current_scope.user
+
+    if connected?(socket) do
+      Phoenix.PubSub.subscribe(WaziBet.PubSub, "user:#{user.id}:betslip_settled")
+    end
+
     betslips = Bets.list_user_betslips(user.id)
     betslips = preload_betslips(betslips)
 
@@ -23,6 +28,27 @@ defmodule WaziBetWeb.BetslipLive.Index do
   @impl true
   def handle_params(_params, _url, socket) do
     {:noreply, socket}
+  end
+
+  @impl true
+  def handle_info({:betslip_settled, betslip_id, status}, socket) do
+    user = socket.assigns.current_scope.user
+    betslips = Bets.list_user_betslips(user.id) |> preload_betslips()
+
+    message =
+      case status do
+        :won -> "Great news! Your betslip ##{betslip_id} was settled as WON."
+        :lost -> "Betslip ##{betslip_id} has been settled as LOST."
+        :void -> "Betslip ##{betslip_id} has been settled as VOID."
+        _ -> "Betslip ##{betslip_id} has been settled."
+      end
+
+    flash_kind = if status == :won, do: :info, else: :error
+
+    {:noreply,
+     socket
+     |> assign(:betslips, betslips)
+     |> put_flash(flash_kind, message)}
   end
 
   defp preload_betslips(betslips) do
