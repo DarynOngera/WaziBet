@@ -16,7 +16,7 @@ defmodule WaziBetWeb.Admin.GameLive.Show do
     current_path = "/admin/games/#{id}"
 
     user_permissions = Accounts.get_user_permission_slugs(user.id)
-    is_superuser = Accounts.user_has_permission?(user.id, "grant-revoke-admin-access")
+    is_superuser = WaziBet.Can.can_slug?(user, "grant-revoke-admin-access")
 
     game_id = String.to_integer(id)
     game = Sport.get_game_with_teams!(game_id)
@@ -108,5 +108,8 @@ defmodule WaziBetWeb.Admin.GameLive.Show do
   def status_color(:closed), do: "badge-warning"
   def status_color(:settled), do: "badge-ghost"
 
-  def has_permission?(permissions, slug), do: slug in permissions
+  def has_permission?(%WaziBet.Accounts.User{} = user, slug),
+    do: WaziBet.Can.can_slug?(user, slug)
+
+  def has_permission?(_user, _slug), do: false
 end

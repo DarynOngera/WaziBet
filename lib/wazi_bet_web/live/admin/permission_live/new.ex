@@ -14,7 +14,7 @@ defmodule WaziBetWeb.Admin.PermissionLive.New do
     current_path = "/admin/permissions/new"
 
     user_permissions = Accounts.get_user_permission_slugs(user.id)
-    is_superuser = Accounts.user_has_permission?(user.id, "grant-revoke-admin-access")
+    is_superuser = WaziBet.Can.can_slug?(user, "grant-revoke-admin-access")
 
     changeset = Accounts.change_permission()
 

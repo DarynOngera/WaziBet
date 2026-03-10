@@ -14,7 +14,7 @@ defmodule WaziBetWeb.Admin.RoleLive.Index do
     current_path = "/admin/roles"
 
     user_permissions = Accounts.get_user_permission_slugs(user.id)
-    is_superuser = Accounts.user_has_permission?(user.id, "grant-revoke-admin-access")
+    is_superuser = WaziBet.Can.can_slug?(user, "grant-revoke-admin-access")
 
     roles = Accounts.list_roles_with_permissions()
     permissions = Accounts.list_permissions()
@@ -194,5 +194,8 @@ defmodule WaziBetWeb.Admin.RoleLive.Index do
 
   defp permission_group(_slug), do: :other
 
-  def has_permission?(permissions, slug), do: slug in permissions
+  def has_permission?(%WaziBet.Accounts.User{} = user, slug),
+    do: WaziBet.Can.can_slug?(user, slug)
+
+  def has_permission?(_user, _slug), do: false
 end

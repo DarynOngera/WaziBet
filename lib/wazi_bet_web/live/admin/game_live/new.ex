@@ -19,7 +19,7 @@ defmodule WaziBetWeb.Admin.GameLive.New do
     current_path = "/admin/games/new"
 
     user_permissions = Accounts.get_user_permission_slugs(user.id)
-    is_superuser = Accounts.user_has_permission?(user.id, "grant-revoke-admin-access")
+    is_superuser = WaziBet.Can.can_slug?(user, "grant-revoke-admin-access")
 
     categories = Sport.list_categories()
     changeset = Sport.Game.create_changeset(%Sport.Game{}, %{})
@@ -190,5 +190,8 @@ defmodule WaziBetWeb.Admin.GameLive.New do
     OddsCalculator.apply_margin(fair_odds, 0.05)
   end
 
-  def has_permission?(permissions, slug), do: slug in permissions
+  def has_permission?(%WaziBet.Accounts.User{} = user, slug),
+    do: WaziBet.Can.can_slug?(user, slug)
+
+  def has_permission?(_user, _slug), do: false
 end

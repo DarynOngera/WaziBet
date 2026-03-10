@@ -16,7 +16,7 @@ defmodule WaziBetWeb.Plugs.RequirePermission do
   import Plug.Conn
   import Phoenix.Controller
 
-  alias WaziBet.Accounts
+  alias WaziBet.Can
 
   def init(permission_or_permissions) do
     permission_or_permissions
@@ -40,7 +40,7 @@ defmodule WaziBetWeb.Plugs.RequirePermission do
         |> redirect(to: ~p"/users/log-in")
         |> halt()
 
-      has_any_permission?(user.id, permissions) ->
+      Can.can_any_slug?(user, permissions) ->
         conn
 
       true ->
@@ -49,10 +49,5 @@ defmodule WaziBetWeb.Plugs.RequirePermission do
         |> redirect(to: ~p"/")
         |> halt()
     end
-  end
-
-  defp has_any_permission?(user_id, permissions) do
-    user_permissions = Accounts.get_user_permission_slugs(user_id)
-    Enum.any?(permissions, &(&1 in user_permissions))
   end
 end

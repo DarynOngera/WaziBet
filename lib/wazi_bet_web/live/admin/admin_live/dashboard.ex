@@ -13,7 +13,7 @@ defmodule WaziBetWeb.Admin.AdminLive.Dashboard do
     user = socket.assigns.current_scope.user
     current_path = "/admin/dashboard"
 
-    is_superuser = Accounts.user_has_permission?(user.id, "grant-revoke-admin-access")
+    is_superuser = WaziBet.Can.can_slug?(user, "grant-revoke-admin-access")
 
     total_users = length(Accounts.list_users())
     stats = Bets.get_profit_stats()
@@ -34,5 +34,8 @@ defmodule WaziBetWeb.Admin.AdminLive.Dashboard do
      |> assign(:page_title, "Admin Dashboard")}
   end
 
-  def has_permission?(permissions, slug), do: slug in permissions
+  def has_permission?(%WaziBet.Accounts.User{} = user, slug),
+    do: WaziBet.Can.can_slug?(user, slug)
+
+  def has_permission?(_user, _slug), do: false
 end

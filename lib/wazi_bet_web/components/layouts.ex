@@ -196,7 +196,9 @@ defmodule WaziBetWeb.Layouts do
     """
   end
 
-  def has_permission?(permissions, slug) do
-    slug in permissions
+  def has_permission?(%WaziBet.Accounts.User{} = user, slug) do
+    WaziBet.Can.can_slug?(user, slug)
   end
+
+  def has_permission?(_user, _slug), do: false
 end

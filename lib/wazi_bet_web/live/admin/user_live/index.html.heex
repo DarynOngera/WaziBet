@@ -17,7 +17,7 @@
         <p class="type-body text-base-content/60 mt-2">Manage system users</p>
       </div>
 
-      <%= if has_permission?(@user_permissions, "create-users") do %>
+      <%= if has_permission?(@current_scope.user, "create-users") do %>
         <button phx-click="open_create_user_modal" class="btn btn-xs btn-primary border">
           <.icon name="hero-plus" class="icon-sm mr-2" /> New User
         </button>
