@@ -118,7 +118,7 @@
           <div data-show-collapsed class="border-t border-base-300 my-2"></div>
 
           <%!-- Users --%>
-          <%= if has_permission?(@user_permissions, "view-users") do %>
+          <%= if has_permission?(@current_scope.user, "view-users") do %>
             <.link
               navigate={~p"/admin/users"}
               data-tooltip="Users"
@@ -140,7 +140,7 @@
 
           <%!-- Games dropdown --%>
           <%!-- Games dropdown --%>
-          <%= if has_permission?(@user_permissions, "configure-games") do %>
+          <%= if has_permission?(@current_scope.user, "configure-games") do %>
             <div class="relative group">
               <%!-- Collapsed state: just a direct link to /admin/games --%>
               <.link
@@ -232,7 +232,7 @@
             </div>
           <% end %>
           <%!-- Roles --%>
-          <%= if has_permission?(@user_permissions, "assign-roles") do %>
+          <%= if has_permission?(@current_scope.user, "assign-roles") do %>
             <.link
               navigate={~p"/admin/roles"}
               data-tooltip="Roles"
@@ -253,7 +253,7 @@
           <% end %>
 
           <%!-- Profits --%>
-          <%= if has_permission?(@user_permissions, "view-profits-from-losses") do %>
+          <%= if has_permission?(@current_scope.user, "view-profits-from-losses") do %>
             <.link
               navigate={~p"/admin/profits"}
               data-tooltip="Profits"

@@ -17,7 +17,7 @@
 
   <%!-- Stats Overview --%>
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-    <%= if has_permission?(@user_permissions, "view-users") do %>
+    <%= if has_permission?(@current_scope.user, "view-users") do %>
       <div class="card bg-base-100 shadow-xs border border-base-300">
         <div class="card-body p-4">
           <div class="flex items-center gap-3">
@@ -33,7 +33,7 @@
       </div>
     <% end %>
 
-    <%= if has_permission?(@user_permissions, "view-profits-from-losses") do %>
+    <%= if has_permission?(@current_scope.user, "view-profits-from-losses") do %>
       <div class="card bg-base-100 shadow-xs border border-base-300">
         <div class="card-body p-4">
           <div class="flex items-center gap-3">
@@ -51,7 +51,7 @@
       </div>
     <% end %>
 
-    <%= if has_permission?(@user_permissions, "configure-games") do %>
+    <%= if has_permission?(@current_scope.user, "configure-games") do %>
       <div class="card bg-base-100 shadow-xs border border-base-300">
         <div class="card-body p-4">
           <div class="flex items-center gap-3">
@@ -139,7 +139,7 @@
 
   <%!-- Financial Overview & Quick Actions --%>
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <%= if has_permission?(@user_permissions, "view-profits-from-losses") do %>
+    <%= if has_permission?(@current_scope.user, "view-profits-from-losses") do %>
       <div class="card bg-base-100 shadow-xs border border-base-300">
         <div class="card-body">
           <div class="flex items-center gap-2 mb-4">
@@ -183,7 +183,7 @@
       </div>
     <% end %>
 
-    <%= if has_permission?(@user_permissions, "configure-games") do %>
+    <%= if has_permission?(@current_scope.user, "configure-games") do %>
       <div class="card bg-base-100 shadow-xs border border-base-300">
         <div class="card-body">
           <div class="flex items-center gap-2 mb-4">

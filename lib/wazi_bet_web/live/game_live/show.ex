@@ -8,7 +8,7 @@ defmodule WaziBetWeb.GameLive.Show do
 
   alias WaziBet.Sport
   alias WaziBet.Bets
-  alias WaziBet.Accounts
+  alias WaziBet.Can
   alias WaziBetWeb.GameLive.Components
   alias WaziBetWeb.Presence
 
@@ -23,7 +23,7 @@ defmodule WaziBetWeb.GameLive.Show do
     is_admin =
       if socket.assigns[:current_scope] && socket.assigns.current_scope.user do
         user = socket.assigns.current_scope.user
-        Accounts.user_has_permission?(user.id, "configure-games")
+        Can.can_slug?(user, "configure-games")
       else
         false
       end
