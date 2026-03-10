@@ -33,7 +33,7 @@
                 <div class="card-body p-0">
                   <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 border-b-2 border-base-200 gap-2 bg-base-200">
                     <div class="flex items-center gap-3">
-                      <span class={["badge badge-lg border-2", status_color(betslip.status)]}>
+                      <span class={["badge badge-lg border-2 rounded-full", status_color(betslip.status)]}>
                         {String.capitalize(to_string(betslip.status))}
                       </span>
                       <span class="type-body-sm text-base-content/60 type-mono">
@@ -48,7 +48,7 @@
                           else: "selections"}
                       </div>
                       <div class="type-metric text-success">
-                        ${Decimal.round(betslip.potential_payout, 2)}
+                        {Decimal.round(betslip.potential_payout, 2)}Kes
                       </div>
                     </div>
                   </div>
@@ -56,7 +56,7 @@
                   <div class="flex justify-between items-center p-4 bg-base-200/50">
                     <div>
                       <span class="type-body-sm text-base-content/60">Stake:</span>
-                      <span class="type-mono font-bold ml-1">${betslip.stake}</span>
+                      <span class="type-mono font-bold ml-1">{betslip.stake}Kes</span>
                       <span class="type-body-sm text-base-content/60 ml-4">Odds:</span>
                       <span class="type-mono font-bold ml-1">
                         {Decimal.round(betslip.total_odds, 2)}
@@ -85,7 +85,7 @@
         <div class="card-body p-0">
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 border-b-2 border-base-200 gap-2 bg-base-200">
             <div class="flex items-center gap-3">
-              <span class={["badge badge-lg border-2", status_color(@betslip.status)]}>
+              <span class={["badge badge-lg border-2 rounded-full", status_color(@betslip.status)]}>
                 {String.capitalize(to_string(@betslip.status))}
               </span>
               <span class="type-body-sm text-base-content/60 type-mono">
@@ -96,7 +96,7 @@
             <div class="text-right">
               <div class="type-body-sm text-base-content/60">Potential Win</div>
               <div class="type-metric text-success">
-                ${Decimal.round(@betslip.potential_payout, 2)}
+                {Decimal.round(@betslip.potential_payout, 2)}Kes
               </div>
             </div>
           </div>
@@ -134,7 +134,7 @@
           <div class="flex justify-between items-center p-4 bg-base-200/50 border-t-2 border-base-200">
             <div>
               <span class="type-body-sm text-base-content/60">Stake:</span>
-              <span class="type-mono font-bold ml-1">${@betslip.stake}</span>
+              <span class="type-mono font-bold ml-1">{@betslip.stake}Kes</span>
               <span class="type-body-sm text-base-content/60 ml-4">Total Odds:</span>
               <span class="type-mono font-bold ml-1">
                 {Decimal.round(@betslip.total_odds, 2)}

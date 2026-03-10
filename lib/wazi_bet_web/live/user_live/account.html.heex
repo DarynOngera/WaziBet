@@ -33,11 +33,11 @@
             <form phx-submit="deposit">
               <div class="form-control">
                 <label class="label">
-                  <span class="label-text font-medium">Amount ($)</span>
+                  <span class="label-text font-medium">Amount</span>
                 </label>
                 <div class="join w-full">
-                  <span class="btn btn-square join-item btn-outline border-2 no-animation">
-                    $
+                  <span class="btn btn-square join-item btn-outline btn-md border no-animation h-[40px] flex items-center">
+                    Kes
                   </span>
                   <input
                     type="number"
@@ -46,12 +46,12 @@
                     min="1"
                     step="1"
                     placeholder="Enter amount"
-                    class="input input-bordered join-item w-full border-2"
+                    class="input input-bordered input-md join-item w-full border h-[40px]"
                     required
                   />
                 </div>
               </div>
-              <button type="submit" class="btn btn-success w-full mt-4 border-2">
+              <button type="submit" class="btn btn-success w-full mt-4 border">
                 <.icon name="hero-plus" class="w-5 h-5 mr-2" /> Deposit
               </button>
             </form>
@@ -63,19 +63,19 @@
           <div class="card-body">
             <h2 class="type-h2 mb-4">Quick Links</h2>
             <div class="space-y-2">
-              <.link navigate={~p"/wallet"} class="btn btn-outline w-full justify-start border-2">
+              <.link navigate={~p"/wallet"} class="btn btn-outline w-full justify-start border">
                 <.icon name="hero-wallet" class="w-5 h-5 mr-2" />
                 <span class="flex-1 text-left">Wallet</span>
                 <.icon name="hero-chevron-right" class="w-4 h-4" />
               </.link>
-              <.link navigate={~p"/history"} class="btn btn-outline w-full justify-start border-2">
+              <.link navigate={~p"/history"} class="btn btn-outline w-full justify-start border">
                 <.icon name="hero-clock" class="w-5 h-5 mr-2" />
                 <span class="flex-1 text-left">Bet History</span>
                 <.icon name="hero-chevron-right" class="w-4 h-4" />
               </.link>
               <.link
                 navigate={~p"/users/settings"}
-                class="btn btn-outline w-full justify-start border-2"
+                class="btn btn-outline w-full justify-start border"
               >
                 <.icon name="hero-cog-6-tooth" class="w-5 h-5 mr-2" />
                 <span class="flex-1 text-left">Settings</span>

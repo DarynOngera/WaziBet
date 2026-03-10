@@ -54,26 +54,39 @@ defmodule WaziBetWeb.CoreComponents do
     <div
       :if={msg = render_slot(@inner_block) || Phoenix.Flash.get(@flash, @kind)}
       id={@id}
+      phx-hook="FlashToast"
       phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id}")}
       role="alert"
-      class="toast toast-bottom toast-end z-50"
+      data-duration="3500"
+      data-autoclose="true"
+      data-kind={@kind}
+      class="toast toast-bottom toast-end z-50 flash-toast-container"
       {@rest}
     >
       <div class={[
-        "alert w-80 sm:w-96 max-w-80 sm:max-w-96 text-wrap",
-        @kind == :info && "alert-info",
-        @kind == :error && "alert-error"
+        "flash-toast w-80 sm:w-96 max-w-80 sm:max-w-96 text-wrap",
+        @kind == :info && "flash-toast-info",
+        @kind == :error && "flash-toast-error"
       ]}>
-        <.icon :if={@kind == :info} name="hero-information-circle" class="size-5 shrink-0" />
-        <.icon :if={@kind == :error} name="hero-exclamation-circle" class="size-5 shrink-0" />
-        <div>
-          <p :if={@title} class="font-semibold">{@title}</p>
-          <p>{msg}</p>
+        <div class="flash-toast-main">
+          <.icon :if={@kind == :info} name="hero-information-circle" class="icon-md shrink-0" />
+          <.icon :if={@kind == :error} name="hero-exclamation-circle" class="icon-md shrink-0" />
+          <div class="flash-toast-content">
+            <p :if={@title} class="type-body font-semibold">{@title}</p>
+            <p class="type-body">{msg}</p>
+          </div>
+          <div class="flex-1" />
+          <button
+            type="button"
+            class="group self-start cursor-pointer"
+            aria-label={gettext("close")}
+          >
+            <.icon name="hero-x-mark" class="icon-md opacity-40 group-hover:opacity-70" />
+          </button>
         </div>
-        <div class="flex-1" />
-        <button type="button" class="group self-start cursor-pointer" aria-label={gettext("close")}>
-          <.icon name="hero-x-mark" class="size-5 opacity-40 group-hover:opacity-70" />
-        </button>
+        <div class="flash-toast-progress-track">
+          <div class="flash-toast-progress" data-flash-progress></div>
+        </div>
       </div>
     </div>
     """
