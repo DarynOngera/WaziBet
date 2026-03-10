@@ -33,6 +33,12 @@ defmodule WaziBet.Workers.GameStartWorker do
         {:ok, _} = Sport.transition_game_status(game, :live)
         IO.puts("GameStartWorker: Game transitioned to live")
 
+        Phoenix.PubSub.broadcast(
+          WaziBet.PubSub,
+          "games",
+          {__MODULE__, game_id, :started}
+        )
+
         # Close betting on all outcomes
         Bets.close_outcomes_for_game(game_id)
         IO.puts("GameStartWorker: Outcomes closed")
