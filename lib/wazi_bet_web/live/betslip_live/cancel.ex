@@ -6,9 +6,8 @@ defmodule WaziBetWeb.BetslipLive.Cancel do
 
   use WaziBetWeb, :live_view
 
-  alias WaziBet.{Bets, Repo}
+  alias WaziBet.Bets
   alias WaziBet.Bets.Settlement
-  alias Ecto.Multi
 
   @impl true
   def mount(%{"id" => betslip_id}, _session, socket) do
