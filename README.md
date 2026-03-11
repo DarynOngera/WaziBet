@@ -1,18 +1,18 @@
 # WaziBet
 
-To start your Phoenix server:
+## Technologies
 
-* Run `mix setup` to install and setup dependencies
-* Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
+- **Phoenix** - Web framework
+- **PostgreSQL** - Database
+- **Oban** - Background job processing
+- **GenServer** - Game simulation engine
+- **Canada** - Role-based access control
 
-Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
+## Getting Started
 
-Ready to run in production? Please [check our deployment guides](https://hexdocs.pm/phoenix/deployment.html).
+```bash
+mix setup
+mix phx.server
+```
 
-## Learn more
-
-* Official website: https://www.phoenixframework.org/
-* Guides: https://hexdocs.pm/phoenix/overview.html
-* Docs: https://hexdocs.pm/phoenix
-* Forum: https://elixirforum.com/c/phoenix-forum
-* Source: https://github.com/phoenixframework/phoenix
+Visit [`localhost:4000`](http://localhost:4000)
