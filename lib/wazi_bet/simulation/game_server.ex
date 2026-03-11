@@ -48,6 +48,12 @@ defmodule WaziBet.Simulation.GameServer do
 
         broadcast(data.game_id, broadcast_data)
 
+        Phoenix.PubSub.broadcast(
+          WaziBet.PubSub,
+          "games",
+          {__MODULE__, data.game_id, broadcast_data}
+        )
+
         schedule_tick()
         {:noreply, %{data | state: new_state}}
 
@@ -64,6 +70,12 @@ defmodule WaziBet.Simulation.GameServer do
 
         # Broadcast finished event
         broadcast(data.game_id, finished_payload)
+
+        Phoenix.PubSub.broadcast(
+          WaziBet.PubSub,
+          "games",
+          {__MODULE__, data.game_id, finished_payload}
+        )
 
         Phoenix.PubSub.broadcast(
           WaziBet.PubSub,
