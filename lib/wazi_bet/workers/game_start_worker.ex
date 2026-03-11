@@ -43,7 +43,7 @@ defmodule WaziBet.Workers.GameStartWorker do
         Bets.close_outcomes_for_game(game_id)
         IO.puts("GameStartWorker: Outcomes closed")
 
-        # Start the game simulation (load initial game state to game server)
+        # Start the game simulation
         game_with_teams = Sport.get_game_with_teams!(game_id)
         GameSupervisor.start_game(game_with_teams)
         IO.puts("GameStartWorker: Game simulation started")

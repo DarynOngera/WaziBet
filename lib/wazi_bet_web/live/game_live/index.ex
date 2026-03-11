@@ -671,7 +671,7 @@ defmodule WaziBetWeb.GameLive.Index do
 
           <%!-- Odds --%>
           <%= if @game.status == :scheduled do %>
-            <div class="flex gap-2 lg:justify-end">
+            <div class="flex gap-2 lg:justify-end p-1">
               <%= for outcome <- sort_outcomes(@game.outcomes) do %>
                 <button
                   phx-click="add_to_betslip"
