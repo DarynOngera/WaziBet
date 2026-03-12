@@ -33,9 +33,6 @@ defmodule WaziBet.Simulation.GameServer do
   def handle_info(:tick, %{state: state} = data) do
     case TickEngine.tick(state) do
       {:ok, new_state, event} ->
-        # Persist state to database on each tick
-        persist_game_state(data.game_id, new_state)
-
         # Broadcast full state
         broadcast_data = %{
           minute: length(new_state.events),
@@ -47,13 +44,7 @@ defmodule WaziBet.Simulation.GameServer do
         }
 
         broadcast(data.game_id, broadcast_data)
-
-        Phoenix.PubSub.broadcast(
-          WaziBet.PubSub,
-          "games",
-          {__MODULE__, data.game_id, broadcast_data}
-        )
-
+        
         schedule_tick()
         {:noreply, %{data | state: new_state}}
 
@@ -71,18 +62,6 @@ defmodule WaziBet.Simulation.GameServer do
         # Broadcast finished event
         broadcast(data.game_id, finished_payload)
 
-        Phoenix.PubSub.broadcast(
-          WaziBet.PubSub,
-          "games",
-          {__MODULE__, data.game_id, finished_payload}
-        )
-
-        Phoenix.PubSub.broadcast(
-          WaziBet.PubSub,
-          "game:finished",
-          {__MODULE__, data.game_id, finished_payload}
-        )
-
         {:stop, :normal, %{data | state: new_state}}
     end
   end
@@ -93,6 +72,8 @@ defmodule WaziBet.Simulation.GameServer do
 
   defp broadcast(game_id, event) do
     Phoenix.PubSub.broadcast(WaziBet.PubSub, "game:#{game_id}", {__MODULE__, game_id, event})
+    Phoenix.PubSub.broadcast(WaziBet.PubSub, "games", {__MODULE__, game_id, event})
+    Phoenix.PubSub.broadcast(WaziBet.PubSub, "game:finished", {__MODULE__, game_id, event})
   end
 
   defp persist_game_state(game_id, state) do
