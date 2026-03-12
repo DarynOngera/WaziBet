@@ -33,19 +33,14 @@ defmodule WaziBet.Workers.GameStartWorker do
         {:ok, _} = Sport.transition_game_status(game, :live)
         IO.puts("GameStartWorker: Game transitioned to live")
 
-        Phoenix.PubSub.broadcast(
-          WaziBet.PubSub,
-          "games",
-          {__MODULE__, game_id, :started}
-        )
+        Phoenix.PubSub.broadcast( WaziBet.PubSub, "games", {__MODULE__, game_id, :started})
 
         # Close betting on all outcomes
         Bets.close_outcomes_for_game(game_id)
         IO.puts("GameStartWorker: Outcomes closed")
 
         # Start the game simulation
-        game_with_teams = Sport.get_game_with_teams!(game_id)
-        GameSupervisor.start_game(game_with_teams)
+        GameSupervisor.start_game(game)
         IO.puts("GameStartWorker: Game simulation started")
       else
         IO.puts("GameStartWorker: Game not started - status is #{game.status}")
