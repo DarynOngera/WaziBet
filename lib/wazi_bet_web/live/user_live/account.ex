@@ -44,7 +44,7 @@ defmodule WaziBetWeb.UserLive.Account do
                |> assign(:deposit_form, to_form(%{"amount" => ""}))
                |> put_flash(
                  :info,
-                 "Successfully deposited $#{Decimal.to_string(amount, :normal)}!"
+                 "Successfully deposited #{Decimal.to_string(amount, :normal)}Kes!"
                )}
 
             {:error, _} ->
