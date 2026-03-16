@@ -20,23 +20,16 @@ defmodule WaziBet.Workers.BetslipSettlementWorker do
     Logger.debug("SettlementWorker starting for betslip_id=#{betslip_id}")
     betslip = Bets.get_betslip_with_selections!(betslip_id)
 
-      # Check if all games are finished before settling game
-      case check_status?(betslip) do 
-        :true -> :ok
-        :false ->
-          unless Settlement.all_games_finished?(betslip) do
+    # Check if betslip is already settled
+    case check_status?(betslip) do
+      true -> :ok
+      false ->
+        # Check if all games are finished before settling game
+        check_finished(betslip)
 
-          Logger.info("SettlementWorker snoozing; betslip_id=#{betslip_id} not all games finished")
-          {:snooze, 30}
-          else
-
-          Logger.debug("SettlementWorker settling selections; betslip_id=#{betslip_id}")
-          set_result(betslip)
-
-          # Reload betslip with updated selections and settle
-          updated_betslip = Bets.get_betslip_with_selections!(betslip_id)
-          settle_betslips(updated_betslip)
-        end
+        # Reload betslip with updated selections and settle
+        updated_betslip = Bets.get_betslip_with_selections!(betslip_id)
+        settle_betslips(updated_betslip)
     end
   end
 
@@ -91,7 +84,7 @@ defmodule WaziBet.Workers.BetslipSettlementWorker do
   end
 
   defp check_status?(betslip) do
-    betslip.status != :pending 
+    betslip.status != :pending
   end
 
   defp set_result(betslip) do
@@ -109,10 +102,9 @@ defmodule WaziBet.Workers.BetslipSettlementWorker do
             end
 
           selection_status =
-            if selection.outcome.label == winning_label do
-              :won
-            else
-              :lost
+            case selection.outcome.label == winning_label do
+              true -> :won
+              false -> :lost
             end
 
           Settlement.update_selection_status(selection.id, selection_status)
@@ -127,6 +119,15 @@ defmodule WaziBet.Workers.BetslipSettlementWorker do
         :ok
       {:error, _} = error ->
         error
+    end
+  end
+
+  defp check_finished(betslip) do
+    case Settlement.all_games_finished?(betslip) do
+      true ->
+        set_result(betslip)
+      false ->
+        {:snooze, 30}
     end
   end
 end
