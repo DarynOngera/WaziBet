@@ -45,7 +45,7 @@ defmodule WaziBetWeb.GameLive.Index do
 
     # Load betslip and stake from storage (DB for authenticated users)
     betslip = get_betslip_from_storage(socket)
-    stake = get_stake_from_storage(socket)
+    stake = 50
     total_odds = calculate_total_odds(betslip)
     potential_payout = calculate_potential_payout(stake, total_odds)
 
@@ -549,12 +549,6 @@ defmodule WaziBetWeb.GameLive.Index do
     end
   end
 
-  defp get_stake_from_storage(socket) do
-    # Always return default - stake should only come from user input in the UI
-    # Don't read from DB as it might have stale/0 values
-    "100"
-  end
-
   defp persist_betslip(socket, selections) do
     if socket.assigns[:current_scope] && socket.assigns.current_scope.user do
       user_id = socket.assigns.current_scope.user.id
@@ -830,10 +824,6 @@ defmodule WaziBetWeb.GameLive.Index do
 
   defp get_field(map, key, default \\ nil) do
     Map.get(map, key) |> Kernel.||(Map.get(map, to_string(key), default))
-  end
-
-  defp format_odds(odds) do
-    odds
   end
 
   defp calculate_potential_payout(stake, total_odds) do
