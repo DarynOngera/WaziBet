@@ -22,7 +22,9 @@ defmodule WaziBet.Workers.BetslipSettlementWorker do
 
     # Check if betslip is already settled
     case check_status?(betslip) do
-      true -> :ok
+      true ->
+        :ok
+
       false ->
         # Check if all games are finished before settling game
         check_finished(betslip)
@@ -42,7 +44,11 @@ defmodule WaziBet.Workers.BetslipSettlementWorker do
       end
       |> Repo.preload(:selections)
 
-    Phoenix.PubSub.broadcast(WaziBet.PubSub, "user:#{betslip.user_id}:betslip_settled", {:betslip_settled, settled_betslip.id, settled_betslip.status})
+    Phoenix.PubSub.broadcast(
+      WaziBet.PubSub,
+      "user:#{betslip.user_id}:betslip_settled",
+      {:betslip_settled, settled_betslip.id, settled_betslip.status}
+    )
   end
 
   defp send_result_email(betslip, settlement_result) do
@@ -90,25 +96,25 @@ defmodule WaziBet.Workers.BetslipSettlementWorker do
   defp set_result(betslip) do
     # Update each selection status based on each game's actual result
     Enum.each(betslip.selections, fn selection ->
-          # Reload the game to get its current status and score
-          game = Sport.get_game!(selection.game_id)
+      # Reload the game to get its current status and score
+      game = Sport.get_game!(selection.game_id)
 
-          # Determine winning label from game scores
-          winning_label =
-            cond do
-              game.home_score > game.away_score -> :home
-              game.home_score < game.away_score -> :away
-              true -> :draw
-            end
+      # Determine winning label from game scores
+      winning_label =
+        cond do
+          game.home_score > game.away_score -> :home
+          game.home_score < game.away_score -> :away
+          true -> :draw
+        end
 
-          selection_status =
-            case selection.outcome.label == winning_label do
-              true -> :won
-              false -> :lost
-            end
+      selection_status =
+        case selection.outcome.label == winning_label do
+          true -> :won
+          false -> :lost
+        end
 
-          Settlement.update_selection_status(selection.id, selection_status)
-        end)
+      Settlement.update_selection_status(selection.id, selection_status)
+    end)
   end
 
   defp settle_betslips(updated_betslip) do
@@ -117,6 +123,7 @@ defmodule WaziBet.Workers.BetslipSettlementWorker do
         send_result_email(updated_betslip, result)
         broadcast_settlement(updated_betslip, result)
         :ok
+
       {:error, _} = error ->
         error
     end
@@ -126,6 +133,7 @@ defmodule WaziBet.Workers.BetslipSettlementWorker do
     case Settlement.all_games_finished?(betslip) do
       true ->
         set_result(betslip)
+
       false ->
         {:snooze, 30}
     end

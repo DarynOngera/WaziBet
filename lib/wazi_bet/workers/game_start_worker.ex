@@ -19,7 +19,6 @@ defmodule WaziBet.Workers.GameStartWorker do
 
   @impl true
   def perform(%Oban.Job{args: %{"game_id" => game_id}}) do
-
     try do
       game = Sport.get_game_with_teams!(game_id)
 
@@ -28,7 +27,7 @@ defmodule WaziBet.Workers.GameStartWorker do
         # Transition to live
         {:ok, _} = Sport.transition_game_status(game, :live)
 
-        Phoenix.PubSub.broadcast( WaziBet.PubSub, "games", {__MODULE__, game_id, :started})
+        Phoenix.PubSub.broadcast(WaziBet.PubSub, "games", {__MODULE__, game_id, :started})
 
         # Close betting on all outcomes
         Bets.close_outcomes_for_game(game_id)
