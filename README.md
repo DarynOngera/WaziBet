@@ -1,18 +1,22 @@
 # WaziBet
 
-To start your Phoenix server:
+A real-time betting platform with live football simulation.
 
-* Run `mix setup` to install and setup dependencies
-* Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
+## Technologies
 
-Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
+- **Phoenix** - Web framework
+- **PostgreSQL** - Database
+- **Oban** - Background job processing
+- **GenServer** - Game simulation engine
+- **Canada** - Role-based access control
+- **Decimal Odds** - Odds reflect implied probability; probabilities convert to odds using the formula: odds = 1/probability
+- **Poisson Distribution** - Simulates goal scoring by calculating probability of goals based on team strength ratings
 
-Ready to run in production? Please [check our deployment guides](https://hexdocs.pm/phoenix/deployment.html).
+## Getting Started
 
-## Learn more
+```bash
+mix setup
+mix phx.server
+```
 
-* Official website: https://www.phoenixframework.org/
-* Guides: https://hexdocs.pm/phoenix/overview.html
-* Docs: https://hexdocs.pm/phoenix
-* Forum: https://elixirforum.com/c/phoenix-forum
-* Source: https://github.com/phoenixframework/phoenix
+Visit [`localhost:4000`](http://localhost:4000)
