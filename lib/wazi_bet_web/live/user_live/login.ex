@@ -45,7 +45,7 @@ defmodule WaziBetWeb.UserLive.Login do
               :let={f}
               for={@form}
               id="login_form_password"
-              action={~p"/users/log-in"}
+              action={@login_action}
               phx-submit="submit_password"
               phx-trigger-action={@trigger_submit}
             >
@@ -99,7 +99,7 @@ defmodule WaziBetWeb.UserLive.Login do
                   :let={f}
                   for={@form}
                   id="login_form_magic"
-                  action={~p"/users/log-in"}
+                  action={@login_action}
                   phx-submit="submit_magic"
                 >
                   <.input
@@ -125,14 +125,15 @@ defmodule WaziBetWeb.UserLive.Login do
   end
 
   @impl true
-  def mount(_params, _session, socket) do
+  def mount(params, _session, socket) do
     email =
       Phoenix.Flash.get(socket.assigns.flash, :email) ||
         get_in(socket.assigns, [:current_scope, Access.key(:user), Access.key(:email)])
 
     form = to_form(%{"email" => email}, as: "user")
+    login_action = login_action(params)
 
-    {:ok, assign(socket, form: form, trigger_submit: false)}
+    {:ok, assign(socket, form: form, trigger_submit: false, login_action: login_action)}
   end
 
   @impl true
@@ -154,10 +155,27 @@ defmodule WaziBetWeb.UserLive.Login do
     {:noreply,
      socket
      |> put_flash(:info, info)
-     |> push_navigate(to: ~p"/users/log-in")}
+     |> push_navigate(to: socket.assigns.login_action)}
   end
 
   defp local_mail_adapter? do
     Application.get_env(:wazi_bet, WaziBet.Mailer)[:adapter] == Swoosh.Adapters.Local
   end
+
+  defp login_action(params) do
+    reauth = Map.get(params, "reauth")
+    return_to = Map.get(params, "return_to")
+
+    if reauth in ["true", "1"] and safe_return_to?(return_to) do
+      "/users/log-in?" <> URI.encode_query(%{"reauth" => "true", "return_to" => return_to})
+    else
+      ~p"/users/log-in"
+    end
+  end
+
+  defp safe_return_to?(path) when is_binary(path) do
+    String.starts_with?(path, "/") and not String.starts_with?(path, "//")
+  end
+
+  defp safe_return_to?(_), do: false
 end

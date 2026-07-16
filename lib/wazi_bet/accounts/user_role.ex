@@ -5,7 +5,6 @@ defmodule WaziBet.Accounts.UserRole do
   alias WaziBet.Accounts.User
   alias WaziBet.Accounts.Role
 
-
   @primary_key false
   schema "users_roles" do
     belongs_to :user, User

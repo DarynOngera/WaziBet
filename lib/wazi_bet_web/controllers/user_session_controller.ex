@@ -13,28 +13,30 @@ defmodule WaziBetWeb.UserSessionController do
   end
 
   # magic link login
-  defp create(conn, %{"user" => %{"token" => token} = user_params}, info) do
+  defp create(conn, %{"user" => %{"token" => token} = user_params} = params, info) do
     case Accounts.login_user_by_magic_link(token) do
       {:ok, {user, tokens_to_disconnect}} ->
         UserAuth.disconnect_sessions(tokens_to_disconnect)
 
         conn
+        |> maybe_put_user_return_to(params)
         |> put_flash(:info, info)
         |> UserAuth.log_in_user(user, user_params)
 
       _ ->
         conn
         |> put_flash(:error, "The link is invalid or it has expired.")
-        |> redirect(to: ~p"/users/log-in")
+        |> redirect(to: login_path(params))
     end
   end
 
   # email + password login
-  defp create(conn, %{"user" => user_params}, info) do
+  defp create(conn, %{"user" => user_params} = params, info) do
     %{"email" => email, "password" => password} = user_params
 
     if user = Accounts.get_user_by_email_and_password(email, password) do
       conn
+      |> maybe_put_user_return_to(params)
       |> put_flash(:info, info)
       |> UserAuth.log_in_user(user, user_params)
     else
@@ -42,7 +44,7 @@ defmodule WaziBetWeb.UserSessionController do
       conn
       |> put_flash(:error, "Invalid email or password")
       |> put_flash(:email, String.slice(email, 0, 160))
-      |> redirect(to: ~p"/users/log-in")
+      |> redirect(to: login_path(params))
     end
   end
 
@@ -64,4 +66,31 @@ defmodule WaziBetWeb.UserSessionController do
     |> put_flash(:info, "Logged out successfully.")
     |> UserAuth.log_out_user()
   end
+
+  defp maybe_put_user_return_to(conn, %{"return_to" => return_to}) when is_binary(return_to) do
+    if safe_return_to?(return_to) do
+      put_session(conn, :user_return_to, return_to)
+    else
+      conn
+    end
+  end
+
+  defp maybe_put_user_return_to(conn, _params), do: conn
+
+  defp login_path(%{"reauth" => reauth, "return_to" => return_to})
+       when reauth in ["true", "1"] and is_binary(return_to) do
+    if safe_return_to?(return_to) do
+      "/users/log-in?" <> URI.encode_query(%{"reauth" => "true", "return_to" => return_to})
+    else
+      ~p"/users/log-in"
+    end
+  end
+
+  defp login_path(_params), do: ~p"/users/log-in"
+
+  defp safe_return_to?(path) when is_binary(path) do
+    String.starts_with?(path, "/") and not String.starts_with?(path, "//")
+  end
+
+  defp safe_return_to?(_), do: false
 end

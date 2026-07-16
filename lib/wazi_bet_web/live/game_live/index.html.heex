@@ -216,6 +216,45 @@
           <% end %>
         </div>
 
+        <div class="mb-6">
+          <div class="inline-flex items-center gap-1 rounded-xl border border-base-300 bg-base-200 p-1">
+            <button
+              phx-click="switch_games_tab"
+              phx-value-tab="live"
+              class={[
+                "btn btn-xs rounded-lg border-0",
+                @games_tab == :live && "btn-success text-success-content",
+                @games_tab != :live && "btn-ghost text-base-content/70 hover:text-base-content"
+              ]}
+            >
+              <span class="inline-flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-current opacity-80"></span>
+                Live
+                <span class="type-mono text-[10px] opacity-80">
+                  ({total_live_games(@games_by_category)})
+                </span>
+              </span>
+            </button>
+            <button
+              phx-click="switch_games_tab"
+              phx-value-tab="scheduled"
+              class={[
+                "btn btn-xs rounded-lg border-0",
+                @games_tab == :scheduled && "btn-primary text-primary-content",
+                @games_tab != :scheduled &&
+                  "btn-ghost text-base-content/70 hover:text-base-content"
+              ]}
+            >
+              <span class="inline-flex items-center gap-2">
+                <.icon name="hero-calendar-days" class="icon-xs" /> Scheduled
+                <span class="type-mono text-[10px] opacity-80">
+                  ({total_scheduled_games(@games_by_category)})
+                </span>
+              </span>
+            </button>
+          </div>
+        </div>
+
         <%!-- Mobile Category Filter --%>
         <div class="lg:hidden mb-6">
           <div class="flex gap-2 overflow-x-auto pb-2">
@@ -248,8 +287,11 @@
         </div>
 
         <%!-- Games by Category --%>
+        <% active_games_by_category =
+          if @games_tab == :live, do: @live_games_by_category, else: @scheduled_games_by_category %>
+
         <%= if Enum.empty?(@games_by_category) do %>
-          <div class="card bg-base-100 shadow-xl border border-base-300">
+          <div class="card bg-base-100 shadow-xs border border-base-300">
             <div class="card-body text-center py-16">
               <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-base-200 flex items-center justify-center">
                 <.icon name="hero-inbox" class="w-10 h-10 text-base-content/30" />
@@ -259,55 +301,75 @@
             </div>
           </div>
         <% else %>
-          <div class="space-y-8">
-            <%= for %{category: category, live_games: live, scheduled_games: scheduled} <- @games_by_category do %>
-              <div class="space-y-4">
-                <%!-- Category Header --%>
-                <div class="flex items-center gap-3 pb-2 border-b-2 border-base-300">
-                  <.category_icon icon={category.icon} class="w-6 h-6 text-primary" />
-                  <h2 class="type-h2">{category.name}</h2>
-                  <%= if length(live) > 0 do %>
-                    <span class="badge badge-success badge-sm animate-pulse border-2">
-                      LIVE
-                    </span>
+          <%= if Enum.empty?(active_games_by_category) do %>
+            <div class="card bg-base-100 shadow-xs border border-base-300">
+              <div class="card-body text-center py-16">
+                <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-base-200 flex items-center justify-center">
+                  <.icon
+                    name={if @games_tab == :live, do: "hero-bolt", else: "hero-calendar-days"}
+                    class="w-10 h-10 text-base-content/30"
+                  />
+                </div>
+                <h2 class="type-h2 font-semibold mb-2">
+                  {if @games_tab == :live,
+                    do: "No live games right now",
+                    else: "No scheduled games available"}
+                </h2>
+                <p class="text-base-content/60">
+                  <%= if @games_tab == :live do %>
+                    Check back shortly for matches that are currently in play.
+                  <% else %>
+                    Check back later for upcoming matches.
+                  <% end %>
+                </p>
+              </div>
+            </div>
+          <% else %>
+            <div class="space-y-8">
+              <%= for %{category: category, live_games: live, scheduled_games: scheduled} <- active_games_by_category do %>
+                <div class="space-y-4">
+                  <div class="flex items-center gap-3 pb-2 border-b-2 border-base-300">
+                    <.category_icon icon={category.icon} class="w-6 h-6 text-primary" />
+                    <h2 class="type-h2">{category.name}</h2>
+                    <%= if @games_tab == :live and length(live) > 0 do %>
+                      <span class="badge badge-success badge-sm animate-pulse border-2">
+                        LIVE
+                      </span>
+                    <% end %>
+                  </div>
+
+                  <%= if @games_tab == :live do %>
+                    <div>
+                      <h3 class="text-sm font-semibold text-success mb-3 flex items-center gap-2">
+                        <span class="w-2 h-2 bg-success rounded-full animate-pulse"></span>
+                        Live Now ({length(live)})
+                      </h3>
+                      <div class="grid gap-4">
+                        <%= for game <- live do %>
+                          <.game_card
+                            game={game}
+                            betslip={@betslip}
+                            viewer_count={Map.get(@viewer_counts, game.id, 0)}
+                          />
+                        <% end %>
+                      </div>
+                    </div>
+                  <% else %>
+                    <div>
+                      <h3 class="text-sm font-semibold text-base-content/60 mb-3">
+                        Upcoming ({length(scheduled)})
+                      </h3>
+                      <div class="grid gap-2.5">
+                        <%= for game <- scheduled do %>
+                          <.game_card game={game} betslip={@betslip} />
+                        <% end %>
+                      </div>
+                    </div>
                   <% end %>
                 </div>
-
-                <%!-- Live Games Section --%>
-                <%= if length(live) > 0 do %>
-                  <div>
-                    <h3 class="text-sm font-semibold text-success mb-3 flex items-center gap-2">
-                      <span class="w-2 h-2 bg-success rounded-full animate-pulse"></span>
-                      Live Now ({length(live)})
-                    </h3>
-                    <div class="grid gap-4">
-                      <%= for game <- live do %>
-                        <.game_card
-                          game={game}
-                          betslip={@betslip}
-                          viewer_count={Map.get(@viewer_counts, game.id, 0)}
-                        />
-                      <% end %>
-                    </div>
-                  </div>
-                <% end %>
-
-                <%!-- Scheduled Games Section --%>
-                <%= if length(scheduled) > 0 do %>
-                  <div>
-                    <h3 class="text-sm font-semibold text-base-content/60 mb-3">
-                      Upcoming ({length(scheduled)})
-                    </h3>
-                    <div class="grid gap-2.5">
-                      <%= for game <- scheduled do %>
-                        <.game_card game={game} betslip={@betslip} />
-                      <% end %>
-                    </div>
-                  </div>
-                <% end %>
-              </div>
-            <% end %>
-          </div>
+              <% end %>
+            </div>
+          <% end %>
         <% end %>
       </div>
     </main>

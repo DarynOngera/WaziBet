@@ -37,13 +37,15 @@ defmodule WaziBetWeb.GameLive.Index do
 
     games = list_games_with_outcomes(selected_category)
     games_by_category = organize_games_by_category(games, categories)
+    {live_games_by_category, scheduled_games_by_category} = split_games_by_tab(games_by_category)
+    games_tab = default_games_tab(live_games_by_category, scheduled_games_by_category)
 
     # Get viewer counts for live games
     viewer_counts = get_live_game_viewer_counts(games)
 
     # Load betslip and stake from storage (DB for authenticated users)
     betslip = get_betslip_from_storage(socket)
-    stake = get_stake_from_storage(socket)
+    stake = 50
     total_odds = calculate_total_odds(betslip)
     potential_payout = calculate_potential_payout(stake, total_odds)
 
@@ -52,6 +54,9 @@ defmodule WaziBetWeb.GameLive.Index do
      |> assign(:categories, categories)
      |> assign(:selected_category, selected_category)
      |> assign(:games_by_category, games_by_category)
+     |> assign(:live_games_by_category, live_games_by_category)
+     |> assign(:scheduled_games_by_category, scheduled_games_by_category)
+     |> assign(:games_tab, games_tab)
      |> assign(:viewer_counts, viewer_counts)
      |> assign(:betslip, betslip)
      |> assign(:stake, stake)
@@ -65,10 +70,21 @@ defmodule WaziBetWeb.GameLive.Index do
     selected_category = params["category"]
     games = list_games_with_outcomes(selected_category)
     games_by_category = organize_games_by_category(games, socket.assigns.categories)
+    {live_games_by_category, scheduled_games_by_category} = split_games_by_tab(games_by_category)
+
+    games_tab =
+      choose_games_tab(
+        socket.assigns[:games_tab],
+        live_games_by_category,
+        scheduled_games_by_category
+      )
 
     {:noreply,
      socket
      |> assign(:games_by_category, games_by_category)
+     |> assign(:live_games_by_category, live_games_by_category)
+     |> assign(:scheduled_games_by_category, scheduled_games_by_category)
+     |> assign(:games_tab, games_tab)
      |> assign(:selected_category, selected_category)}
   end
 
@@ -80,6 +96,12 @@ defmodule WaziBetWeb.GameLive.Index do
   @impl true
   def handle_event("clear_filter", _params, socket) do
     {:noreply, push_patch(socket, to: ~p"/")}
+  end
+
+  @impl true
+  def handle_event("switch_games_tab", %{"tab" => tab}, socket)
+      when tab in ["live", "scheduled"] do
+    {:noreply, assign(socket, :games_tab, String.to_existing_atom(tab))}
   end
 
   @impl true
@@ -241,7 +263,127 @@ defmodule WaziBetWeb.GameLive.Index do
         %{group | live_games: updated_live, scheduled_games: updated_scheduled}
       end)
 
-    {:noreply, assign(socket, :games_by_category, games_by_category)}
+    {live_games_by_category, scheduled_games_by_category} = split_games_by_tab(games_by_category)
+
+    games_tab =
+      choose_games_tab(
+        socket.assigns.games_tab,
+        live_games_by_category,
+        scheduled_games_by_category
+      )
+
+    {:noreply,
+     socket
+     |> assign(:games_by_category, games_by_category)
+     |> assign(:live_games_by_category, live_games_by_category)
+     |> assign(:scheduled_games_by_category, scheduled_games_by_category)
+     |> assign(:games_tab, games_tab)}
+  end
+
+  @impl true
+  def handle_info({WaziBet.Workers.GameStartWorker, game_id, :started}, socket) do
+    started_game = enrich_game_for_index(Sport.get_game_with_teams!(game_id))
+
+    games_by_category =
+      Enum.map(socket.assigns.games_by_category, fn %{
+                                                      category: category,
+                                                      live_games: live,
+                                                      scheduled_games: scheduled
+                                                    } = group ->
+        updated_live =
+          if category.id == started_game.category_id do
+            [started_game | Enum.reject(live, &(&1.id == game_id))]
+          else
+            Enum.reject(live, &(&1.id == game_id))
+          end
+
+        updated_scheduled = Enum.reject(scheduled, &(&1.id == game_id))
+
+        %{group | live_games: updated_live, scheduled_games: updated_scheduled}
+      end)
+      |> Enum.reject(fn %{live_games: live, scheduled_games: scheduled} ->
+        Enum.empty?(live) and Enum.empty?(scheduled)
+      end)
+
+    {live_games_by_category, scheduled_games_by_category} = split_games_by_tab(games_by_category)
+
+    games_tab =
+      choose_games_tab(
+        socket.assigns.games_tab,
+        live_games_by_category,
+        scheduled_games_by_category
+      )
+
+    viewer_counts =
+      get_live_game_viewer_counts(flatten_grouped_games(live_games_by_category, :live_games))
+
+    {:noreply,
+     socket
+     |> assign(:games_by_category, games_by_category)
+     |> assign(:live_games_by_category, live_games_by_category)
+     |> assign(:scheduled_games_by_category, scheduled_games_by_category)
+     |> assign(:games_tab, games_tab)
+     |> assign(:viewer_counts, viewer_counts)}
+  end
+
+  @impl true
+  def handle_info(
+        {WaziBet.Simulation.GameServer, game_id,
+         %{minute: minute, home_score: home_score, away_score: away_score}},
+        socket
+      ) do
+    games_by_category =
+      Enum.map(socket.assigns.games_by_category, fn %{
+                                                      live_games: live,
+                                                      scheduled_games: scheduled
+                                                    } = group ->
+        updated_live =
+          Enum.map(live, fn game ->
+            if game.id == game_id do
+              %{
+                game
+                | minute: minute,
+                  home_score: home_score,
+                  away_score: away_score,
+                  status: :live
+              }
+            else
+              game
+            end
+          end)
+
+        updated_scheduled =
+          update_game_in_list(scheduled, %{
+            id: game_id,
+            status: :live,
+            minute: minute,
+            home_score: home_score,
+            away_score: away_score
+          })
+
+        %{group | live_games: updated_live, scheduled_games: updated_scheduled}
+      end)
+
+    {live_games_by_category, scheduled_games_by_category} = split_games_by_tab(games_by_category)
+
+    games_tab =
+      choose_games_tab(
+        socket.assigns.games_tab,
+        live_games_by_category,
+        scheduled_games_by_category
+      )
+
+    {:noreply,
+     socket
+     |> assign(:games_by_category, games_by_category)
+     |> assign(:live_games_by_category, live_games_by_category)
+     |> assign(:scheduled_games_by_category, scheduled_games_by_category)
+     |> assign(:games_tab, games_tab)}
+  end
+
+  @impl true
+  def handle_info({WaziBet.Simulation.GameServer, game_id, {:finished, _payload}}, socket) do
+    handle_info({:game_updated, game_id}, socket)
   end
 
   @impl true
@@ -258,7 +400,21 @@ defmodule WaziBetWeb.GameLive.Index do
         %{group | live_games: updated_live, scheduled_games: updated_scheduled}
       end)
 
-    {:noreply, assign(socket, :games_by_category, games_by_category)}
+    {live_games_by_category, scheduled_games_by_category} = split_games_by_tab(games_by_category)
+
+    games_tab =
+      choose_games_tab(
+        socket.assigns.games_tab,
+        live_games_by_category,
+        scheduled_games_by_category
+      )
+
+    {:noreply,
+     socket
+     |> assign(:games_by_category, games_by_category)
+     |> assign(:live_games_by_category, live_games_by_category)
+     |> assign(:scheduled_games_by_category, scheduled_games_by_category)
+     |> assign(:games_tab, games_tab)}
   end
 
   @impl true
@@ -274,13 +430,9 @@ defmodule WaziBetWeb.GameLive.Index do
     filters =
       if category_filter, do: [{:category_id, String.to_integer(category_filter)}], else: []
 
-    games = Sport.list_games(filters)
-
-    Enum.map(games, fn game ->
-      game = Sport.get_game_with_teams!(game.id)
-      outcomes = Bets.get_outcomes_for_game(game.id)
-      Map.put(game, :outcomes, outcomes)
-    end)
+    filters
+    |> Sport.list_games()
+    |> Enum.map(&enrich_game_for_index/1)
   end
 
   defp organize_games_by_category(games, categories) do
@@ -301,6 +453,52 @@ defmodule WaziBetWeb.GameLive.Index do
     end)
   end
 
+  defp split_games_by_tab(games_by_category) do
+    live_games_by_category =
+      Enum.filter(games_by_category, fn %{live_games: live} -> live != [] end)
+
+    scheduled_games_by_category =
+      Enum.filter(games_by_category, fn %{scheduled_games: scheduled} -> scheduled != [] end)
+
+    {live_games_by_category, scheduled_games_by_category}
+  end
+
+  defp default_games_tab(live_games_by_category, scheduled_games_by_category) do
+    choose_games_tab(nil, live_games_by_category, scheduled_games_by_category)
+  end
+
+  defp choose_games_tab(:live, live_games_by_category, scheduled_games_by_category) do
+    cond do
+      live_games_by_category != [] -> :live
+      scheduled_games_by_category != [] -> :scheduled
+      true -> :live
+    end
+  end
+
+  defp choose_games_tab(:scheduled, live_games_by_category, scheduled_games_by_category) do
+    cond do
+      scheduled_games_by_category != [] -> :scheduled
+      live_games_by_category != [] -> :live
+      true -> :scheduled
+    end
+  end
+
+  defp choose_games_tab(nil, live_games_by_category, scheduled_games_by_category) do
+    cond do
+      live_games_by_category != [] -> :live
+      scheduled_games_by_category != [] -> :scheduled
+      true -> :live
+    end
+  end
+
+  defp games_count(groups, key) do
+    Enum.reduce(groups, 0, fn group, acc -> acc + length(Map.fetch!(group, key)) end)
+  end
+
+  defp flatten_grouped_games(groups, key) do
+    Enum.flat_map(groups, &Map.fetch!(&1, key))
+  end
+
   defp update_game_in_list(games, updated_game) do
     Enum.map(games, fn game ->
       if game.id == updated_game.id do
@@ -309,6 +507,12 @@ defmodule WaziBetWeb.GameLive.Index do
         game
       end
     end)
+  end
+
+  defp enrich_game_for_index(game) do
+    game = Sport.get_game_with_teams!(game.id)
+    outcomes = Bets.get_outcomes_for_game(game.id)
+    Map.put(game, :outcomes, outcomes)
   end
 
   defp update_outcomes_in_list(games, game_id, outcomes) do
@@ -345,12 +549,6 @@ defmodule WaziBetWeb.GameLive.Index do
     end
   end
 
-  defp get_stake_from_storage(socket) do
-    # Always return default - stake should only come from user input in the UI
-    # Don't read from DB as it might have stale/0 values
-    "100"
-  end
-
   defp persist_betslip(socket, selections) do
     if socket.assigns[:current_scope] && socket.assigns.current_scope.user do
       user_id = socket.assigns.current_scope.user.id
@@ -382,6 +580,15 @@ defmodule WaziBetWeb.GameLive.Index do
 
   def format_score(%{status: :scheduled}), do: "vs"
   def format_score(game), do: "#{game.home_score} - #{game.away_score}"
+
+  def total_live_games(groups), do: games_count(groups, :live_games)
+  def total_scheduled_games(groups), do: games_count(groups, :scheduled_games)
+
+  def format_local_starts_at(datetime, format) do
+    datetime
+    |> Timezone.to_local()
+    |> Calendar.strftime(format)
+  end
 
   def status_color(:scheduled), do: "badge-info"
   def status_color(:live), do: "badge-success"
@@ -416,10 +623,10 @@ defmodule WaziBetWeb.GameLive.Index do
                 <% end %>
               <% else %>
                 <div class="text-sm font-mono">
-                  {Calendar.strftime(@game.starts_at, "%d %b")}
+                  {format_local_starts_at(@game.starts_at, "%d %b")}
                 </div>
                 <div class="text-xs text-base-content/60">
-                  {Calendar.strftime(@game.starts_at, "%H:%M")}
+                  {format_local_starts_at(@game.starts_at, "%H:%M")}
                 </div>
               <% end %>
             </div>
@@ -458,7 +665,7 @@ defmodule WaziBetWeb.GameLive.Index do
 
           <%!-- Odds --%>
           <%= if @game.status == :scheduled do %>
-            <div class="flex gap-2 lg:justify-end">
+            <div class="flex gap-2 lg:justify-end p-1">
               <%= for outcome <- sort_outcomes(@game.outcomes) do %>
                 <button
                   phx-click="add_to_betslip"
@@ -617,10 +824,6 @@ defmodule WaziBetWeb.GameLive.Index do
 
   defp get_field(map, key, default \\ nil) do
     Map.get(map, key) |> Kernel.||(Map.get(map, to_string(key), default))
-  end
-
-  defp format_odds(odds) do
-    odds
   end
 
   defp calculate_potential_payout(stake, total_odds) do

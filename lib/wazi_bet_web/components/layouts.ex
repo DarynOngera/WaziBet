@@ -48,6 +48,13 @@ defmodule WaziBetWeb.Layouts do
     default: "",
     doc: "current request path for active menu highlighting"
 
+  @admin_dashboard_permissions [
+    "view-users",
+    "view-profits-from-losses",
+    "configure-games",
+    "assign-roles"
+  ]
+
   def app(assigns) do
     ~H"""
     <header class="navbar h-12 min-h-12 md:h-14 md:min-h-14 bg-base-200 border-b border-base-300 sticky top-0 z-50 px-1.5 sm:px-2.5">
@@ -90,6 +97,18 @@ defmodule WaziBetWeb.Layouts do
                 <.icon name="hero-user-circle" class="w-4 h-4" />
               </.link>
             </li>
+            <%= if has_admin_dashboard_access?(@current_scope.user) do %>
+              <li>
+                <.link
+                  href={~p"/admin/dashboard"}
+                  class="btn btn-sm btn-ghost"
+                  title="Admin Dashboard"
+                >
+                  <.icon name="hero-shield-check" class="w-4 h-4" />
+                  <span class="hidden md:inline">Admin</span>
+                </.link>
+              </li>
+            <% end %>
             <li>
               <.link href={~p"/betslip"} class="btn btn-sm btn-primary">
                 <.icon name="hero-ticket" class="w-4 h-4" />
@@ -201,4 +220,10 @@ defmodule WaziBetWeb.Layouts do
   end
 
   def has_permission?(_user, _slug), do: false
+
+  def has_admin_dashboard_access?(%WaziBet.Accounts.User{} = user) do
+    WaziBet.Can.can_any_slug?(user, @admin_dashboard_permissions)
+  end
+
+  def has_admin_dashboard_access?(_user), do: false
 end

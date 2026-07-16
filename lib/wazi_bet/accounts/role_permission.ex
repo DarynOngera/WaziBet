@@ -5,8 +5,7 @@ defmodule WaziBet.Accounts.RolePermission do
   alias WaziBet.Accounts.Role
   alias WaziBet.Accounts.Permission
 
-
-  #schema "roles_permissions" do  
+  # schema "roles_permissions" do  
   @primary_key false
   schema "roles_permissions" do
     belongs_to :role, Role

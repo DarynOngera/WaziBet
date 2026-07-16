@@ -97,6 +97,40 @@ defmodule WaziBetWeb.Admin.GameLive.Index do
   end
 
   @impl true
+  def handle_info({WaziBet.Workers.GameStartWorker, game_id, :started}, socket) do
+    handle_info({:game_updated, game_id}, socket)
+  end
+
+  @impl true
+  def handle_info(
+        {WaziBet.Simulation.GameServer, game_id,
+         %{minute: minute, home_score: home_score, away_score: away_score}},
+        socket
+      ) do
+    updated_games =
+      Enum.map(socket.assigns.games, fn game ->
+        if game.id == game_id do
+          %{game | minute: minute, home_score: home_score, away_score: away_score, status: :live}
+        else
+          game
+        end
+      end)
+
+    live_games = Enum.filter(updated_games, &(&1.status == :live))
+    viewer_counts = get_live_game_viewer_counts(live_games)
+
+    {:noreply,
+     socket
+     |> assign(:games, updated_games)
+     |> assign(:viewer_counts, viewer_counts)}
+  end
+
+  @impl true
+  def handle_info({WaziBet.Simulation.GameServer, game_id, {:finished, _payload}}, socket) do
+    handle_info({:game_updated, game_id}, socket)
+  end
+
+  @impl true
   def handle_info(%Phoenix.Socket.Broadcast{event: "presence_diff"}, socket) do
     live_games = Enum.filter(socket.assigns.games, &(&1.status == :live))
     viewer_counts = get_live_game_viewer_counts(live_games)

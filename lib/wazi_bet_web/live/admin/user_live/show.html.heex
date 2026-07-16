@@ -30,7 +30,7 @@
             <p class="text-base-content/60 font-mono">{@user.email}</p>
             <div class="flex gap-1 mt-2">
               <%= for role <- @user.roles do %>
-                <span class={["badge badge-sm", role_badge_color(role.slug)]}>
+                <span class={["badge badge-sm rounded-full", role_badge_color(role.slug)]}>
                   {String.capitalize(role.slug)}
                 </span>
               <% end %>
@@ -102,7 +102,10 @@
           <div class="card-body p-0">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 border-b-2 border-base-200 gap-2 bg-base-200">
               <div class="flex items-center gap-3">
-                <span class={["badge badge-lg border-2", status_color(betslip.status)]}>
+                <span class={[
+                  "badge badge-lg border-2 rounded-full",
+                  status_color(betslip.status)
+                ]}>
                   {String.capitalize(to_string(betslip.status))}
                 </span>
                 <span class="text-sm text-base-content/60 font-mono">
@@ -113,7 +116,7 @@
               <div class="text-right">
                 <div class="text-sm text-base-content/60">Potential Win</div>
                 <div class="text-xl font-bold text-success font-mono">
-                  ${Decimal.round(betslip.potential_payout, 2)}
+                  {Decimal.round(betslip.potential_payout, 2)}Kes
                 </div>
               </div>
             </div>
@@ -136,7 +139,7 @@
             <div class="flex justify-between items-center p-4 bg-base-200/50 border-t-2 border-base-200">
               <div>
                 <span class="text-sm text-base-content/60">Stake:</span>
-                <span class="font-bold ml-1 font-mono">${betslip.stake}</span>
+                <span class="font-bold ml-1 font-mono">{betslip.stake}Kes</span>
                 <span class="text-sm text-base-content/60 ml-4">Total Odds:</span>
                 <span class="font-bold ml-1 font-mono">
                   {Decimal.round(betslip.total_odds, 2)}

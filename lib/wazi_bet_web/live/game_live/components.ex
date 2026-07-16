@@ -8,7 +8,7 @@ defmodule WaziBetWeb.GameLive.Components do
 
   import WaziBetWeb.CoreComponents, only: [icon: 1]
 
-  alias Phoenix.LiveView.JS
+  # alias Phoenix.LiveView.JS
 
   attr :betslip, :list, required: true
   attr :open, :boolean, default: false
