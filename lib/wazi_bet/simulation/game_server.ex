@@ -44,7 +44,7 @@ defmodule WaziBet.Simulation.GameServer do
         }
 
         broadcast(data.game_id, broadcast_data)
-        
+
         schedule_tick()
         {:noreply, %{data | state: new_state}}
 

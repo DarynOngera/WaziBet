@@ -226,10 +226,11 @@ defmodule WaziBetWeb.UserAuth do
     {:cont, mount_categories(socket)}
   end
 
-  def on_mount(:redirect_if_user_is_authenticated, _params, session, socket) do
+  def on_mount(:redirect_if_user_is_authenticated, params, session, socket) do
     socket = mount_current_scope(socket, session)
 
-    if socket.assigns.current_scope && socket.assigns.current_scope.user do
+    if socket.assigns.current_scope && socket.assigns.current_scope.user &&
+         not reauth_request?(params) do
       socket =
         socket
         |> Phoenix.LiveView.put_flash(:error, "You are already logged in.")
@@ -262,10 +263,12 @@ defmodule WaziBetWeb.UserAuth do
     if Accounts.sudo_mode?(socket.assigns.current_scope.user, -10) do
       {:cont, socket}
     else
+      login_path = reauth_login_path(~p"/users/settings")
+
       socket =
         socket
         |> Phoenix.LiveView.put_flash(:error, "You must re-authenticate to access this page.")
-        |> Phoenix.LiveView.redirect(to: ~p"/users/log-in")
+        |> Phoenix.LiveView.redirect(to: login_path)
 
       {:halt, socket}
     end
@@ -373,7 +376,10 @@ defmodule WaziBetWeb.UserAuth do
   Redirects to signed in path if user is already logged in.
   """
   def redirect_if_user_is_authenticated(conn, _opts) do
-    if conn.assigns.current_scope && conn.assigns.current_scope.user do
+    conn = fetch_query_params(conn)
+
+    if conn.assigns.current_scope && conn.assigns.current_scope.user &&
+         not reauth_request?(conn.params) do
       conn
       |> put_flash(:error, "You are already logged in.")
       |> redirect(to: signed_in_path(conn))
@@ -427,4 +433,11 @@ defmodule WaziBetWeb.UserAuth do
   end
 
   defp maybe_store_return_to(conn), do: conn
+
+  defp reauth_login_path(return_to) do
+    "/users/log-in?" <> URI.encode_query(%{"reauth" => "true", "return_to" => return_to})
+  end
+
+  defp reauth_request?(%{"reauth" => value}) when value in ["true", "1"], do: true
+  defp reauth_request?(_), do: false
 end
